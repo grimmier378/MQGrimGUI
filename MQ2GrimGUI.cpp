@@ -37,7 +37,7 @@ public:
 	int m_MaxEndur = 0;
 	int m_CurEndur = 0;
 	int m_HealthPctInt = 100;
-	float m_HealthPctFloat = 0;
+	float m_HealthPctFloat = 0.0;
 	bool b_Leader = false;
 	bool b_Assist = false;
 	bool b_MainTank = false;
@@ -59,7 +59,8 @@ public:
 			m_CurEndur = GetCurEndurance();
 			m_HealthPctFloat = static_cast<float>(m_CurHP) / m_MaxHP;
 			m_HealthPctInt = static_cast<int>(m_HealthPctFloat * 100);
-			b_IsCombat = pCharInfo->InCombat;
+			b_IsCombat = pEverQuestInfo->bAutoAttack; //pCharInfo->InCombat;
+			
 			//TODO: MainTarget, Assist, Puller, Leader icons
 			//TODO: CombatStatus Icons
 		}
@@ -75,7 +76,7 @@ public:
 	int m_tLevel = 0;
 	int m_tCurHP = 0;
 	std::string m_tBody = "UNKNOWN";
-	std::string m_tClass = "N\\A";
+	std::string m_tClass = ICON_MD_HELP_OUTLINE;
 	float m_tDist = 0;
 	bool b_IsPC = false;
 	bool b_IsVis = false;
@@ -95,7 +96,7 @@ public:
 			m_tConColor = ConColor(pTarget);
 			m_tBody = GetBodyTypeDesc(GetBodyType(pTarget));
 			const char* classCode = CurTarget->GetClassThreeLetterCode();
-			m_tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : "N\\A";
+			m_tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
 		}
 		else
 		{
@@ -107,7 +108,7 @@ public:
 			b_IsVis = false;
 			m_tConColor = 0;
 			m_tBody = "UNKNOWN";
-			m_tClass = "N\\A";
+			m_tClass = ICON_MD_HELP_OUTLINE;
 		}
 	}
 };
