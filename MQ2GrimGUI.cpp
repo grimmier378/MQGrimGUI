@@ -29,9 +29,8 @@ static bool b_ShowSpellsWindow = false;
 static bool b_flashCombat = false;
 static bool b_charIniLoaded = false;
 static bool b_DefaultLoaded = false;
-
+static int s_FlashInterval = 250;
 static char s_SettingsFile[MAX_PATH] = { 0 };
-
 // Colors for Progress Bar Transitions
 static ImVec4 minColorHP(0.876f, 0.341f, 1.000f, 1.000f);
 static ImVec4 maxColorHP(0.845f, 0.151f, 0.151f, 1.000f);
@@ -138,13 +137,11 @@ public:
 
 
 // setup data classes and timers.
-
 CharData g_CharData;
 TargetData g_TargetData;
 std::chrono::steady_clock::time_point g_LastUpdateTime = std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastFlashTime = std::chrono::steady_clock::now();
 const auto g_UpdateInterval = std::chrono::milliseconds(250);
-const auto g_UpdateFlashInterval = std::chrono::milliseconds(133);
 
 
 /**
@@ -341,6 +338,7 @@ static void LoadSettings()
 	b_ShowPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
 	b_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	b_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
+	s_FlashInterval = GetPrivateProfileInt("Settings", "FlashInterval", 250, &s_SettingsFile[0]);
 
 	//Color Settings
 	minColorHP = LoadColorFromIni("Colors", "MinColorHP", ImVec4(0.876f, 0.341f, 1.000f, 1.000f), &s_SettingsFile[0]);
@@ -360,6 +358,7 @@ static void SaveSettings()
 	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", b_ShowPlayerWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Group", "ShowGroupWindow", b_ShowGroupWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Spells", "ShowSpellsWindow", b_ShowSpellsWindow, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Settings", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
 
 	//Color Settings
 	SaveColorToIni("Colors", "MinColorHP", minColorHP, &s_SettingsFile[0]);
@@ -694,10 +693,30 @@ void DrawConfigWindow()
 			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
 			ImGui::PopStyleColor();
 
+			ImGui::Separator();
+
+			// Flash Interval Control
+			ImGui::SliderInt("Flash Speed", &s_FlashInterval, 0, 500);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				if (s_FlashInterval == 0)
+				{
+					ImGui::Text("Flash Speed: Disabled");
+				}
+				else
+				{
+					ImGui::Text("Flash Speed: %d", s_FlashInterval);
+					ImGui::Text("Lower is slower, Higher is faster. 0 = Disabled");
+				}
+				ImGui::EndTooltip();
+			}
+
 			if (ImGui::Button("Save & Close"))
 			{
 				// only Save when the user clicks the button. 
 				// If they close the window and don't click the button the settings will not be saved and only be temporary.
+				WritePrivateProfileInt("Settings", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MinColorHP", minColorHP, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MaxColorHP", maxColorHP, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MinColorMP", minColorMP, &s_SettingsFile[0]);
@@ -786,10 +805,18 @@ PLUGIN_API void OnPulse()
 			g_TargetData.Update();
 			g_LastUpdateTime = now;
 		}
-		if (now - g_LastFlashTime >= g_UpdateFlashInterval)
+
+		if (s_FlashInterval > 0)
 		{
-			b_flashCombat = !b_flashCombat;
-			g_LastFlashTime = now;
+			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - s_FlashInterval))
+			{
+				b_flashCombat = !b_flashCombat;
+				g_LastFlashTime = now;
+			}
+		}
+		else
+		{
+			b_flashCombat = false;
 		}
 	}
 	UpdateSettingFile();
