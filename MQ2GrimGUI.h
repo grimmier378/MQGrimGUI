@@ -1,145 +1,11 @@
 #pragma once
 // MQ2GrimGUI.h
-#ifndef MQ2GRIMGUI_H
-#define MQ2GRIMGUI_H
-
 #include <string>
-#include <vector>
-#include <chrono>
 #include <imgui.h>
 #include "main/datatypes/MQ2DataTypes.h"
 #include "main/MQ2Main.h"
 
-// Declare global constants, structures, and variables
-extern bool b_ShowMainWindow;
-extern bool b_ShowConfigWindow;
-extern bool b_SplitTargetWindow;
-extern bool b_ShowPlayerWindow;
-extern bool b_flashCombat;
-extern int s_FlashInterval;
-
-// Forward declarations for functions
-void LoadSettings();
-void SaveSettings();
-void UpdateSettingFile();
-void DrawMainWindow();
-void DrawConfigWindow();
-void DrawPlayerWindow();
-void DrawTargetWindow();
-
 // Class Definitions
-CGroup* CurGroup;
-
-class CharData
-{
-public:
-	// Character attributes
-	std::string m_Name = "Unknown";
-	int m_Level = 0;
-	int m_MaxHP = 0;
-	int m_CurHP = 0;
-	int m_MaxMana = 0;
-	int m_CurMana = 0;
-	int m_MaxEndur = 0;
-	int m_CurEndur = 0;
-	int m_HealthPctInt = 100;
-	float m_HealthPctFloat = 0.0;
-	bool b_Leader = false;
-	bool b_Assist = false;
-	bool b_MainTank = false;
-	bool b_Puller = false;
-	bool b_IsCombat = false;
-
-	// Method to update character data
-	void Update()
-	{
-		if (PCHARINFO pCharInfo = GetCharInfo())
-		{
-			m_Name = pCharInfo->Name;
-			m_Level = pCharInfo->GetLevel();
-			m_MaxHP = GetMaxHPS();
-			m_CurHP = GetCurHPS();
-			m_MaxMana = GetMaxMana();
-			m_CurMana = GetCurMana();
-			m_MaxEndur = GetMaxEndurance();
-			m_CurEndur = GetCurEndurance();
-			m_HealthPctFloat = static_cast<float>(m_CurHP) / m_MaxHP;
-			m_HealthPctInt = static_cast<int>(m_HealthPctFloat * 100);
-			b_IsCombat = pEverQuestInfo->bAutoAttack; //pCharInfo->InCombat;
-
-			//TODO: MainTarget, Assist, Puller, Leader icons
-			//TODO: CombatStatus Icons
-		}
-	}
-};
-
-
-class TargetData
-{
-public:
-	// Target Information Holder
-	std::string m_tName = "Unknown";
-	int m_tConColor = 0;
-	int m_tLevel = 0;
-	int m_tCurHP = 0;
-	std::string m_tBody = "UNKNOWN";
-	std::string m_tClass = ICON_MD_HELP_OUTLINE;
-	std::string m_secondAgroName = "Unknown";
-	int m_myAgroPct = 0;
-	int m_secondAgroPct = 0;
-	float m_tDist = 0;
-	bool b_IsPC = false;
-	bool b_IsVis = false;
-
-	//TODO: Target Buffs table
-
-	void Update()
-	{
-		if (PSPAWNINFO CurTarget = pTarget)
-		{
-			b_IsPC = CurTarget->Type == PC;
-			m_tName = CurTarget->DisplayedName;
-			m_tLevel = CurTarget->Level;
-			m_tCurHP = CurTarget->HPCurrent;
-			m_tDist = GetDistance(pCharSpawn, pTarget);
-			b_IsVis = LineOfSight(pCharSpawn, pTarget);
-			m_tConColor = ConColor(pTarget);
-			m_tBody = GetBodyTypeDesc(GetBodyType(pTarget));
-			const char* classCode = CurTarget->GetClassThreeLetterCode();
-			m_tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
-
-			if (pAggroInfo)
-			{
-				m_myAgroPct = pAggroInfo->aggroData[AD_Player].AggroPct;
-				m_secondAgroPct = pAggroInfo->aggroData[AD_Secondary].AggroPct;
-				if (pAggroInfo->AggroSecondaryID)
-				{
-					m_secondAgroName = GetSpawnByID(pAggroInfo->AggroSecondaryID)->DisplayedName;
-				}
-				else
-				{
-					m_secondAgroName = "Unknown";
-				}
-			}
-		}
-		else
-		{
-			m_tName = "Unknown";
-			m_tLevel = 0;
-			m_tCurHP = 0;
-			b_IsPC = false;
-			m_tDist = 0;
-			b_IsVis = false;
-			m_tConColor = 0;
-			m_myAgroPct = 0;
-			m_secondAgroPct = 0;
-			m_tBody = "UNKNOWN";
-			m_secondAgroName = "Unknown";
-			m_tClass = ICON_MD_HELP_OUTLINE;
-		}
-	}
-};
-
 
 
 // Color utility functions
@@ -264,4 +130,3 @@ static ImVec4 ConColorToVec(int color_code)
 	}
 }
 
-#endif // MQ2GRIMGUI_H
