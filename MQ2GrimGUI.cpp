@@ -31,6 +31,8 @@ static bool b_charIniLoaded = false;
 static bool b_DefaultLoaded = false;
 static int s_FlashInterval = 250;
 static char s_SettingsFile[MAX_PATH] = { 0 };
+
+
 // Colors for Progress Bar Transitions
 static ImVec4 minColorHP(0.876f, 0.341f, 1.000f, 1.000f);
 static ImVec4 maxColorHP(0.845f, 0.151f, 0.151f, 1.000f);
@@ -338,7 +340,7 @@ static void LoadSettings()
 	b_ShowPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
 	b_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	b_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
-	s_FlashInterval = GetPrivateProfileInt("Settings", "FlashInterval", 250, &s_SettingsFile[0]);
+	s_FlashInterval = GetPrivateProfileInt("PlayerTarg", "FlashInterval", 250, &s_SettingsFile[0]);
 
 	//Color Settings
 	minColorHP = LoadColorFromIni("Colors", "MinColorHP", ImVec4(0.876f, 0.341f, 1.000f, 1.000f), &s_SettingsFile[0]);
@@ -358,7 +360,7 @@ static void SaveSettings()
 	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", b_ShowPlayerWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Group", "ShowGroupWindow", b_ShowGroupWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Spells", "ShowSpellsWindow", b_ShowSpellsWindow, &s_SettingsFile[0]);
-	WritePrivateProfileInt("Settings", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
 
 	//Color Settings
 	SaveColorToIni("Colors", "MinColorHP", minColorHP, &s_SettingsFile[0]);
@@ -716,7 +718,7 @@ void DrawConfigWindow()
 			{
 				// only Save when the user clicks the button. 
 				// If they close the window and don't click the button the settings will not be saved and only be temporary.
-				WritePrivateProfileInt("Settings", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MinColorHP", minColorHP, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MaxColorHP", maxColorHP, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MinColorMP", minColorMP, &s_SettingsFile[0]);
