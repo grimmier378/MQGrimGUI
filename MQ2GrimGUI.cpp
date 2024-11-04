@@ -137,13 +137,29 @@ public:
 };
 
 
-// Calculate the progress bar color based on Min, Max, and optional Mid Values.
-//@Param minColor: Minimum color value
-//@Param maxColor: Maximum color value
-//@Param value: Current value to calculate color for
-//@Param midColor: Optional mid color value
-//@Param midValue: Optional mid value to switch from minColor to midColor
-//@Return: ImVec4 color value
+// setup data classes and timers.
+
+CharData g_CharData;
+TargetData g_TargetData;
+std::chrono::steady_clock::time_point g_LastUpdateTime = std::chrono::steady_clock::now();
+std::chrono::steady_clock::time_point g_LastFlashTime = std::chrono::steady_clock::now();
+const auto g_UpdateInterval = std::chrono::milliseconds(250);
+const auto g_UpdateFlashInterval = std::chrono::milliseconds(133);
+
+
+/**
+* @fn CalculateProgressiveColor
+* 
+* Function to calculate a color between two colors based on a value between 0 and 100
+* 
+* @param minColor const ImVec4& Minimum color value
+* @param maxColor const ImVec4& Maximum color value
+* @param value int Value between 0 and 100 to calculate the color between minColor and maxColor
+* @param midColor const ImVec4* Optional midColor value to calculate in two segments
+* @param midValue int Optional midValue to split the value between minColor and maxColor
+* 
+* @return ImVec4 color value
+*/
 static ImVec4 CalculateProgressiveColor(const ImVec4& minColor, const ImVec4& maxColor, int value, const ImVec4* midColor = nullptr, int midValue = 50)
 {
 	// Clamp value between 0 and 100
@@ -185,9 +201,15 @@ static ImVec4 CalculateProgressiveColor(const ImVec4& minColor, const ImVec4& ma
 }
 
 
-// Convert a color name to an ImVec4 color value
-//@Param color_name: Name of the color to convert to ImVec4
-//@Return: ImVec4 color value
+/**
+* @fn ColorToVec
+* 
+* Function to convert a color name to an ImVec4 color value
+* 
+* @param color_name const std::string& Color name to convert to ImVec4
+* 
+* @return ImVec4 color value
+*/
 static ImVec4 ColorToVec(const std::string& color_name)
 {
 	std::string color = color_name;
@@ -219,9 +241,14 @@ static ImVec4 ColorToVec(const std::string& color_name)
 }
 
 
-// Convert a CONCOLOR value to an ImVec4 color
-//@Param color_code: CONCOLOR value to convert (string)
-//@Return: ImVec4 color value
+/**
+* @fn ConColorToVec
+*	
+* Function to convert a CONCOLOR value to an ImVec4 color value
+* 
+* @param color_code int CONCOLOR value to convert to ImVec4
+* @return ImVec4 color value
+*/
 static ImVec4 ConColorToVec(int color_code)
 {
 	switch (color_code)
@@ -241,11 +268,16 @@ static ImVec4 ConColorToVec(int color_code)
 }
 
 
-// Function to save an ImVec4 color to the INI file
-//@Param section: Section name in the INI file
-//@Param key: Key name in the INI file
-//@Param color: ImVec4 color value to save
-//@Param file: INI file to save the color to
+/**
+* @fn WritePrivateProfileBool
+* 
+* Function to write Color ImVec4 as String to the INI file
+* 
+* @param section const char* Section name in the INI file
+* @param key const char* Key name in the INI file
+* @param color ImVec4 Color value to write to the INI file
+* @param file const char* INI file to write the color to
+ */
 static void SaveColorToIni(const char* section, const char* key, const ImVec4& color, const char* file)
 {
 	std::ostringstream oss;
@@ -254,12 +286,17 @@ static void SaveColorToIni(const char* section, const char* key, const ImVec4& c
 }
 
 
-// Function to load an ImVec4 color from the INI file
-//@Param section: Section name in the INI file
-//@Param key: Key name in the INI file
-//@Param defaultColor: Default color value to return if the key does not exist
-//@Param file: INI file to load the color from
-//@Return: ImVec4 color value
+/** 
+* @fn LoadColorFromIni
+* 
+* Function to load an ImVec4 color from the INI file
+* 
+* @param section const char* Section name in the INI file
+* @param key const char* Key name in the INI file
+* @param defaultColor ImVec4 Default color value to return if the key does not exist
+* @param file const char* INI file to load the color from
+* @return ImVec4 color value
+ */
 static ImVec4 LoadColorFromIni(const char* section, const char* key, const ImVec4& defaultColor, const char* file)
 {
 	char buffer[64];
@@ -334,14 +371,13 @@ static void SaveSettings()
 }
 
 
+// Update the settings file to use the character-specific INI file if the player is in-game
 static void UpdateSettingFile()
 {
-	// Check if the player is in-game
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
 		if (!b_charIniLoaded)
 		{
-			// Player is in-game and the character-specific INI file is not yet loaded
 			if (PCHARINFO pCharInfo = GetCharInfo())
 			{
 				char CharIniFile[MAX_PATH] = { 0 };
@@ -354,7 +390,6 @@ static void UpdateSettingFile()
 					strcpy_s(s_SettingsFile, CharIniFile);
 
 					LoadSettings();
-
 					SaveSettings();
 				}
 
@@ -377,22 +412,13 @@ static void UpdateSettingFile()
 			LoadSettings();
 			b_DefaultLoaded = true;
 		}
-
 	}
-
 }
 
 
-// setup data classes and timers.
-
-CharData g_CharData;
-TargetData g_TargetData;
-std::chrono::steady_clock::time_point g_LastUpdateTime = std::chrono::steady_clock::now();
-std::chrono::steady_clock::time_point g_LastFlashTime = std::chrono::steady_clock::now();
-const auto g_UpdateInterval = std::chrono::milliseconds(250);
-const auto g_UpdateFlashInterval = std::chrono::milliseconds(133);
-
 // GUI Windows
+
+
 static void DrawTargetWindow()
 	{
 		if (g_TargetData.m_tName != "Unknown")
@@ -593,8 +619,22 @@ static void DrawPlayerWindow()
 
 static void DrawGroupWindow()
 {
+	//TODO: Group Window
+}
 
+static void DrawPetWindow()
+{
+	//TODO: Pet Window
+}
 
+static void DrawSpellWindow()
+{
+	//TODO: Spell Window
+}
+
+static void DrawBuffWindow()
+{
+	//TODO: Buff Window
 }
 
 void DrawConfigWindow()
@@ -671,6 +711,7 @@ void DrawConfigWindow()
 	}
 
 
+// Main Window, toggled with /Grimgui command, contains Toggles to show other windows
 void DrawMainWindow()
 	{
 		if (b_ShowMainWindow)
@@ -719,6 +760,14 @@ void DrawMainWindow()
 	}
 
 
+/**
+ * @fn GrimCommandHandler
+ *
+ * Command handler for the /Grimgui command
+ *
+ * @param pPC PlayerClient* Pointer to the player client structure
+ * @param pszLine const char* Command line text
+*/
 static void GrimCommandHandler(PlayerClient*, const char*)
 {
 	b_ShowMainWindow = !b_ShowMainWindow;
@@ -749,6 +798,9 @@ PLUGIN_API void OnPulse()
 
 PLUGIN_API void OnUpdateImGui()
 {
+	// Draw the GUI elements
+	// Update Settings Toggle when Window State Changes
+
 	// Main Window no state check needed 
 	if (b_ShowMainWindow)
 	{
