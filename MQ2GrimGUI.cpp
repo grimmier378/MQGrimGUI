@@ -18,30 +18,33 @@
 
 PreSetup("MQ2GrimGUI");
 PLUGIN_VERSION(0.1);
-namespace mq {
 
 // Declare global plugin state variables
-static bool b_ShowMainWindow = true;
+static bool b_ShowMainWindow = false;
 static bool b_ShowConfigWindow = false;
 static bool b_SplitTargetWindow = false;
 static bool b_ShowPlayerWindow = false;
 static bool b_ShowGroupWindow = false;
 static bool b_ShowSpellsWindow = false;
-
 static bool b_flashCombat = false;
-static bool s_charIniLoaded = false;
+static bool b_charIniLoaded = false;
+static bool b_DefaultLoaded = false;
+
 static char s_SettingsFile[MAX_PATH] = { 0 };
 
 // Colors for Progress Bar Transitions
-static ImVec4 minColorHP(0.876f, 0.341f, 1.000f, 1.000f);  // Purple
-static ImVec4 maxColorHP(0.845f, 0.151f, 0.151f, 1.000f);  // Red
-static ImVec4 minColorMP(0.259f, 0.114f, 0.514f, 1.000f);  // Purp 
-static ImVec4 maxColorMP(0.079f, 0.468f, 0.848f, 1.000f);  // ltBlue
+static ImVec4 minColorHP(0.876f, 0.341f, 1.000f, 1.000f);
+static ImVec4 maxColorHP(0.845f, 0.151f, 0.151f, 1.000f);
+static ImVec4 minColorMP(0.259f, 0.114f, 0.514f, 1.000f);
+static ImVec4 maxColorMP(0.079f, 0.468f, 0.848f, 1.000f); 
 static ImVec4 minColorEnd(1.000f, 0.437f, 0.019f, 1.000f);
-static ImVec4 maxColorEnd(0.7f, 0.6f, 0.1f, 0.7f);  // yellowish
-int testInt = 100;
+static ImVec4 maxColorEnd(0.7f, 0.6f, 0.1f, 0.7f);
+
+// Color Test Value for Config Window
+static int testInt = 100;
 
 CGroup* CurGroup;
+
 
 class CharData
 {
@@ -85,6 +88,7 @@ public:
 		}
 	}
 };
+
 
 class TargetData
 {
@@ -132,8 +136,15 @@ public:
 	}
 };
 
+
 // Calculate the progress bar color based on Min, Max, and optional Mid Values.
-static ImVec4 CalculateColor(const ImVec4& minColor, const ImVec4& maxColor, int value, const ImVec4* midColor = nullptr, int midValue = 50)
+//@Param minColor: Minimum color value
+//@Param maxColor: Maximum color value
+//@Param value: Current value to calculate color for
+//@Param midColor: Optional mid color value
+//@Param midValue: Optional mid value to switch from minColor to midColor
+//@Return: ImVec4 color value
+static ImVec4 CalculateProgressiveColor(const ImVec4& minColor, const ImVec4& maxColor, int value, const ImVec4* midColor = nullptr, int midValue = 50)
 {
 	// Clamp value between 0 and 100
 	value = std::max(0, std::min(100, value));
@@ -173,6 +184,10 @@ static ImVec4 CalculateColor(const ImVec4& minColor, const ImVec4& maxColor, int
 	return ImVec4(r, g, b, a);
 }
 
+
+// Convert a color name to an ImVec4 color value
+//@Param color_name: Name of the color to convert to ImVec4
+//@Return: ImVec4 color value
 static ImVec4 ColorToVec(const std::string& color_name)
 {
 	std::string color = color_name;
@@ -203,6 +218,10 @@ static ImVec4 ColorToVec(const std::string& color_name)
 	return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
+
+// Convert a CONCOLOR value to an ImVec4 color
+//@Param color_code: CONCOLOR value to convert (string)
+//@Return: ImVec4 color value
 static ImVec4 ConColorToVec(int color_code)
 {
 	switch (color_code)
@@ -221,16 +240,27 @@ static ImVec4 ConColorToVec(int color_code)
 	}
 }
 
+
 // Function to save an ImVec4 color to the INI file
-void SaveColorToIni(const char* section, const char* key, const ImVec4& color, const char* file)
+//@Param section: Section name in the INI file
+//@Param key: Key name in the INI file
+//@Param color: ImVec4 color value to save
+//@Param file: INI file to save the color to
+static void SaveColorToIni(const char* section, const char* key, const ImVec4& color, const char* file)
 {
 	std::ostringstream oss;
 	oss << color.x << "," << color.y << "," << color.z << "," << color.w;
 	WritePrivateProfileString(section, key, oss.str().c_str(), file);
 }
 
+
 // Function to load an ImVec4 color from the INI file
-ImVec4 LoadColorFromIni(const char* section, const char* key, const ImVec4& defaultColor, const char* file)
+//@Param section: Section name in the INI file
+//@Param key: Key name in the INI file
+//@Param defaultColor: Default color value to return if the key does not exist
+//@Param file: INI file to load the color from
+//@Return: ImVec4 color value
+static ImVec4 LoadColorFromIni(const char* section, const char* key, const ImVec4& defaultColor, const char* file)
 {
 	char buffer[64];
 	GetPrivateProfileString(section, key, "", buffer, sizeof(buffer), file);
@@ -264,6 +294,7 @@ ImVec4 LoadColorFromIni(const char* section, const char* key, const ImVec4& defa
 	return color;
 }
 
+
 static void LoadSettings()
 {
 	// Load settings from the INI file
@@ -283,6 +314,7 @@ static void LoadSettings()
 	maxColorMP = LoadColorFromIni("Colors", "MaxColorMP", ImVec4(0.079f, 0.468f, 0.848f, 1.000f), &s_SettingsFile[0]);
 }
 
+
 static void SaveSettings()
 {
 	//Window Settings
@@ -301,61 +333,67 @@ static void SaveSettings()
 	SaveColorToIni("Colors", "MaxColorMP", maxColorMP, &s_SettingsFile[0]);
 }
 
-	static void UpdateSettingFile()
+
+static void UpdateSettingFile()
+{
+	// Check if the player is in-game
+	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		// Check if the player is in-game
-		if (GetGameState() == GAMESTATE_INGAME)
+		if (!b_charIniLoaded)
 		{
-			if (!s_charIniLoaded)
+			// Player is in-game and the character-specific INI file is not yet loaded
+			if (PCHARINFO pCharInfo = GetCharInfo())
 			{
-				// Player is in-game and the character-specific INI file is not yet loaded
-				if (PCHARINFO pCharInfo = GetCharInfo())
+				char CharIniFile[MAX_PATH] = { 0 };
+				fmt::format_to(CharIniFile, "{}/MQ2GrimGUI_{}_{}.ini", gPathConfig, GetServerShortName(), pCharInfo->Name);
+
+				if (!std::filesystem::exists(CharIniFile))
 				{
-					char CharIniFile[MAX_PATH] = { 0 };
-					fmt::format_to(CharIniFile, "{}/MQ2GrimGUI_{}_{}.ini", gPathConfig, GetServerShortName(), pCharInfo->Name);
-
-					if (!std::filesystem::exists(CharIniFile))
-					{
-						char DefaultIniFile[MAX_PATH] = { 0 };
-						fmt::format_to(DefaultIniFile, "{}/MQ2GrimGUI.ini", gPathConfig);
-						std::error_code ec;
-						std::filesystem::copy_file(DefaultIniFile, CharIniFile, ec);
-					}
-
-					// Update the settings file to use the character-specific INI file
+					// file missing load defaults and save
 					memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
 					strcpy_s(s_SettingsFile, CharIniFile);
+
 					LoadSettings();
 
-					s_charIniLoaded = true;
+					SaveSettings();
 				}
+
+				// Update the settings file to use the character-specific INI file
+				memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+				strcpy_s(s_SettingsFile, CharIniFile);
+
+				LoadSettings();
+				b_charIniLoaded = true;
 			}
 		}
-		else
+	}
+	else
+	{
+		if (b_charIniLoaded || !b_DefaultLoaded)
 		{
-			if (s_charIniLoaded)
-			{
-				memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
-				// Player is not in-game and we need to switch back to the default INI file
-				fmt::format_to(s_SettingsFile, "{}/MQ2GrimGui.ini", gPathConfig);
-				s_charIniLoaded = false;
-			}
+			memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+			fmt::format_to(s_SettingsFile, "{}/MQ2GrimGUI.ini", gPathConfig);
+			b_charIniLoaded = false;
+			LoadSettings();
+			b_DefaultLoaded = true;
 		}
 
 	}
 
+}
 
-	// setup data classes and timers.
 
-	CharData g_CharData;
-	TargetData g_TargetData;
-	std::chrono::steady_clock::time_point g_LastUpdateTime = std::chrono::steady_clock::now();
-	std::chrono::steady_clock::time_point g_LastFlashTime = std::chrono::steady_clock::now();
-	const auto g_UpdateInterval = std::chrono::milliseconds(250);
-	const auto g_UpdateFlashInterval = std::chrono::milliseconds(133);
+// setup data classes and timers.
 
-	// GUI Windows
-	static void DrawTargetWindow()
+CharData g_CharData;
+TargetData g_TargetData;
+std::chrono::steady_clock::time_point g_LastUpdateTime = std::chrono::steady_clock::now();
+std::chrono::steady_clock::time_point g_LastFlashTime = std::chrono::steady_clock::now();
+const auto g_UpdateInterval = std::chrono::milliseconds(250);
+const auto g_UpdateFlashInterval = std::chrono::milliseconds(133);
+
+// GUI Windows
+static void DrawTargetWindow()
 	{
 		if (g_TargetData.m_tName != "Unknown")
 		{
@@ -364,12 +402,12 @@ static void SaveSettings()
 			float midX = (sizeX / 2);
 			float tarPercentage = static_cast<float>(g_TargetData.m_tCurHP) / 100;
 			int tar_label = g_TargetData.m_tCurHP;
-			ImVec4 colorTarHP = CalculateColor(minColorHP, maxColorHP, g_TargetData.m_tCurHP);
+			ImVec4 colorTarHP = CalculateProgressiveColor(minColorHP, maxColorHP, g_TargetData.m_tCurHP);
 			if (g_TargetData.m_tName == g_CharData.m_Name)
 			{
 				tarPercentage = static_cast<float>(g_CharData.m_CurHP) / g_CharData.m_MaxHP;
 				tar_label = g_CharData.m_HealthPctInt;
-				colorTarHP = CalculateColor(minColorHP, maxColorHP, g_CharData.m_HealthPctInt);
+				colorTarHP = CalculateProgressiveColor(minColorHP, maxColorHP, g_CharData.m_HealthPctInt);
 			}
 			if (g_TargetData.b_IsVis)
 			{
@@ -412,7 +450,7 @@ static void SaveSettings()
 		}
 	}
 
-	static void DrawPlayerWindow()
+static void DrawPlayerWindow()
 	{
 		if (!b_ShowPlayerWindow)
 			return;
@@ -489,7 +527,7 @@ static void SaveSettings()
 			ImGui::EndChild();
 			ImGui::PopStyleColor();
 
-			ImVec4 colorHP = CalculateColor(minColorHP, maxColorHP, g_CharData.m_HealthPctInt);
+			ImVec4 colorHP = CalculateProgressiveColor(minColorHP, maxColorHP, g_CharData.m_HealthPctInt);
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorHP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			float yPos = ImGui::GetCursorPosY();
@@ -508,7 +546,7 @@ static void SaveSettings()
 			{
 				float manaPercentage = static_cast<float>(g_CharData.m_CurMana) / g_CharData.m_MaxMana;
 				int manaPercentageInt = static_cast<int>(manaPercentage * 100);
-				ImVec4 colorMP = CalculateColor(minColorMP, maxColorMP, manaPercentageInt);
+				ImVec4 colorMP = CalculateProgressiveColor(minColorMP, maxColorMP, manaPercentageInt);
 
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorMP);
 				ImGui::SetNextItemWidth(sizeX - 15);
@@ -528,7 +566,7 @@ static void SaveSettings()
 
 			float endurancePercentage = static_cast<float>(g_CharData.m_CurEndur) / g_CharData.m_MaxEndur;
 			int endPercentageInt = static_cast<int>(endurancePercentage * 100);
-			ImVec4 colorEP = CalculateColor(minColorEnd, maxColorEnd, endPercentageInt);
+			ImVec4 colorEP = CalculateProgressiveColor(minColorEnd, maxColorEnd, endPercentageInt);
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorEP);
 			ImGui::SetNextItemWidth(sizeX - 15);
@@ -553,13 +591,13 @@ static void SaveSettings()
 		ImGui::End();
 	}
 
-	static void DrawGroupWindow()
-	{
+static void DrawGroupWindow()
+{
 
 
-	}
+}
 
-	void DrawConfigWindow()
+void DrawConfigWindow()
 	{
 		if (!b_ShowConfigWindow)
 			return;
@@ -604,15 +642,15 @@ static void SaveSettings()
 
 			ImGui::SliderInt("Test Value", &testInt, 0, 100);
 			float testVal = static_cast<float>(testInt) / 100;
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateColor(minColorHP, maxColorHP, testInt));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorHP, maxColorHP, testInt));
 			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "HP##Test");
 			ImGui::PopStyleColor();
 
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateColor(minColorMP, maxColorMP, testInt));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorMP, maxColorMP, testInt));
 			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "MP##Test");
 			ImGui::PopStyleColor();
 
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateColor(minColorEnd, maxColorEnd, testInt));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorEnd, maxColorEnd, testInt));
 			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
 			ImGui::PopStyleColor();
 
@@ -633,202 +671,203 @@ static void SaveSettings()
 	}
 
 
-	void DrawMainWindow()
+void DrawMainWindow()
 	{
-		if (!b_ShowMainWindow)
-			return;
-
-		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("GrimGUI##MainWindow", &b_ShowMainWindow))
-		{
-			if (ImGui::Checkbox("Player Win", &b_ShowPlayerWindow))
-			{
-				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", b_ShowPlayerWindow, &s_SettingsFile[0]);
-			}
-
-			ImGui::SameLine();
-
-			if (ImGui::Checkbox("Split Target", &b_SplitTargetWindow))
-			{
-				WritePrivateProfileBool("PlayerTarg", "SplitTarget", b_SplitTargetWindow, &s_SettingsFile[0]);
-			}
-
-			//TODO: More Windows
-			//ImGui::Separator();
-
-			//if (ImGui::Checkbox("Spells Win", &b_ShowSpellsWindow))
-			//{
-			//	WritePrivateProfileBool("Spells", "ShowSpellsWindow", b_ShowSpellsWindow, &s_SettingsFile[0]);
-			//}
-
-			//ImGui::SameLine();
-
-			//if (ImGui::Checkbox("Group Win", &b_ShowGroupWindow))
-			//{
-			//	WritePrivateProfileBool("Group", "ShowGroupWindow", b_ShowGroupWindow, &s_SettingsFile[0]);
-			//}
-
-			ImGui::Separator();
-
-			if (ImGui::Button("Config"))
-			{
-				b_ShowConfigWindow = true;
-			}
-
-		}
-		ImGui::End();
-
-	}
-
-
-	static void GrimCommandHandler(PlayerClient*, const char*)
-	{
-		b_ShowMainWindow = !b_ShowMainWindow;
-	}
-
-	// Called periodically by MQ2
-	PLUGIN_API void OnPulse()
-	{
-		auto now = std::chrono::steady_clock::now();
-		if (GetGameState() == GAMESTATE_INGAME)
-		{
-			if (now - g_LastUpdateTime >= g_UpdateInterval)
-			{
-				g_CharData.Update();  // Refresh character data at the specified interval
-				g_TargetData.Update();
-				g_LastUpdateTime = now;
-			}
-			if (now - g_LastFlashTime >= g_UpdateFlashInterval)
-			{
-				b_flashCombat = !b_flashCombat;
-				g_LastFlashTime = now;
-			}
-		}
-		UpdateSettingFile();
-
-	}
-
-	PLUGIN_API void OnUpdateImGui()
-	{
-		// Main Window no state check needed 
 		if (b_ShowMainWindow)
 		{
-			DrawMainWindow();
-			
-			if (!b_ShowMainWindow)
-			{
-				WritePrivateProfileBool("Settings", "ShowMainGui", b_ShowMainWindow, &s_SettingsFile[0]);
-			}
-		}
 
-		if (GetGameState() == GAMESTATE_INGAME)
-		{
-			// Player Window (also target if not split)
-			if (b_ShowPlayerWindow)
+			ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+			if (ImGui::Begin("GrimGUI##MainWindow", &b_ShowMainWindow))
 			{
-				DrawPlayerWindow();
-
-				if (!b_SplitTargetWindow)
+				if (ImGui::Checkbox("Player Win", &b_ShowPlayerWindow))
 				{
 					WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", b_ShowPlayerWindow, &s_SettingsFile[0]);
 				}
-			}
-			
-			// Split Target Window
-			if (b_SplitTargetWindow)
-			{
-				ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
-				if (ImGui::Begin("Tar##MQ2GrimGUI", &b_SplitTargetWindow))
-				{
-					DrawTargetWindow();
-				}
-				ImGui::End();
-				if (!b_ShowPlayerWindow)
+
+				ImGui::SameLine();
+
+				if (ImGui::Checkbox("Split Target", &b_SplitTargetWindow))
 				{
 					WritePrivateProfileBool("PlayerTarg", "SplitTarget", b_SplitTargetWindow, &s_SettingsFile[0]);
 				}
-			}
 
-			if (b_ShowConfigWindow)
-			{
-				DrawConfigWindow();
+				//TODO: More Windows
+				//ImGui::Separator();
+
+				//if (ImGui::Checkbox("Spells Win", &b_ShowSpellsWindow))
+				//{
+				//	WritePrivateProfileBool("Spells", "ShowSpellsWindow", b_ShowSpellsWindow, &s_SettingsFile[0]);
+				//}
+
+				//ImGui::SameLine();
+
+				//if (ImGui::Checkbox("Group Win", &b_ShowGroupWindow))
+				//{
+				//	WritePrivateProfileBool("Group", "ShowGroupWindow", b_ShowGroupWindow, &s_SettingsFile[0]);
+				//}
+
+				ImGui::Separator();
+
+				if (ImGui::Button("Config"))
+				{
+					b_ShowConfigWindow = true;
+				}
+
 			}
+			ImGui::End();
 		}
 	}
 
 
-	/**
-	 * @fn OnMacroStart
-	 *
-	 * This is called each time a macro starts (ex: /mac somemacro.mac), prior to
-	 * launching the macro.
-	 *
-	 * @param Name const char* - The name of the macro that was launched
-	 */
-	PLUGIN_API void OnMacroStart(const char* Name)
-	{
-		// DebugSpewAlways("MQ2GrimGUI::OnMacroStart(%s)", Name);
-	}
+static void GrimCommandHandler(PlayerClient*, const char*)
+{
+	b_ShowMainWindow = !b_ShowMainWindow;
+	WritePrivateProfileBool("Settings", "ShowMainGui", b_ShowMainWindow, &s_SettingsFile[0]);
+}
 
-	/**
-	 * @fn OnMacroStop
-	 *
-	 * This is called each time a macro stops (ex: /endmac), after the macro has ended.
-	 *
-	 * @param Name const char* - The name of the macro that was stopped.
-	 */
-	PLUGIN_API void OnMacroStop(const char* Name)
+// Called periodically by MQ2
+PLUGIN_API void OnPulse()
+{
+	auto now = std::chrono::steady_clock::now();
+	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		// DebugSpewAlways("MQ2GrimGUI::OnMacroStop(%s)", Name);
-	}
-
-	/**
-	 * @fn OnLoadPlugin
-	 *
-	 * This is called each time a plugin is loaded (ex: /plugin someplugin), after the
-	 * plugin has been loaded and any associated -AutoExec.cfg file has been launched.
-	 * This means it will be executed after the plugin's @ref InitializePlugin callback.
-	 *
-	 * This is also called when THIS plugin is loaded, but initialization tasks should
-	 * still be done in @ref InitializePlugin.
-	 *
-	 * @param Name const char* - The name of the plugin that was loaded
-	 */
-	PLUGIN_API void OnLoadPlugin(const char* Name)
-	{
-		AddCommand("/Grimgui", GrimCommandHandler, false, false, false);
-		// check settings file, if logged in use character specific INI else default
-		UpdateSettingFile();
-		//load settings
-		LoadSettings();
-		SaveSettings();
-
-		// update data
-		if (GetGameState() == GAMESTATE_INGAME)
+		if (now - g_LastUpdateTime >= g_UpdateInterval)
 		{
-			g_CharData.Update();
+			g_CharData.Update();  // Refresh character data at the specified interval
 			g_TargetData.Update();
+			g_LastUpdateTime = now;
+		}
+		if (now - g_LastFlashTime >= g_UpdateFlashInterval)
+		{
+			b_flashCombat = !b_flashCombat;
+			g_LastFlashTime = now;
+		}
+	}
+	UpdateSettingFile();
+
+}
+
+PLUGIN_API void OnUpdateImGui()
+{
+	// Main Window no state check needed 
+	if (b_ShowMainWindow)
+	{
+		DrawMainWindow();
+		
+		if (!b_ShowMainWindow)
+		{
+			WritePrivateProfileBool("Settings", "ShowMainGui", b_ShowMainWindow, &s_SettingsFile[0]);
+		}
+	}
+
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		// Player Window (also target if not split)
+		if (b_ShowPlayerWindow)
+		{
+			DrawPlayerWindow();
+
+			if (!b_ShowPlayerWindow)
+			{
+				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", b_ShowPlayerWindow, &s_SettingsFile[0]);
+			}
+		}
+		
+		// Split Target Window
+		if (b_SplitTargetWindow)
+		{
+			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+			if (ImGui::Begin("Tar##MQ2GrimGUI", &b_SplitTargetWindow))
+			{
+				DrawTargetWindow();
+			}
+			ImGui::End();
+
+			if (!b_SplitTargetWindow)
+			{
+				WritePrivateProfileBool("PlayerTarg", "SplitTarget", b_SplitTargetWindow, &s_SettingsFile[0]);
+			}
 		}
 
-
+		if (b_ShowConfigWindow)
+		{
+			DrawConfigWindow();
+		}
 	}
+}
 
-	/**
-	 * @fn OnUnloadPlugin
-	 *
-	 * This is called each time a plugin is unloaded (ex: /plugin someplugin unload),
-	 * just prior to the plugin unloading.  This means it will be executed prior to that
-	 * plugin's @ref ShutdownPlugin callback.
-	 *
-	 * This is also called when THIS plugin is unloaded, but shutdown tasks should still
-	 * be done in @ref ShutdownPlugin.
-	 *
-	 * @param Name const char* - The name of the plugin that is to be unloaded
-	 */
-	PLUGIN_API void OnUnloadPlugin(const char* Name)
+
+/**
+ * @fn OnMacroStart
+ *
+ * This is called each time a macro starts (ex: /mac somemacro.mac), prior to
+ * launching the macro.
+ *
+ * @param Name const char* - The name of the macro that was launched
+ */
+PLUGIN_API void OnMacroStart(const char* Name)
+{
+	// DebugSpewAlways("MQ2GrimGUI::OnMacroStart(%s)", Name);
+}
+
+/**
+ * @fn OnMacroStop
+ *
+ * This is called each time a macro stops (ex: /endmac), after the macro has ended.
+ *
+ * @param Name const char* - The name of the macro that was stopped.
+ */
+PLUGIN_API void OnMacroStop(const char* Name)
+{
+	// DebugSpewAlways("MQ2GrimGUI::OnMacroStop(%s)", Name);
+}
+
+/**
+ * @fn OnLoadPlugin
+ *
+ * This is called each time a plugin is loaded (ex: /plugin someplugin), after the
+ * plugin has been loaded and any associated -AutoExec.cfg file has been launched.
+ * This means it will be executed after the plugin's @ref InitializePlugin callback.
+ *
+ * This is also called when THIS plugin is loaded, but initialization tasks should
+ * still be done in @ref InitializePlugin.
+ *
+ * @param Name const char* - The name of the plugin that was loaded
+ */
+PLUGIN_API void OnLoadPlugin(const char* Name)
+{
+	AddCommand("/Grimgui", GrimCommandHandler, false, false, false);
+	// check settings file, if logged in use character specific INI else default
+	UpdateSettingFile();
+	//load settings
+	LoadSettings();
+	SaveSettings();
+
+	// update data
+	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
-		RemoveCommand("/Grimgui");
-		SaveSettings();
+		g_CharData.Update();
+		g_TargetData.Update();
 	}
+
+
+}
+
+/**
+ * @fn OnUnloadPlugin
+ *
+ * This is called each time a plugin is unloaded (ex: /plugin someplugin unload),
+ * just prior to the plugin unloading.  This means it will be executed prior to that
+ * plugin's @ref ShutdownPlugin callback.
+ *
+ * This is also called when THIS plugin is unloaded, but shutdown tasks should still
+ * be done in @ref ShutdownPlugin.
+ *
+ * @param Name const char* - The name of the plugin that is to be unloaded
+ */
+PLUGIN_API void OnUnloadPlugin(const char* Name)
+{
+	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
+	RemoveCommand("/Grimgui");
+	SaveSettings();
 }
