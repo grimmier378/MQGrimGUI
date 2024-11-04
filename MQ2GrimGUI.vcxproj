@@ -76,6 +76,7 @@
     <ClCompile Include="MQ2GrimGUI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MQ2GrimGUI.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
