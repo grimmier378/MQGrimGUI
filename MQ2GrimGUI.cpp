@@ -40,6 +40,10 @@ static ImVec4 maxColorMP(0.079f, 0.468f, 0.848f, 1.000f);
 static ImVec4 minColorEnd(1.000f, 0.437f, 0.019f, 1.000f);
 static ImVec4 maxColorEnd(0.7f, 0.6f, 0.1f, 0.7f);
 
+static int s_PlayerBarHeight = 15;
+static int s_TargetBarHeight = 15;
+static int s_AggroBarHeight = 10;
+
 // Color Test Value for Config Window
 static int testInt = 100;
 
@@ -125,7 +129,12 @@ static void LoadSettings()
 	b_ShowPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
 	b_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	b_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
+
 	s_FlashInterval = GetPrivateProfileInt("PlayerTarg", "FlashInterval", 250, &s_SettingsFile[0]);
+	s_PlayerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
+	s_TargetBarHeight = GetPrivateProfileInt("PlayerTarg", "TargetBarHeight", 15, &s_SettingsFile[0]);
+	s_AggroBarHeight = GetPrivateProfileInt("PlayerTarg", "AggroBarHeight", 10, &s_SettingsFile[0]);
+
 
 	//Color Settings
 	minColorHP = LoadColorFromIni("Colors", "MinColorHP", ImVec4(0.876f, 0.341f, 1.000f, 1.000f), &s_SettingsFile[0]);
@@ -145,7 +154,11 @@ static void SaveSettings()
 	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", b_ShowPlayerWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Group", "ShowGroupWindow", b_ShowGroupWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Spells", "ShowSpellsWindow", b_ShowSpellsWindow, &s_SettingsFile[0]);
+
 	WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
 
 	//Color Settings
 	SaveColorToIni("Colors", "MinColorHP", minColorHP, &s_SettingsFile[0]);
@@ -203,7 +216,17 @@ static void UpdateSettingFile()
 
 
 // GUI Windows
-
+static void DrawHelpIcon(const char* helpText)
+{
+	ImGui::SameLine();
+	ImGui::TextDisabled(ICON_FA_QUESTION_CIRCLE_O);
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text("%s", helpText);
+		ImGui::EndTooltip();
+	}
+}
 
 static void DrawTargetWindow()
 	{
@@ -215,6 +238,7 @@ static void DrawTargetWindow()
 			float tarPercentage = static_cast<float>(g_TargetData.m_tCurHP) / 100;
 			int tar_label = g_TargetData.m_tCurHP;
 			ImVec4 colorTarHP = CalculateProgressiveColor(minColorHP, maxColorHP, g_TargetData.m_tCurHP);
+
 			if (g_TargetData.m_tName == g_CharData.m_Name)
 			{
 				tarPercentage = static_cast<float>(g_CharData.m_CurHP) / g_CharData.m_MaxHP;
@@ -242,7 +266,7 @@ static void DrawTargetWindow()
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, 15.0f), "##");
+			ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, s_TargetBarHeight), "##");
 			ImGui::PopStyleColor();
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
 			ImGui::Text("%d %%", tar_label);
@@ -259,6 +283,25 @@ static void DrawTargetWindow()
 			ImGui::PushStyleColor(ImGuiCol_Text, ConColorToVec(g_TargetData.m_tConColor));
 			ImGui::Text(ICON_MD_LENS);
 			ImGui::PopStyleColor();
+
+			if (g_TargetData.m_myAgroPct < 100)
+			{
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("orange"));
+			}
+			else
+			{
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("purple"));
+			}
+			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+			yPos = ImGui::GetCursorPosY();
+			ImGui::ProgressBar(static_cast<float>(g_TargetData.m_myAgroPct) / 100, ImVec2(0.0f, s_AggroBarHeight), "##Aggro");
+			ImGui::PopStyleColor();
+			ImGui::SetCursorPos(ImVec2(10, yPos));
+			ImGui::Text("%s", g_TargetData.m_secondAgroName.c_str());
+			ImGui::SetCursorPos(ImVec2((sizeX/2)-8, yPos));
+			ImGui::Text("%d %%", g_TargetData.m_myAgroPct);
+			ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
+			ImGui::Text("%d %%", g_TargetData.m_secondAgroPct);	
 		}
 	}
 
@@ -343,7 +386,7 @@ static void DrawPlayerWindow()
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorHP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			float yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(g_CharData.m_HealthPctFloat, ImVec2(0.0f, 15.0f), "##hp");
+			ImGui::ProgressBar(g_CharData.m_HealthPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##hp");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -363,7 +406,7 @@ static void DrawPlayerWindow()
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorMP);
 				ImGui::SetNextItemWidth(sizeX - 15);
 				yPos = ImGui::GetCursorPosY();
-				ImGui::ProgressBar(manaPercentage, ImVec2(0.0f, 15.0f), "##Mana");
+				ImGui::ProgressBar(manaPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##Mana");
 				ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered())
 				{
@@ -383,7 +426,7 @@ static void DrawPlayerWindow()
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorEP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(endurancePercentage, ImVec2(0.0f, 15.0f), "##Endur");
+			ImGui::ProgressBar(endurancePercentage, ImVec2(0.0f, s_PlayerBarHeight), "##Endur");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -423,6 +466,8 @@ static void DrawBuffWindow()
 	//TODO: Buff Window
 }
 
+
+
 void DrawConfigWindow()
 	{
 		if (!b_ShowConfigWindow)
@@ -432,78 +477,106 @@ void DrawConfigWindow()
 
 		if (ImGui::Begin("Config##ConfigWindow", &b_ShowConfigWindow))
 		{
-		
-			ImGui::SeparatorText("Color Settings");
-			if (ImGui::BeginTable("##Settings", 2))
+
+			if (ImGui::CollapsingHeader("Color Settings"))
+			{
+
+				if (ImGui::BeginTable("##Settings", 2))
 			{
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				ImGui::ColorEdit4("Min HP Color", (float*)&minColorHP, ImGuiColorEditFlags_NoInputs);
-				
+				ImGui::SameLine();
+				DrawHelpIcon("Minimum HP Color");
+
 				ImGui::TableNextColumn();
-				
+
 				ImGui::ColorEdit4("Max HP Color", (float*)&maxColorHP, ImGuiColorEditFlags_NoInputs);
-				
+				ImGui::SameLine();
+				DrawHelpIcon("Maximum HP Color");
+
 				ImGui::TableNextColumn();
-				
+
 				ImGui::ColorEdit4("Min MP Color", (float*)&minColorMP, ImGuiColorEditFlags_NoInputs);
+				ImGui::SameLine();
+				DrawHelpIcon("Minimum MP Color");
 
 				ImGui::TableNextColumn();
 
 				ImGui::ColorEdit4("Max MP Color", (float*)&maxColorMP, ImGuiColorEditFlags_NoInputs);
+				ImGui::SameLine();
+				DrawHelpIcon("Maximum MP Color");
 
 				ImGui::TableNextColumn();
 
 				ImGui::ColorEdit4("Min End Color", (float*)&minColorEnd, ImGuiColorEditFlags_NoInputs);
+				ImGui::SameLine();
+				DrawHelpIcon("Minimum Endurance Color");
 
 				ImGui::TableNextColumn();
 
 				ImGui::ColorEdit4("Max End Color", (float*)&maxColorEnd, ImGuiColorEditFlags_NoInputs);
-				
+				ImGui::SameLine();
+				DrawHelpIcon("Maximum Endurance Color");
+
 				ImGui::EndTable();
 			}
 
-			ImGui::SeparatorText("Test Color");
+				ImGui::SeparatorText("Test Color");
 
-			ImGui::SliderInt("Test Value", &testInt, 0, 100);
-			float testVal = static_cast<float>(testInt) / 100;
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorHP, maxColorHP, testInt));
-			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "HP##Test");
-			ImGui::PopStyleColor();
+				ImGui::SliderInt("Test Value", &testInt, 0, 100);
+				float testVal = static_cast<float>(testInt) / 100;
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorHP, maxColorHP, testInt));
+				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "HP##Test");
+				ImGui::PopStyleColor();
 
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorMP, maxColorMP, testInt));
-			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "MP##Test");
-			ImGui::PopStyleColor();
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorMP, maxColorMP, testInt));
+				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "MP##Test");
+				ImGui::PopStyleColor();
 
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorEnd, maxColorEnd, testInt));
-			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
-			ImGui::PopStyleColor();
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(minColorEnd, maxColorEnd, testInt));
+				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
+				ImGui::PopStyleColor();
+			}
 
-			ImGui::Separator();
-
-			// Flash Interval Control
-			ImGui::SliderInt("Flash Speed", &s_FlashInterval, 0, 500);
-			if (ImGui::IsItemHovered())
+			if (ImGui::CollapsingHeader("Window Settings"))
 			{
-				ImGui::BeginTooltip();
+				// Flash Interval Control
+				ImGui::SliderInt("Flash Speed", &s_FlashInterval, 0, 500);
+				ImGui::SameLine();
 				if (s_FlashInterval == 0)
 				{
-					ImGui::Text("Flash Speed: Disabled");
+					DrawHelpIcon("Flash Interval Disabled");
 				}
 				else
 				{
-					ImGui::Text("Flash Speed: %d", s_FlashInterval);
-					ImGui::Text("Lower is slower, Higher is faster. 0 = Disabled");
+					std::string label = "Flash Speed: " + std::to_string(s_FlashInterval) + " \nLower is slower, Higher is faster. 0 = Disabled";
+					DrawHelpIcon(label.c_str());
 				}
-				ImGui::EndTooltip();
-			}
 
+				ImGui::SliderInt("Player Bar Height", &s_PlayerBarHeight, 10, 40);
+				ImGui::SameLine();
+				DrawHelpIcon("Player Bar Height");
+
+				ImGui::SliderInt("Target Bar Height", &s_TargetBarHeight, 10, 40);
+				ImGui::SameLine();
+				DrawHelpIcon("Target Bar Height");
+
+				ImGui::SliderInt("Aggro Bar Height", &s_AggroBarHeight, 10, 40);
+				ImGui::SameLine();
+				DrawHelpIcon("Aggro Bar Height");
+
+			}
 			if (ImGui::Button("Save & Close"))
 			{
 				// only Save when the user clicks the button. 
 				// If they close the window and don't click the button the settings will not be saved and only be temporary.
 				WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
+				WritePrivateProfileBool("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileBool("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileBool("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
+
 				SaveColorToIni("Colors", "MinColorHP", minColorHP, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MaxColorHP", maxColorHP, &s_SettingsFile[0]);
 				SaveColorToIni("Colors", "MinColorMP", minColorMP, &s_SettingsFile[0]);

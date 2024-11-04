@@ -7,6 +7,8 @@
 #include <vector>
 #include <chrono>
 #include <imgui.h>
+#include "main/datatypes/MQ2DataTypes.h"
+#include "main/MQ2Main.h"
 
 // Declare global constants, structures, and variables
 extern bool b_ShowMainWindow;
@@ -82,6 +84,9 @@ public:
 	int m_tCurHP = 0;
 	std::string m_tBody = "UNKNOWN";
 	std::string m_tClass = ICON_MD_HELP_OUTLINE;
+	std::string m_secondAgroName = "Unknown";
+	int m_myAgroPct = 0;
+	int m_secondAgroPct = 0;
 	float m_tDist = 0;
 	bool b_IsPC = false;
 	bool b_IsVis = false;
@@ -102,6 +107,20 @@ public:
 			m_tBody = GetBodyTypeDesc(GetBodyType(pTarget));
 			const char* classCode = CurTarget->GetClassThreeLetterCode();
 			m_tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
+
+			if (pAggroInfo)
+			{
+				m_myAgroPct = pAggroInfo->aggroData[AD_Player].AggroPct;
+				m_secondAgroPct = pAggroInfo->aggroData[AD_Secondary].AggroPct;
+				if (pAggroInfo->AggroSecondaryID)
+				{
+					m_secondAgroName = GetSpawnByID(pAggroInfo->AggroSecondaryID)->DisplayedName;
+				}
+				else
+				{
+					m_secondAgroName = "Unknown";
+				}
+			}
 		}
 		else
 		{
@@ -112,7 +131,10 @@ public:
 			m_tDist = 0;
 			b_IsVis = false;
 			m_tConColor = 0;
+			m_myAgroPct = 0;
+			m_secondAgroPct = 0;
 			m_tBody = "UNKNOWN";
+			m_secondAgroName = "Unknown";
 			m_tClass = ICON_MD_HELP_OUTLINE;
 		}
 	}
