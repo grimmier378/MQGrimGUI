@@ -417,6 +417,8 @@ static void DrawPetWindow()
 {
 	if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
 	{
+		const char* petName = MyPet->DisplayedName;
+
 		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
 		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow))
 		{
@@ -425,11 +427,12 @@ static void DrawPetWindow()
 			float midX = (sizeX / 2);
 			float petPercentage = static_cast<float>(MyPet->HPCurrent) / 100;
 			int petLabel = MyPet->HPCurrent;
+			
 			ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, MyPet->HPCurrent);
 			if (ImGui::BeginTable("Pet", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable))
 			{
-				ImGui::TableSetupColumn((std::string(MyPet->DisplayedName) + "##MainPetInfo").c_str(), ImGuiTableColumnFlags_None, -1);
-				ImGui::TableSetupColumn("Buffs##PetBuffs", ImGuiTableColumnFlags_None, -1);
+				ImGui::TableSetupColumn(petName, ImGuiTableColumnFlags_None, -1);
+				ImGui::TableSetupColumn("Buffs", ImGuiTableColumnFlags_None, -1);
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
 				ImGui::TableNextRow();
