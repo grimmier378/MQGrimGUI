@@ -211,8 +211,8 @@ static void UpdateSettingFile()
 
 static void GetHeading()
 {
-	static PSPAWNINFO pCharInfo = pLocalPlayer;
-	s_heading = szHeadingShort[static_cast<int>((pCharInfo->Heading / 32.0f) + 8.5f) % 16];
+	static PSPAWNINFO pSelfInfo = pLocalPlayer;
+	s_heading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
 // GUI Windows
@@ -249,15 +249,11 @@ static void DrawTargetWindow()
 			}
 			if (LineOfSight(pLocalPlayer, pTarget))
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ColorToVec("green"));
-				ImGui::Text(ICON_MD_VISIBILITY);
-				ImGui::PopStyleColor();
+				ImGui::TextColored(ColorToVec("green"),ICON_MD_VISIBILITY);
 			}
 			else
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ColorToVec("red"));
-				ImGui::Text(ICON_MD_VISIBILITY_OFF);
-				ImGui::PopStyleColor();
+				ImGui::TextColored(ColorToVec("red"), ICON_MD_VISIBILITY_OFF);
 			}
 			ImGui::SameLine();
 			ImGui::Text(CurTarget->DisplayedName);
@@ -285,9 +281,7 @@ static void DrawTargetWindow()
 			ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
 
 			ImGui::SameLine(sizeX * .5);
-			ImGui::PushStyleColor(ImGuiCol_Text, ConColorToVec(ConColor(pTarget)));
-			ImGui::Text(ICON_MD_LENS);
-			ImGui::PopStyleColor();
+			ImGui::TextColored(ConColorToVec(ConColor(pTarget)),ICON_MD_LENS);
 
 
 			if (s_myAgroPct < 100)
