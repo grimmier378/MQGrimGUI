@@ -17,6 +17,7 @@ PLUGIN_VERSION(0.1);
 static bool s_ShowMainWindow			= false;
 static bool s_ShowConfigWindow			= false;
 static bool s_SplitTargetWindow			= false;
+static bool s_ShowPetWindow = false;
 static bool s_ShowPlayerWindow			= false;
 static bool s_FlashCombatFlag			= false;
 static bool s_FlashTintFlag				= false;
@@ -127,6 +128,7 @@ static void LoadSettings()
 	//window settings
 	s_ShowMainWindow = GetPrivateProfileBool("Settings", "ShowMainGui", true, &s_SettingsFile[0]);
 	s_SplitTargetWindow = GetPrivateProfileBool("PlayerTarg", "SplitTarget", false, &s_SettingsFile[0]);
+	s_ShowPetWindow = GetPrivateProfileBool("Pet", "ShowPetWindow", false, &s_SettingsFile[0]);
 	s_ShowPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
 	s_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	s_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
@@ -153,6 +155,7 @@ static void SaveSettings()
 	//Window Settings
 	WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_ShowPlayerWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Group", "ShowGroupWindow", s_ShowGroupWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_ShowSpellsWindow, &s_SettingsFile[0]);
@@ -470,7 +473,78 @@ static void DrawGroupWindow()
 
 static void DrawPetWindow()
 {
-	//TODO: Pet Window
+	if (pLocalPlayer->PetID > 0)
+	{
+		float sizeX = ImGui::GetWindowWidth();
+		float yPos = ImGui::GetCursorPosY();
+		float midX = (sizeX / 2);
+		float tarPercentage = static_cast<float>(GetSpawnByID(pLocalPlayer->PetID)->HPCurrent) / 100;
+		int tar_label = GetSpawnByID(pLocalPlayer->PetID)->HPCurrent;
+		ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, GetSpawnByID(pLocalPlayer->PetID)->HPCurrent);
+
+
+		if (LineOfSight(pLocalPlayer, pTarget))
+		{
+			ImGui::TextColored(ColorToVec("green"), ICON_MD_VISIBILITY);
+		}
+		else
+		{
+			ImGui::TextColored(ColorToVec("red"), ICON_MD_VISIBILITY_OFF);
+		}
+		ImGui::SameLine();
+		ImGui::Text(GetSpawnByID(pLocalPlayer->PetID)->DisplayedName);
+
+		ImGui::SameLine(sizeX * .75);
+		ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, GetSpawnByID(pLocalPlayer->PetID)));
+
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
+		ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+		yPos = ImGui::GetCursorPosY();
+		ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##");
+		ImGui::PopStyleColor();
+		ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
+		ImGui::Text("%d %%", tar_label);
+		ImGui::NewLine();
+		ImGui::SameLine();
+		ImGui::TextColored(ColorToVec("teal"), "Lvl %d", GetSpawnByID(pLocalPlayer->PetID)->Level);
+		//ImGui::Text(pPetType);
+		//ImGui::SameLine();
+		//const char* classCode = CurTarget->GetClassThreeLetterCode();
+
+		//std::string tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
+		//ImGui::Text(tClass.c_str());
+
+		//ImGui::SameLine();
+		//ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
+
+		//ImGui::SameLine(sizeX * .5);
+		//ImGui::TextColored(ConColorToVec(ConColor(pTarget)), ICON_MD_LENS);
+
+
+		//if (s_myAgroPct < 100)
+		//{
+		//	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("orange"));
+		//}
+		//else
+		//{
+		//	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("purple"));
+		//}
+		//ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+		//yPos = ImGui::GetCursorPosY();
+		//ImGui::ProgressBar(static_cast<float>(s_myAgroPct) / 100, ImVec2(0.0f, s_AggroBarHeight), "##Aggro");
+		//ImGui::PopStyleColor();
+		//ImGui::SetCursorPos(ImVec2(10, yPos));
+		//ImGui::Text("%s", &s_secondAgroName);
+		//ImGui::SetCursorPos(ImVec2((sizeX / 2) - 8, yPos));
+		//ImGui::Text("%d %%", s_myAgroPct);
+		//ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
+		//ImGui::Text("%d %%", s_secondAgroPct);
+
+			//GetCachedBuffAtSlot(pTarget, 0);
+			//ImGui::Text("%s", buff);
+			s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+	}
+
 }
 
 static void DrawSpellWindow()
@@ -649,6 +723,11 @@ static void DrawMainWindow()
 					WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
 				}
 
+				if (ImGui::Checkbox("Pet Win", &s_ShowPetWindow))
+				{
+					WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
+				}
+
 				//TODO: More Windows
 				//ImGui::Separator();
 
@@ -777,6 +856,21 @@ PLUGIN_API void OnUpdateImGui()
 			if (!s_ShowPlayerWindow)
 			{
 				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_ShowPlayerWindow, &s_SettingsFile[0]);
+			}
+		}
+
+		// Pet Window
+		if (s_ShowPetWindow)
+		{
+			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+			if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow))
+			{
+				DrawPetWindow();
+			}
+			ImGui::End();
+			if (!s_ShowPetWindow)
+			{
+				WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
 			}
 		}
 		

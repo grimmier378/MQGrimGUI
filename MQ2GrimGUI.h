@@ -116,7 +116,7 @@ public:
 					borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
 
 				std::string caster = buffInfo.GetCaster();
-				if (caster == pLocalPC->Name)
+				if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
 					borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
 
 				int secondsLeft = buffInfo.GetBuffTimer() / 1000;
