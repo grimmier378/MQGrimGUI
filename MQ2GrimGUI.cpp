@@ -900,17 +900,16 @@ static void DrawTargetWindow()
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
 			float midX = (sizeX / 2);
-			static float tarPercentage = static_cast<float>(CurTarget->HPCurrent) / 100;
-			static int tar_label = CurTarget->HPCurrent;
-			static ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, CurTarget->HPCurrent);
+			float tarPercentage = static_cast<float>(CurTarget->HPCurrent) / 100;
+			int tar_label = CurTarget->HPCurrent;
+			ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, CurTarget->HPCurrent);
 
-			if (CurTarget->DisplayedName == pLocalPC->Name)
+			if (strncmp(pTarget->DisplayedName, pLocalPC->Name, 64) == 0)
 			{
-				static float healthPctFloat = static_cast<float>(GetCurHPS()) / GetMaxHPS();
-				static int healthPctInt = static_cast<int>(healthPctFloat * 100);
-				tarPercentage = static_cast<float>(GetCurHPS()) / GetMaxHPS();
-				tar_label = healthPctInt;
-				colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPctInt);
+				tarPercentage = static_cast<float>(CurTarget->HPCurrent) / CurTarget->HPMax;
+				int healthIntPct = static_cast<int>(tarPercentage * 100);
+				tar_label = healthIntPct;
+				colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthIntPct);
 			}
 			if (LineOfSight(pLocalPlayer, pTarget))
 			{
@@ -1052,10 +1051,10 @@ static void DrawPlayerWindow()
 			ImGui::EndChild();
 			ImGui::PopStyleVar(2);
 			ImGui::PopStyleColor();
-			static float healthPctFloat = static_cast<float>(GetCurHPS()) / GetMaxHPS();
-			static int healthPctInt = static_cast<int>(healthPctFloat * 100);
+			float healthPctFloat = static_cast<float>(GetCurHPS()) / GetMaxHPS();
+			int healthPctInt = static_cast<int>(healthPctFloat * 100);
 
-			static ImVec4 colorHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPctInt);
+			ImVec4 colorHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPctInt);
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorHP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			float yPos = ImGui::GetCursorPosY();
@@ -1072,9 +1071,9 @@ static void DrawPlayerWindow()
 
 			if (GetMaxMana() > 0)
 			{
-				static float manaPctFloat = static_cast<float>(GetCurMana()) / GetMaxMana();
-				static int manaPctInt = static_cast<int>(manaPctFloat * 100);
-				static ImVec4 colorMP = CalculateProgressiveColor(s_MinColorMP, s_MaxColorMP, manaPctInt);
+				float manaPctFloat = static_cast<float>(GetCurMana()) / GetMaxMana();
+				int manaPctInt = static_cast<int>(manaPctFloat * 100);
+				ImVec4 colorMP = CalculateProgressiveColor(s_MinColorMP, s_MaxColorMP, manaPctInt);
 
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorMP);
 				ImGui::SetNextItemWidth(sizeX - 15);
@@ -1092,9 +1091,9 @@ static void DrawPlayerWindow()
 
 			}
 
-			static float endurPctFloat = static_cast<float>(GetCurEndurance()) / GetMaxEndurance();
-			static int endurPctInt = static_cast<int>(endurPctFloat * 100);
-			static ImVec4 colorEP = CalculateProgressiveColor(s_MinColorEnd, s_MaxColorEnd, endurPctInt);
+			float endurPctFloat = static_cast<float>(GetCurEndurance()) / GetMaxEndurance();
+			int endurPctInt = static_cast<int>(endurPctFloat * 100);
+			ImVec4 colorEP = CalculateProgressiveColor(s_MinColorEnd, s_MaxColorEnd, endurPctInt);
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorEP);
 			ImGui::SetNextItemWidth(sizeX - 15);
