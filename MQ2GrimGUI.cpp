@@ -227,6 +227,18 @@ static void GetHeading()
 	s_heading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
+static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
+{
+	if (LineOfSight(pFrom, pTo))
+	{
+		ImGui::TextColored(ColorToVec("green"), ICON_MD_VISIBILITY);
+	}
+	else
+	{
+		ImGui::TextColored(ColorToVec("red"), ICON_MD_VISIBILITY_OFF);
+	}
+}
+
 // GUI Windows
 static void DrawHelpIcon(const char* helpText)
 {
@@ -258,14 +270,7 @@ static void DrawTargetWindow()
 				tar_label = healthIntPct;
 				colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthIntPct);
 			}
-			if (LineOfSight(pLocalPlayer, pTarget))
-			{
-				ImGui::TextColored(ColorToVec("green"),ICON_MD_VISIBILITY);
-			}
-			else
-			{
-				ImGui::TextColored(ColorToVec("red"), ICON_MD_VISIBILITY_OFF);
-			}
+			DrawLineOfSight(pLocalPlayer, pTarget);
 			ImGui::SameLine();
 			ImGui::Text(CurTarget->DisplayedName);
 
@@ -473,76 +478,38 @@ static void DrawGroupWindow()
 
 static void DrawPetWindow()
 {
-	if (pLocalPlayer->PetID > 0)
+	if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
 	{
 		float sizeX = ImGui::GetWindowWidth();
 		float yPos = ImGui::GetCursorPosY();
 		float midX = (sizeX / 2);
-		float tarPercentage = static_cast<float>(GetSpawnByID(pLocalPlayer->PetID)->HPCurrent) / 100;
-		int tar_label = GetSpawnByID(pLocalPlayer->PetID)->HPCurrent;
-		ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, GetSpawnByID(pLocalPlayer->PetID)->HPCurrent);
-
-
-		if (LineOfSight(pLocalPlayer, pTarget))
-		{
-			ImGui::TextColored(ColorToVec("green"), ICON_MD_VISIBILITY);
-		}
-		else
-		{
-			ImGui::TextColored(ColorToVec("red"), ICON_MD_VISIBILITY_OFF);
-		}
+		float petPercentage = static_cast<float>(MyPet->HPCurrent) / 100;
+		int petLabel = MyPet->HPCurrent;
+		ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, MyPet->HPCurrent);
+		DrawLineOfSight(pLocalPlayer, MyPet);
 		ImGui::SameLine();
-		ImGui::Text(GetSpawnByID(pLocalPlayer->PetID)->DisplayedName);
-
-		ImGui::SameLine(sizeX * .75);
-		ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, GetSpawnByID(pLocalPlayer->PetID)));
+		ImGui::Text(MyPet->DisplayedName);
+		ImGui::SameLine(sizeX * 0.5);
+		ImGui::TextColored(ColorToVec("teal"), "Lvl %d", MyPet->Level);
+		ImGui::SameLine(sizeX * 0.75);
+		ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
 
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 		ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
 		yPos = ImGui::GetCursorPosY();
-		ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##");
+		ImGui::ProgressBar(petPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##");
 		ImGui::PopStyleColor();
 		ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
-		ImGui::Text("%d %%", tar_label);
+		ImGui::Text("%d %%", petLabel);
 		ImGui::NewLine();
-		ImGui::SameLine();
-		ImGui::TextColored(ColorToVec("teal"), "Lvl %d", GetSpawnByID(pLocalPlayer->PetID)->Level);
-		//ImGui::Text(pPetType);
-		//ImGui::SameLine();
-		//const char* classCode = CurTarget->GetClassThreeLetterCode();
+		// TODO: Pet Target Information
 
-		//std::string tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
-		//ImGui::Text(tClass.c_str());
+		// TODO: Pet Window Buttons
 
-		//ImGui::SameLine();
-		//ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
+		ImGui::Separator();
 
-		//ImGui::SameLine(sizeX * .5);
-		//ImGui::TextColored(ConColorToVec(ConColor(pTarget)), ICON_MD_LENS);
-
-
-		//if (s_myAgroPct < 100)
-		//{
-		//	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("orange"));
-		//}
-		//else
-		//{
-		//	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("purple"));
-		//}
-		//ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
-		//yPos = ImGui::GetCursorPosY();
-		//ImGui::ProgressBar(static_cast<float>(s_myAgroPct) / 100, ImVec2(0.0f, s_AggroBarHeight), "##Aggro");
-		//ImGui::PopStyleColor();
-		//ImGui::SetCursorPos(ImVec2(10, yPos));
-		//ImGui::Text("%s", &s_secondAgroName);
-		//ImGui::SetCursorPos(ImVec2((sizeX / 2) - 8, yPos));
-		//ImGui::Text("%d %%", s_myAgroPct);
-		//ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
-		//ImGui::Text("%d %%", s_secondAgroPct);
-
-			//GetCachedBuffAtSlot(pTarget, 0);
-			//ImGui::Text("%s", buff);
-			s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+		// Pet Buffs
+		s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 	}
 
 }
