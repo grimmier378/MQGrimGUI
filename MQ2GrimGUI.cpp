@@ -489,30 +489,47 @@ static void DrawPetWindow()
 			float petPercentage = static_cast<float>(MyPet->HPCurrent) / 100;
 			int petLabel = MyPet->HPCurrent;
 			ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, MyPet->HPCurrent);
-			DrawLineOfSight(pLocalPlayer, MyPet);
-			ImGui::SameLine();
-			ImGui::Text(MyPet->DisplayedName);
-			ImGui::SameLine(sizeX * 0.5);
-			ImGui::TextColored(ColorToVec("teal"), "Lvl %d", MyPet->Level);
-			ImGui::SameLine(sizeX * 0.75);
-			ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
+			if (ImGui::BeginTable("Pet", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable))
+			{
+				ImGui::TableSetupColumn((std::string(MyPet->DisplayedName) + "##MainPetInfo").c_str(), ImGuiTableColumnFlags_None, -1);
+				ImGui::TableSetupColumn("Buffs##PetBuffs", ImGuiTableColumnFlags_None, -1);
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableHeadersRow();
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
 
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
-			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
-			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(petPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##");
-			ImGui::PopStyleColor();
-			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
-			ImGui::Text("%d %%", petLabel);
-			ImGui::NewLine();
+				DrawLineOfSight(pLocalPlayer, MyPet);
+				ImGui::SameLine();
+				ImGui::Text("Lvl");
+				ImGui::SameLine();
+				ImGui::TextColored(ColorToVec("teal"),"%d", MyPet->Level);
+				ImGui::SameLine();
+				ImGui::Text("Dist:");
+				ImGui::SameLine();
+				ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
+
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
+				ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+				yPos = ImGui::GetCursorPosY();
+				ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
+				ImGui::PopStyleColor();
+				ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
+				ImGui::Text("%d %%", petLabel);
+				ImGui::TableNextColumn();
+				// Pet Buffs
+				s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+
+				ImGui::EndTable();
+			}
+
+
 			// TODO: Pet Target Information
 
 			// TODO: Pet Window Buttons
 
-			ImGui::Separator();
+			//ImGui::Separator();
 
-			// Pet Buffs
-			s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+
 		}
 		ImGui::End();
 	}
