@@ -212,8 +212,7 @@ static void UpdateSettingFile()
 static void GetHeading()
 {
 	static PSPAWNINFO pCharInfo = pLocalPlayer;
-	int Angle = static_cast<int>((pCharInfo->Heading / 32.0f) + 8.5f) % 16;
-	s_heading = szHeadingShort[Angle];
+	s_heading = szHeadingShort[static_cast<int>((pCharInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
 // GUI Windows
@@ -236,17 +235,17 @@ static void DrawTargetWindow()
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
 			float midX = (sizeX / 2);
-			float tarPercentage = static_cast<float>(CurTarget->HPCurrent) / 100;
-			int tar_label = CurTarget->HPCurrent;
-			ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, CurTarget->HPCurrent);
+			static float tarPercentage = static_cast<float>(CurTarget->HPCurrent) / 100;
+			static int tar_label = CurTarget->HPCurrent;
+			static ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, CurTarget->HPCurrent);
 
 			if (CurTarget->DisplayedName == pLocalPC->Name)
 			{
-				float healthPercentage = static_cast<float>(GetCurHPS()) / GetMaxHPS();
-				int healthPercentageInt = static_cast<int>(healthPercentage * 100);
+				static float healthPctFloat = static_cast<float>(GetCurHPS()) / GetMaxHPS();
+				static int healthPctInt = static_cast<int>(healthPctFloat * 100);
 				tarPercentage = static_cast<float>(GetCurHPS()) / GetMaxHPS();
-				tar_label = healthPercentageInt;
-				colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPercentageInt);
+				tar_label = healthPctInt;
+				colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPctInt);
 			}
 			if (LineOfSight(pLocalPlayer, pTarget))
 			{
@@ -371,14 +370,14 @@ static void DrawPlayerWindow()
 				if (ImGui::BeginTable("##Player", 3))
 				{
 					ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x * .5);
-					ImGui::TableSetupColumn("##Icons", ImGuiTableColumnFlags_WidthFixed, 24);
+					ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_WidthFixed, 30);
 					ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_WidthStretch, 60);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 					ImGui::SameLine();
 					ImGui::Text(pLocalPC->Name);
 					ImGui::TableNextColumn();
-					ImGui::Text(s_heading.c_str());
+					ImGui::TextColored(ColorToVec("Yellow"), s_heading.c_str());
 					ImGui::TableNextColumn();
 					ImGui::Text("Lvl: %d", pLocalPC->GetLevel());
 					ImGui::EndTable();
@@ -387,14 +386,14 @@ static void DrawPlayerWindow()
 			ImGui::EndChild();
 			ImGui::PopStyleVar(2);
 			ImGui::PopStyleColor();
-			float healthPercentage = static_cast<float>(GetCurHPS()) / GetMaxHPS();
-			int healthPercentageInt = static_cast<int>(healthPercentage * 100);
+			static float healthPctFloat = static_cast<float>(GetCurHPS()) / GetMaxHPS();
+			static int healthPctInt = static_cast<int>(healthPctFloat * 100);
 
-			ImVec4 colorHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPercentageInt);
+			static ImVec4 colorHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPctInt);
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorHP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			float yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(healthPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##hp");
+			ImGui::ProgressBar(healthPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##hp");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -403,18 +402,18 @@ static void DrawPlayerWindow()
 				ImGui::EndTooltip();
 			}
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX), yPos));
-			ImGui::Text("%d %%", healthPercentageInt);
+			ImGui::Text("%d %%", healthPctInt);
 
 			if (GetMaxMana() > 0)
 			{
-				float manaPercentage = static_cast<float>(GetCurMana()) / GetMaxMana();
-				int manaPercentageInt = static_cast<int>(manaPercentage * 100);
-				ImVec4 colorMP = CalculateProgressiveColor(s_MinColorMP, s_MaxColorMP, manaPercentageInt);
+				static float manaPctFloat = static_cast<float>(GetCurMana()) / GetMaxMana();
+				static int manaPctInt = static_cast<int>(manaPctFloat * 100);
+				static ImVec4 colorMP = CalculateProgressiveColor(s_MinColorMP, s_MaxColorMP, manaPctInt);
 
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorMP);
 				ImGui::SetNextItemWidth(sizeX - 15);
 				yPos = ImGui::GetCursorPosY();
-				ImGui::ProgressBar(manaPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##Mana");
+				ImGui::ProgressBar(manaPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##Mana");
 				ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered())
 				{
@@ -423,18 +422,18 @@ static void DrawPlayerWindow()
 					ImGui::EndTooltip();
 				}
 				ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX), yPos));
-				ImGui::Text("%d %%", manaPercentageInt);
+				ImGui::Text("%d %%", manaPctInt);
 
 			}
 
-			float endurancePercentage = static_cast<float>(GetCurEndurance()) / GetMaxEndurance();
-			int endPercentageInt = static_cast<int>(endurancePercentage * 100);
-			ImVec4 colorEP = CalculateProgressiveColor(s_MinColorEnd, s_MaxColorEnd, endPercentageInt);
+			static float endurPctFloat = static_cast<float>(GetCurEndurance()) / GetMaxEndurance();
+			static int endurPctInt = static_cast<int>(endurPctFloat * 100);
+			static ImVec4 colorEP = CalculateProgressiveColor(s_MinColorEnd, s_MaxColorEnd, endurPctInt);
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorEP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(endurancePercentage, ImVec2(0.0f, s_PlayerBarHeight), "##Endur");
+			ImGui::ProgressBar(endurPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##Endur");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -443,7 +442,7 @@ static void DrawPlayerWindow()
 				ImGui::EndTooltip();
 			}
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX), yPos));
-			ImGui::Text("%d %%", endPercentageInt);
+			ImGui::Text("%d %%", endurPctInt);
 
 			if (!s_SplitTargetWindow)
 			{

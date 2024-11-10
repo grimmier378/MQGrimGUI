@@ -2,11 +2,6 @@
 // MQ2GrimGUI.h
 #include <string>
 #include <imgui.h>
-#include "main/datatypes/MQ2DataTypes.h"
-#include "main/MQ2Main.h"
-
-// Class Definitions
-
 
 // Color utility functions
 
