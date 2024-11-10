@@ -3,6 +3,163 @@
 #include <string>
 #include <imgui.h>
 
+
+extern bool s_FlashTintFlag;
+extern int s_BuffIconSize;
+extern int s_TarBuffLineSize;
+
+#pragma region Spells Inspector
+
+class SpellsInspector
+{
+	CTextureAnimation* m_pTASpellIcon = nullptr;
+public:
+
+	~SpellsInspector()
+	{
+		if (m_pTASpellIcon)
+		{
+			delete m_pTASpellIcon;
+			m_pTASpellIcon = nullptr;
+		}
+	}
+
+	static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
+	{
+		if (buffTimer < 0)
+		{
+			strcpy_s(timeLabel, size, "Permanent");
+		}
+		else if (buffTimer > 0)
+		{
+			int hours = 0;
+			int minutes = 0;
+			int seconds = 0;
+
+			int totalSeconds = buffTimer / 1000;
+
+			if (totalSeconds > 0)
+			{
+				hours = totalSeconds / 3600;
+				minutes = (totalSeconds % 3600) / 60;
+				seconds = totalSeconds % 60;
+			}
+
+			if (hours > 0)
+			{
+				if (minutes > 0 && seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm %ds", hours, minutes, seconds);
+				}
+				else if (minutes > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm", hours, minutes);
+				}
+				else if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %ds", hours, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dh", hours);
+				}
+			}
+			else if (minutes > 0)
+			{
+				if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dm %ds", minutes, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dm", minutes);
+				}
+			}
+			else
+			{
+				sprintf_s(timeLabel, size, "%ds", seconds);
+			}
+		}
+		else
+		{
+			strcpy_s(timeLabel, size, "0s");
+		}
+	}
+
+	template <typename T>
+	void DoBuffs(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
+	{
+		for (const auto& buffInfo : Buffs)
+		{
+			EQ_Spell* spell = buffInfo.GetSpell();
+			if (!spell)
+				continue;
+
+			ImGui::PushID(buffInfo.GetIndex());
+
+			if (!m_pTASpellIcon)
+			{
+				m_pTASpellIcon = new CTextureAnimation();
+				if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+					*m_pTASpellIcon = *temp;
+			}
+
+			int sizeX = ImGui::GetContentRegionAvailWidth();
+			s_TarBuffLineSize = 0;
+			if (spell)
+			{
+				m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+				MQColor borderCol = MQColor(0, 0, 250, 255); // Default color blue (beneficial)
+				MQColor tintCol = MQColor(255, 255, 255, 255);
+				if (!spell->IsBeneficialSpell())
+					borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
+
+				std::string caster = buffInfo.GetCaster();
+				if (caster == pLocalPC->Name)
+					borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
+
+				int secondsLeft = buffInfo.GetBuffTimer() / 1000;
+				if (secondsLeft < 18)
+				{
+					if (s_FlashTintFlag)
+						tintCol = MQColor(0, 0, 0, 255);
+
+				}
+
+				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
+				s_TarBuffLineSize += 24;
+				if (s_TarBuffLineSize < sizeX - 20)
+				{
+					ImGui::SameLine(0.0f, 2);
+				}
+				else
+				{
+					s_TarBuffLineSize = 0;
+				}
+			}
+			ImGui::PopID();
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				if (spell)
+				{
+					char timeLabel[64];
+					FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+					ImGui::Text("%s (%s)", spell->Name, timeLabel);
+					ImGui::Text("Caster: %s", buffInfo.GetCaster());
+
+				}
+				ImGui::EndTooltip();
+			}
+		}
+	}
+};
+static SpellsInspector* s_spellsInspector = nullptr;
+
+#pragma endregion
+
+
 // Color utility functions
 
 /**
