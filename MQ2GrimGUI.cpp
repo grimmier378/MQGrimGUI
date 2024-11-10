@@ -1248,9 +1248,9 @@ static void DrawConfigWindow()
 				// If they close the window and don't click the button the settings will not be saved and only be temporary.
 				WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
-				WritePrivateProfileBool("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
-				WritePrivateProfileBool("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
-				WritePrivateProfileBool("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 
 				SaveColorToIni("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
