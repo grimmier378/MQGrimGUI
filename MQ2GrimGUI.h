@@ -120,7 +120,7 @@ public:
 					borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
 
 				int secondsLeft = buffInfo.GetBuffTimer() / 1000;
-				if (secondsLeft < 18)
+				if (secondsLeft < 18 && !petBuffs)
 				{
 					if (s_FlashTintFlag)
 						tintCol = MQColor(0, 0, 0, 255);
@@ -128,7 +128,7 @@ public:
 				}
 
 				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
-				s_TarBuffLineSize += 24;
+				s_TarBuffLineSize += s_BuffIconSize + 2 ;
 				if (s_TarBuffLineSize < sizeX - 20)
 				{
 					ImGui::SameLine(0.0f, 2);
@@ -147,7 +147,8 @@ public:
 					char timeLabel[64];
 					FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
 					ImGui::Text("%s (%s)", spell->Name, timeLabel);
-					ImGui::Text("Caster: %s", buffInfo.GetCaster());
+					if (!petBuffs)
+						ImGui::Text("Caster: %s", buffInfo.GetCaster());
 
 				}
 				ImGui::EndTooltip();

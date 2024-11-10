@@ -480,36 +480,41 @@ static void DrawPetWindow()
 {
 	if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
 	{
-		float sizeX = ImGui::GetWindowWidth();
-		float yPos = ImGui::GetCursorPosY();
-		float midX = (sizeX / 2);
-		float petPercentage = static_cast<float>(MyPet->HPCurrent) / 100;
-		int petLabel = MyPet->HPCurrent;
-		ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, MyPet->HPCurrent);
-		DrawLineOfSight(pLocalPlayer, MyPet);
-		ImGui::SameLine();
-		ImGui::Text(MyPet->DisplayedName);
-		ImGui::SameLine(sizeX * 0.5);
-		ImGui::TextColored(ColorToVec("teal"), "Lvl %d", MyPet->Level);
-		ImGui::SameLine(sizeX * 0.75);
-		ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
+		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow))
+		{
+			float sizeX = ImGui::GetWindowWidth();
+			float yPos = ImGui::GetCursorPosY();
+			float midX = (sizeX / 2);
+			float petPercentage = static_cast<float>(MyPet->HPCurrent) / 100;
+			int petLabel = MyPet->HPCurrent;
+			ImVec4 colorTarHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, MyPet->HPCurrent);
+			DrawLineOfSight(pLocalPlayer, MyPet);
+			ImGui::SameLine();
+			ImGui::Text(MyPet->DisplayedName);
+			ImGui::SameLine(sizeX * 0.5);
+			ImGui::TextColored(ColorToVec("teal"), "Lvl %d", MyPet->Level);
+			ImGui::SameLine(sizeX * 0.75);
+			ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
 
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
-		ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
-		yPos = ImGui::GetCursorPosY();
-		ImGui::ProgressBar(petPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##");
-		ImGui::PopStyleColor();
-		ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
-		ImGui::Text("%d %%", petLabel);
-		ImGui::NewLine();
-		// TODO: Pet Target Information
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
+			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+			yPos = ImGui::GetCursorPosY();
+			ImGui::ProgressBar(petPercentage, ImVec2(0.0f, s_PlayerBarHeight), "##");
+			ImGui::PopStyleColor();
+			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
+			ImGui::Text("%d %%", petLabel);
+			ImGui::NewLine();
+			// TODO: Pet Target Information
 
-		// TODO: Pet Window Buttons
+			// TODO: Pet Window Buttons
 
-		ImGui::Separator();
+			ImGui::Separator();
 
-		// Pet Buffs
-		s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+			// Pet Buffs
+			s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+		}
+		ImGui::End();
 	}
 
 }
@@ -829,12 +834,9 @@ PLUGIN_API void OnUpdateImGui()
 		// Pet Window
 		if (s_ShowPetWindow)
 		{
-			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow))
-			{
-				DrawPetWindow();
-			}
-			ImGui::End();
+
+			DrawPetWindow();
+
 			if (!s_ShowPetWindow)
 			{
 				WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
