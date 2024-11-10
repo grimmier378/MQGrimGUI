@@ -2,7 +2,7 @@
 // MQ2GrimGUI.h
 #include <string>
 #include <imgui.h>
-
+#include "mq/base/Color.h"
 
 extern bool s_FlashTintFlag;
 extern int s_BuffIconSize;
@@ -168,20 +168,23 @@ static SpellsInspector* s_spellsInspector = nullptr;
 *
 * Function to calculate a color between two colors based on a value between 0 and 100
 *
-* @param minColor const ImVec4& Minimum color value
-* @param maxColor const ImVec4& Maximum color value
+* @param minColor const MQColor& Minimum color value
+* @param maxColor const MQColor& Maximum color value
 * @param value int Value between 0 and 100 to calculate the color between minColor and maxColor
-* @param midColor const ImVec4* Optional midColor value to calculate in two segments
+* @param midColor const MQColor* Optional midColor value to calculate in two segments
 * @param midValue int Optional midValue to split the value between minColor and maxColor
 *
 * @return ImVec4 color value
 */
-static ImVec4 CalculateProgressiveColor(const ImVec4& minColor, const ImVec4& maxColor, int value, const ImVec4* midColor = nullptr, int midValue = 50)
+static ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColor, int value, const MQColor* midColor = nullptr, int midValue = 50)
 {
 	// Clamp value between 0 and 100
 	value = std::max(0, std::min(100, value));
 
 	float r, g, b, a;
+
+	// Lambda to convert color component to 0-1 float for ImGui
+	auto toFloat = [](uint8_t colorComponent) { return static_cast<float>(colorComponent) / 255.0f; };
 
 	if (midColor)
 	{
@@ -189,73 +192,89 @@ static ImVec4 CalculateProgressiveColor(const ImVec4& minColor, const ImVec4& ma
 		if (value > midValue)
 		{
 			float proportion = static_cast<float>(value - midValue) / (100 - midValue);
-			r = midColor->x + proportion * (maxColor.x - midColor->x);
-			g = midColor->y + proportion * (maxColor.y - midColor->y);
-			b = midColor->z + proportion * (maxColor.z - midColor->z);
-			a = midColor->w + proportion * (maxColor.w - midColor->w);
+			r = toFloat(midColor->Red) + proportion * (toFloat(maxColor.Red) - toFloat(midColor->Red));
+			g = toFloat(midColor->Green) + proportion * (toFloat(maxColor.Green) - toFloat(midColor->Green));
+			b = toFloat(midColor->Blue) + proportion * (toFloat(maxColor.Blue) - toFloat(midColor->Blue));
+			a = toFloat(midColor->Alpha) + proportion * (toFloat(maxColor.Alpha) - toFloat(midColor->Alpha));
 		}
 		else
 		{
 			float proportion = static_cast<float>(value) / midValue;
-			r = minColor.x + proportion * (midColor->x - minColor.x);
-			g = minColor.y + proportion * (midColor->y - minColor.y);
-			b = minColor.z + proportion * (midColor->z - minColor.z);
-			a = minColor.w + proportion * (midColor->w - minColor.w);
+			r = toFloat(minColor.Red) + proportion * (toFloat(midColor->Red) - toFloat(minColor.Red));
+			g = toFloat(minColor.Green) + proportion * (toFloat(midColor->Green) - toFloat(minColor.Green));
+			b = toFloat(minColor.Blue) + proportion * (toFloat(midColor->Blue) - toFloat(minColor.Blue));
+			a = toFloat(minColor.Alpha) + proportion * (toFloat(midColor->Alpha) - toFloat(minColor.Alpha));
 		}
 	}
 	else
 	{
 		// Calculate between minColor and maxColor
 		float proportion = static_cast<float>(value) / 100;
-		r = minColor.x + proportion * (maxColor.x - minColor.x);
-		g = minColor.y + proportion * (maxColor.y - minColor.y);
-		b = minColor.z + proportion * (maxColor.z - minColor.z);
-		a = minColor.w + proportion * (maxColor.w - minColor.w);
+		r = toFloat(minColor.Red) + proportion * (toFloat(maxColor.Red) - toFloat(minColor.Red));
+		g = toFloat(minColor.Green) + proportion * (toFloat(maxColor.Green) - toFloat(minColor.Green));
+		b = toFloat(minColor.Blue) + proportion * (toFloat(maxColor.Blue) - toFloat(minColor.Blue));
+		a = toFloat(minColor.Alpha) + proportion * (toFloat(maxColor.Alpha) - toFloat(minColor.Alpha));
 	}
 
 	return ImVec4(r, g, b, a);
 }
 
 
-/**
-* @fn ColorToVec
-*
-* Function to convert a color name to an ImVec4 color value
-*
-* @param color_name const std::string& Color name to convert to ImVec4
-*
-* @return ImVec4 color value
-*/
-static ImVec4 ColorToVec(const std::string& color_name)
+enum class ColorName {
+	Red, Pink2, Pink, Orange, Tangerine, Yellow, Yellow2, White,
+	Blue, SoftBlue, LightBlue2, LightBlue, Teal, Green, Green2,
+	Grey, Purple, Purple2, BtnRed, BtnGreen, DefaultWhite
+};
+
+constexpr MQColor COLOR_RED(230, 26, 26, 255);
+constexpr MQColor COLOR_PINK2(249, 132, 215, 255);
+constexpr MQColor COLOR_PINK(230, 102, 102, 204);
+constexpr MQColor COLOR_ORANGE(199, 51, 13, 204);
+constexpr MQColor COLOR_TANGERINE(255, 142, 0, 255);
+constexpr MQColor COLOR_YELLOW(255, 255, 0, 255);
+constexpr MQColor COLOR_YELLOW2(178, 153, 26, 178);
+constexpr MQColor COLOR_WHITE(255, 255, 255, 255);
+constexpr MQColor COLOR_BLUE(0, 0, 255, 255);
+constexpr MQColor COLOR_SOFT_BLUE(94, 180, 255);
+constexpr MQColor COLOR_LIGHT_BLUE2(51, 230, 230, 128);
+constexpr MQColor COLOR_LIGHT_BLUE(0, 255, 255, 255);
+constexpr MQColor COLOR_TEAL(0, 255, 255, 255);
+constexpr MQColor COLOR_GREEN(0, 255, 0, 255);
+constexpr MQColor COLOR_GREEN2(3, 143, 0, 255);
+constexpr MQColor COLOR_GREY(153, 153, 153, 255);
+constexpr MQColor COLOR_PURPLE1(204, 0, 255, 255);
+constexpr MQColor COLOR_PURPLE2(118, 52, 255, 255);
+constexpr MQColor COLOR_BTN_RED(255, 102, 102, 102);
+constexpr MQColor COLOR_BTN_GREEN(102, 255, 102, 102);
+constexpr MQColor COLOR_DEFAULT_WHITE(255, 255, 255, 255);
+
+constexpr MQColor GetMQColor(ColorName color)
 {
-	std::string color = color_name;
-	std::transform(color.begin(), color.end(), color.begin(), ::tolower);
-
-	if (color == "red")          return ImVec4(0.9f, 0.1f, 0.1f, 1.0f);
-	if (color == "pink2")        return ImVec4(0.976f, 0.518f, 0.844f, 1.0f);
-	if (color == "pink")         return ImVec4(0.9f, 0.4f, 0.4f, 0.8f);
-	if (color == "orange")       return ImVec4(0.78f, 0.20f, 0.05f, 0.8f);
-	if (color == "tangarine")    return ImVec4(1.0f, 0.557f, 0.0f, 1.0f);
-	if (color == "yellow")       return ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
-	if (color == "yellow2")      return ImVec4(0.7f, 0.6f, 0.1f, 0.7f);
-	if (color == "white")        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-	if (color == "blue")         return ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
-	if (color == "softblue")     return ImVec4(0.37f, 0.704f, 1.0f, 1.0f);
-	if (color == "light blue2")  return ImVec4(0.2f, 0.9f, 0.9f, 0.5f);
-	if (color == "light blue")   return ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
-	if (color == "teal")         return ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
-	if (color == "green")        return ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
-	if (color == "green2")       return ImVec4(0.01f, 0.56f, 0.001f, 1.0f);
-	if (color == "grey")         return ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
-	if (color == "purple")       return ImVec4(0.8f, 0.0f, 1.0f, 1.0f);
-	if (color == "purple2")      return ImVec4(0.46f, 0.204f, 1.0f, 1.0f);
-	if (color == "btn_red")      return ImVec4(1.0f, 0.4f, 0.4f, 0.4f);
-	if (color == "btn_green")    return ImVec4(0.4f, 1.0f, 0.4f, 0.4f);
-
-	// Default White if no match
-	return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+	switch (color)
+	{
+	case ColorName::Red:          return COLOR_RED;
+	case ColorName::Pink2:        return COLOR_PINK2;
+	case ColorName::Pink:         return COLOR_PINK;
+	case ColorName::Orange:       return COLOR_ORANGE;
+	case ColorName::Tangerine:    return COLOR_TANGERINE;
+	case ColorName::Yellow:       return COLOR_YELLOW;
+	case ColorName::Yellow2:      return COLOR_YELLOW2;
+	case ColorName::White:        return COLOR_WHITE;
+	case ColorName::Blue:         return COLOR_BLUE;
+	case ColorName::SoftBlue:     return COLOR_SOFT_BLUE;
+	case ColorName::LightBlue2:   return COLOR_LIGHT_BLUE2;
+	case ColorName::LightBlue:    return COLOR_LIGHT_BLUE;
+	case ColorName::Teal:         return COLOR_TEAL;
+	case ColorName::Green:        return COLOR_GREEN;
+	case ColorName::Green2:       return COLOR_GREEN2;
+	case ColorName::Grey:         return COLOR_GREY;
+	case ColorName::Purple:       return COLOR_PURPLE1;
+	case ColorName::Purple2:      return COLOR_PURPLE2;
+	case ColorName::BtnRed:       return COLOR_BTN_RED;
+	case ColorName::BtnGreen:     return COLOR_BTN_GREEN;
+	default:                      return COLOR_DEFAULT_WHITE;
+	}
 }
-
 
 /**
 * @fn ConColorToVec

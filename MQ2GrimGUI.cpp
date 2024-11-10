@@ -29,12 +29,13 @@ static bool s_DefaultLoaded				= false;
 static char s_SettingsFile[MAX_PATH]	= { 0 };
 
 // Colors for Progress Bar Transitions
-static ImVec4 s_MinColorHP(0.876f, 0.341f, 1.000f, 1.000f);
-static ImVec4 s_MaxColorHP(0.845f, 0.151f, 0.151f, 1.000f);
-static ImVec4 s_MinColorMP(0.259f, 0.114f, 0.514f, 1.000f);
-static ImVec4 s_MaxColorMP(0.079f, 0.468f, 0.848f, 1.000f); 
-static ImVec4 s_MinColorEnd(1.000f, 0.437f, 0.019f, 1.000f);
-static ImVec4 s_MaxColorEnd(0.7f, 0.6f, 0.1f, 0.7f);
+static mq::MQColor s_MinColorHP(223, 87, 255, 255);
+static mq::MQColor s_MaxColorHP(216, 39, 39, 255);
+static mq::MQColor s_MinColorMP(66, 29, 131, 255);
+static mq::MQColor s_MaxColorMP(20, 119, 216, 255);
+static mq::MQColor s_MinColorEnd(255, 111, 5, 255);
+static mq::MQColor s_MaxColorEnd(178, 153, 26, 178);
+
 
 static int s_FlashInterval				= 250;
 static int s_FlashBuffInterval			= 350;
@@ -57,71 +58,6 @@ std::chrono::steady_clock::time_point g_LastBuffFlashTime = std::chrono::steady_
 
 const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
-
-/**
-* @fn SaveColorToIni
-* 
-* Function to write Color ImVec4 as String to the INI file
-* 
-* @param section const char* Section name in the INI file
-* @param key const char* Key name in the INI file
-* @param color ImVec4 Color value to write to the INI file
-* @param file const char* INI file to write the color to
- */
-static void SaveColorToIni(const char* section, const char* key, const ImVec4& color, const char* file)
-{
-	std::ostringstream oss;
-	oss << color.x << "," << color.y << "," << color.z << "," << color.w;
-	WritePrivateProfileString(section, key, oss.str().c_str(), file);
-}
-
-
-/** 
-* @fn LoadColorFromIni
-* 
-* Function to load an ImVec4 color from the INI file
-* 
-* @param section const char* Section name in the INI file
-* @param key const char* Key name in the INI file
-* @param defaultColor ImVec4 Default color value to return if the key does not exist
-* @param file const char* INI file to load the color from
-* @return ImVec4 color value
- */
-static ImVec4 LoadColorFromIni(const char* section, const char* key, const ImVec4& defaultColor, const char* file)
-{
-	char buffer[64];
-	GetPrivateProfileString(section, key, "", buffer, sizeof(buffer), file);
-
-	// If the key does not exist, return the default color
-	if (strlen(buffer) == 0)
-	{
-		return defaultColor;
-	}
-
-	// Parse the color from the comma-separated string
-	ImVec4 color = defaultColor;
-	std::istringstream iss(buffer);
-	std::string value;
-	float values[4]{};
-	int i = 0;
-
-	while (std::getline(iss, value, ',') && i < 4)
-	{
-		values[i++] = std::stof(value);
-	}
-
-	if (i == 4)
-	{
-		color.x = values[0];
-		color.y = values[1];
-		color.z = values[2];
-		color.w = values[3];
-	}
-
-	return color;
-}
-
-
 static void LoadSettings()
 {
 	// Load settings from the INI file
@@ -141,12 +77,13 @@ static void LoadSettings()
 	s_BuffIconSize = GetPrivateProfileInt("PlayerTarg", "BuffIconSize", 24, &s_SettingsFile[0]);
 
 	//Color Settings
-	s_MinColorHP = LoadColorFromIni("Colors", "MinColorHP", ImVec4(0.876f, 0.341f, 1.000f, 1.000f), &s_SettingsFile[0]);
-	s_MaxColorHP = LoadColorFromIni("Colors", "MaxColorHP", ImVec4(0.845f, 0.151f, 0.151f, 1.000f), &s_SettingsFile[0]);
-	s_MinColorEnd = LoadColorFromIni("Colors", "MinColorEnd", ImVec4(1.000f, 0.437f, 0.019f, 1.000f), &s_SettingsFile[0]);
-	s_MaxColorEnd = LoadColorFromIni("Colors", "MaxColorEnd", ImVec4(0.7f, 0.6f, 0.1f, 0.7f), &s_SettingsFile[0]);
-	s_MinColorMP = LoadColorFromIni("Colors", "MinColorMP", ImVec4(0.259f, 0.114f, 0.514f, 1.000f), &s_SettingsFile[0]);
-	s_MaxColorMP = LoadColorFromIni("Colors", "MaxColorMP", ImVec4(0.079f, 0.468f, 0.848f, 1.000f), &s_SettingsFile[0]);
+	s_MinColorHP = GetPrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
+	s_MaxColorHP = GetPrivateProfileColor("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
+	s_MinColorMP = GetPrivateProfileColor("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
+	s_MaxColorMP = GetPrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
+	s_MinColorEnd = GetPrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
+	s_MaxColorEnd = GetPrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+
 }
 
 
@@ -168,12 +105,12 @@ static void SaveSettings()
 	WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 
 	//Color Settings
-	SaveColorToIni("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
 }
 
 
@@ -231,11 +168,11 @@ static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 {
 	if (LineOfSight(pFrom, pTo))
 	{
-		ImGui::TextColored(ColorToVec("green"), ICON_MD_VISIBILITY);
+		ImGui::TextColored(GetMQColor(ColorName::Green).ToImColor(), ICON_MD_VISIBILITY);
 	}
 	else
 	{
-		ImGui::TextColored(ColorToVec("red"), ICON_MD_VISIBILITY_OFF);
+		ImGui::TextColored(GetMQColor(ColorName::Red).ToImColor(), ICON_MD_VISIBILITY_OFF);
 	}
 }
 
@@ -275,7 +212,7 @@ static void DrawTargetWindow()
 			ImGui::Text(CurTarget->DisplayedName);
 
 			ImGui::SameLine(sizeX * .75);
-			ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, pTarget));
+			ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.1f m", GetDistance(pLocalPlayer, pTarget));
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
@@ -286,7 +223,7 @@ static void DrawTargetWindow()
 			ImGui::Text("%d %%", tar_label);
 			ImGui::NewLine();
 			ImGui::SameLine();
-			ImGui::TextColored(ColorToVec("teal"), "Lvl %d", CurTarget->Level);
+			ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "Lvl %d", CurTarget->Level);
 
 			ImGui::SameLine();
 			const char* classCode = CurTarget->GetClassThreeLetterCode();
@@ -303,11 +240,11 @@ static void DrawTargetWindow()
 
 			if (s_myAgroPct < 100)
 			{
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("orange"));
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Orange).ToImColor()));
 			}
 			else
 			{
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ColorToVec("purple"));
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Purple).ToImColor()));
 			}
 			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
 			yPos = ImGui::GetCursorPosY();
@@ -370,16 +307,16 @@ static void DrawPlayerWindow()
 			{
 				if (s_FlashCombatFlag)
 				{
-					ImGui::PushStyleColor(ImGuiCol_Border, ColorToVec("Red"));
+					ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(GetMQColor(ColorName::Red).ToImColor()));
 				}
 				else
 				{
-					ImGui::PushStyleColor(ImGuiCol_Border, ColorToVec("White"));
+					ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(GetMQColor(ColorName::White).ToImColor()));
 				}
 			}
 			else
 			{
-				ImGui::PushStyleColor(ImGuiCol_Border, ColorToVec("White"));
+				ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(GetMQColor(ColorName::White).ToImColor()));
 			}
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
@@ -395,7 +332,7 @@ static void DrawPlayerWindow()
 					ImGui::SameLine();
 					ImGui::Text(pLocalPC->Name);
 					ImGui::TableNextColumn();
-					ImGui::TextColored(ColorToVec("Yellow"), s_heading.c_str());
+					ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_heading.c_str());
 					ImGui::TableNextColumn();
 					ImGui::Text("Lvl: %d", pLocalPC->GetLevel());
 					ImGui::EndTable();
@@ -502,11 +439,11 @@ static void DrawPetWindow()
 				ImGui::SameLine();
 				ImGui::Text("Lvl");
 				ImGui::SameLine();
-				ImGui::TextColored(ColorToVec("teal"),"%d", MyPet->Level);
+				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()),"%d", MyPet->Level);
 				ImGui::SameLine();
 				ImGui::Text("Dist:");
 				ImGui::SameLine();
-				ImGui::TextColored(ColorToVec("tangarine"), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
+				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
 
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 				ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
@@ -515,8 +452,29 @@ static void DrawPetWindow()
 				ImGui::PopStyleColor();
 				ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
 				ImGui::Text("%d %%", petLabel);
+
+				if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
+				{
+					ImGui::Text(pPetTarget->DisplayedName);
+					float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
+					int petTargetLabel = pPetTarget->HPCurrent;
+					ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, pPetTarget->HPCurrent);
+					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHPTarget);
+					ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+					yPos = ImGui::GetCursorPosY();
+					ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
+					ImGui::PopStyleColor();
+					ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
+					ImGui::Text("%d %%", petTargetLabel);
+				}
+				else
+				{
+					ImGui::Text("No Target");
+					ImGui::NewLine();
+				}
+				// Pet Buffs Section (Column)
 				ImGui::TableNextColumn();
-				// Pet Buffs
+				
 				s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 
 				ImGui::EndTable();
@@ -557,51 +515,73 @@ static void DrawConfigWindow()
 
 		if (ImGui::Begin("Config##ConfigWindow", &s_ShowConfigWindow))
 		{
-
 			if (ImGui::CollapsingHeader("Color Settings"))
 			{
-
 				if (ImGui::BeginTable("##Settings", 2))
-			{
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
 
-				ImGui::ColorEdit4("Min HP Color", (float*)&s_MinColorHP, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				DrawHelpIcon("Minimum HP Color");
+					ImVec4 minHPColor = s_MinColorHP.ToImColor();
+					if (ImGui::ColorEdit4("Min HP Color", (float*)&minHPColor, ImGuiColorEditFlags_NoInputs))
+					{
+						s_MinColorHP = MQColor(minHPColor);
+					}
+					ImGui::SameLine();
+					DrawHelpIcon("Minimum HP Color");
 
-				ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
 
-				ImGui::ColorEdit4("Max HP Color", (float*)&s_MaxColorHP, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				DrawHelpIcon("Maximum HP Color");
+					ImVec4 maxHPColor = s_MaxColorHP.ToImColor();
+					if (ImGui::ColorEdit4("Max HP Color", (float*)&maxHPColor, ImGuiColorEditFlags_NoInputs))
+					{
+						s_MaxColorHP = MQColor(maxHPColor);
+					}
+					ImGui::SameLine();
+					DrawHelpIcon("Maximum HP Color");
 
-				ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
 
-				ImGui::ColorEdit4("Min MP Color", (float*)&s_MinColorMP, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				DrawHelpIcon("Minimum MP Color");
+					ImVec4 minMPColor = s_MinColorMP.ToImColor();
+					if (ImGui::ColorEdit4("Min MP Color", (float*)&minMPColor, ImGuiColorEditFlags_NoInputs))
+					{
+						s_MinColorMP = MQColor(minMPColor);
+					}
+					ImGui::SameLine();
+					DrawHelpIcon("Minimum MP Color");
 
-				ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
 
-				ImGui::ColorEdit4("Max MP Color", (float*)&s_MaxColorMP, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				DrawHelpIcon("Maximum MP Color");
+					ImVec4 maxMPColor = s_MaxColorMP.ToImColor();
+					if (ImGui::ColorEdit4("Max MP Color", (float*)&maxMPColor, ImGuiColorEditFlags_NoInputs))
+					{
+						s_MaxColorMP = MQColor(maxMPColor);
+					}
+					ImGui::SameLine();
+					DrawHelpIcon("Maximum MP Color");
 
-				ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
 
-				ImGui::ColorEdit4("Min End Color", (float*)&s_MinColorEnd, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				DrawHelpIcon("Minimum Endurance Color");
+					ImVec4 minEndColor = s_MinColorEnd.ToImColor();
+					if (ImGui::ColorEdit4("Min End Color", (float*)&minEndColor, ImGuiColorEditFlags_NoInputs))
+					{
+						s_MinColorEnd = MQColor(minEndColor);
+					}
+					ImGui::SameLine();
+					DrawHelpIcon("Minimum Endurance Color");
 
-				ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
 
-				ImGui::ColorEdit4("Max End Color", (float*)&s_MaxColorEnd, ImGuiColorEditFlags_NoInputs);
-				ImGui::SameLine();
-				DrawHelpIcon("Maximum Endurance Color");
+					ImVec4 maxEndColor = s_MaxColorEnd.ToImColor();
+					if (ImGui::ColorEdit4("Max End Color", (float*)&maxEndColor, ImGuiColorEditFlags_NoInputs))
+					{
+						s_MaxColorEnd = MQColor(maxEndColor);
+					}
+					ImGui::SameLine();
+					DrawHelpIcon("Maximum Endurance Color");
 
-				ImGui::EndTable();
-			}
+					ImGui::EndTable();
+				}
 
 				ImGui::SeparatorText("Test Color");
 
@@ -667,10 +647,13 @@ static void DrawConfigWindow()
 				DrawHelpIcon("Aggro Bar Height");
 
 			}
+
+
 			if (ImGui::Button("Save & Close"))
 			{
+
 				// only Save when the user clicks the button. 
-				// If they close the window and don't click the button the settings will not be saved and only be temporary.
+// If they close the window and don't click the button the settings will not be saved and only be temporary.
 				WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
@@ -678,12 +661,13 @@ static void DrawConfigWindow()
 				WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 
-				SaveColorToIni("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, s_SettingsFile);
+				WritePrivateProfileColor("Colors", "MaxColorHP", s_MaxColorHP, s_SettingsFile);
+				WritePrivateProfileColor("Colors", "MinColorMP", s_MinColorMP, s_SettingsFile);
+				WritePrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, s_SettingsFile);
+				WritePrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, s_SettingsFile);
+				WritePrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, s_SettingsFile);
+
 				s_ShowConfigWindow = false;
 			}
 		}
@@ -925,6 +909,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	LoadSettings();
 	SaveSettings();
 	s_spellsInspector = new SpellsInspector();
+	WriteChatf("/grimgui to toggle main window");
 
 }
 
