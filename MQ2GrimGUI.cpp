@@ -38,7 +38,7 @@ static mq::MQColor s_MaxColorEnd(178, 153, 26, 178);
 
 
 static int s_FlashInterval				= 250;
-static int s_FlashBuffInterval			= 350;
+static int s_FlashBuffInterval			= 75;
 static int s_PlayerBarHeight			= 15;
 static int s_TargetBarHeight			= 15;
 static int s_AggroBarHeight				= 10;
@@ -47,8 +47,8 @@ static int s_secondAgroPct				= 0;
 static int s_BuffIconSize				= 24;
 static int s_TestInt					= 100; // Color Test Value for Config Window
 
-static std::string s_secondAgroName		= "Unknown";
-static std::string s_heading			= "N";
+static const char* s_secondAgroName		= "Unknown";
+static const char* s_heading			= "N";
 static int s_TarBuffLineSize = 0;
 
 // Timers
@@ -251,18 +251,23 @@ static void DrawTargetWindow()
 			ImGui::ProgressBar(static_cast<float>(s_myAgroPct) / 100, ImVec2(0.0f, s_AggroBarHeight), "##Aggro");
 			ImGui::PopStyleColor();
 			ImGui::SetCursorPos(ImVec2(10, yPos));
-			ImGui::Text("%s", &s_secondAgroName);
+			ImGui::Text(s_secondAgroName);
 			ImGui::SetCursorPos(ImVec2((sizeX/2)-8, yPos));
 			ImGui::Text("%d %%", s_myAgroPct);
 			ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
 			ImGui::Text("%d %%", s_secondAgroPct);	
 
-			if (gTargetbuffs)
+			if (ImGui::BeginChild("TargetBuffs", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
 			{
-				//GetCachedBuffAtSlot(pTarget, 0);
-				//ImGui::Text("%s", buff);
-				s_spellsInspector->DoBuffs("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+
+				if (gTargetbuffs)
+				{
+					//GetCachedBuffAtSlot(pTarget, 0);
+					//ImGui::Text("%s", buff);
+					s_spellsInspector->DoBuffs("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+				}
 			}
+			ImGui::EndChild();
 		}
 	}
 
@@ -332,7 +337,7 @@ static void DrawPlayerWindow()
 					ImGui::SameLine();
 					ImGui::Text(pLocalPC->Name);
 					ImGui::TableNextColumn();
-					ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_heading.c_str());
+					ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_heading);
 					ImGui::TableNextColumn();
 					ImGui::Text("Lvl: %d", pLocalPC->GetLevel());
 					ImGui::EndTable();
@@ -442,7 +447,7 @@ static void DrawPetWindow()
 				ImGui::SameLine();
 				ImGui::Text("Lvl");
 				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()),"%d", MyPet->Level);
+				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", MyPet->Level);
 				ImGui::SameLine();
 				ImGui::Text("Dist:");
 				ImGui::SameLine();
@@ -475,21 +480,19 @@ static void DrawPetWindow()
 					ImGui::Text("No Target");
 					ImGui::NewLine();
 				}
+
+				// TODO: Pet Window Buttons
+
 				// Pet Buffs Section (Column)
 				ImGui::TableNextColumn();
-				
-				s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+				if (ImGui::BeginChild("PetBuffs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
+				{
+					s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+				}
+				ImGui::EndChild();
 
 				ImGui::EndTable();
 			}
-
-
-			// TODO: Pet Target Information
-
-			// TODO: Pet Window Buttons
-
-			//ImGui::Separator();
-
 
 		}
 		ImGui::End();
