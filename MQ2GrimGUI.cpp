@@ -42,6 +42,7 @@ static int s_TargetBarHeight			= 15;
 static int s_AggroBarHeight				= 10;
 static int s_myAgroPct					= 0;
 static int s_secondAgroPct				= 0;
+static int s_BuffIconSize				= 24;
 static int s_TestInt					= 100; // Color Test Value for Config Window
 
 static std::string s_secondAgroName		= "Unknown";
@@ -76,206 +77,206 @@ public:
 		}
 	}
 
-	static void DoSpellBuffTableHeaders()
-	{
-		ImGui::TableSetupColumn("Index");
-		ImGui::TableSetupColumn("Icon");
-		ImGui::TableSetupColumn("Name");
-		ImGui::TableSetupColumn("ID");
-		ImGui::TableSetupColumn("Level");
-		ImGui::TableSetupColumn("Duration");
-		ImGui::TableSetupColumn("InitialDuration");
-		ImGui::TableSetupColumn("HitCount");
-		ImGui::TableSetupColumn("Type");
-		ImGui::TableSetupColumn("ChargesRemaining");
-		ImGui::TableSetupColumn("ViralTimer");
-		ImGui::TableSetupColumn("Flags");
-		ImGui::TableSetupColumn("Modifier");
-		ImGui::TableSetupColumn("Activatable");
+	//static void DoSpellBuffTableHeaders()
+	//{
+	//	ImGui::TableSetupColumn("Index");
+	//	ImGui::TableSetupColumn("Icon");
+	//	ImGui::TableSetupColumn("Name");
+	//	ImGui::TableSetupColumn("ID");
+	//	ImGui::TableSetupColumn("Level");
+	//	ImGui::TableSetupColumn("Duration");
+	//	ImGui::TableSetupColumn("InitialDuration");
+	//	ImGui::TableSetupColumn("HitCount");
+	//	ImGui::TableSetupColumn("Type");
+	//	ImGui::TableSetupColumn("ChargesRemaining");
+	//	ImGui::TableSetupColumn("ViralTimer");
+	//	ImGui::TableSetupColumn("Flags");
+	//	ImGui::TableSetupColumn("Modifier");
+	//	ImGui::TableSetupColumn("Activatable");
 
-		for (int i = 0; i < NUM_SLOTDATA; ++i)
-		{
-			char temp[20];
-			sprintf_s(temp, "Slot%d", i);
-			ImGui::TableSetupColumn(temp);
-		}
+	//	for (int i = 0; i < NUM_SLOTDATA; ++i)
+	//	{
+	//		char temp[20];
+	//		sprintf_s(temp, "Slot%d", i);
+	//		ImGui::TableSetupColumn(temp);
+	//	}
 
-		ImGui::TableHeadersRow();
-	}
+	//	ImGui::TableHeadersRow();
+	//}
 
-	void DoSpellBuffTableRow(int index, EQ_Affect& buff)
-	{
-		EQ_Spell* spell = GetSpellByID(buff.SpellID);
-		if (!spell)
-			return;
+	//void DoSpellBuffTableRow(int index, EQ_Affect& buff)
+	//{
+	//	EQ_Spell* spell = GetSpellByID(buff.SpellID);
+	//	if (!spell)
+	//		return;
 
-		ImGui::PushID((void*)&buff);
+	//	ImGui::PushID((void*)&buff);
 
-		if (!m_pTASpellIcon)
-		{
-			m_pTASpellIcon = new CTextureAnimation();
-			if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
-				*m_pTASpellIcon = *temp;
-		}
+	//	if (!m_pTASpellIcon)
+	//	{
+	//		m_pTASpellIcon = new CTextureAnimation();
+	//		if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+	//			*m_pTASpellIcon = *temp;
+	//	}
 
-		ImGui::TableNextRow();
-		ImGui::TableNextColumn();
+	//	ImGui::TableNextRow();
+	//	ImGui::TableNextColumn();
 
-		// Index
-		ImGui::Text("%d", index);
+	//	// Index
+	//	ImGui::Text("%d", index);
 
-		// Icon
-		ImGui::TableNextColumn();
-		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-		imgui::DrawTextureAnimation(m_pTASpellIcon);
+	//	// Icon
+	//	ImGui::TableNextColumn();
+	//	m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+	//	imgui::DrawTextureAnimation(m_pTASpellIcon);
 
-		// Name
-		ImGui::TableNextColumn();
-		if (spell)
-		{
-			ImGui::Text("%s", spell->Name);
-		}
-		else
-		{
-			ImGui::Text("null");
-		}
+	//	// Name
+	//	ImGui::TableNextColumn();
+	//	if (spell)
+	//	{
+	//		ImGui::Text("%s", spell->Name);
+	//	}
+	//	else
+	//	{
+	//		ImGui::Text("null");
+	//	}
 
-		if (ImGui::BeginPopupContextItem("BuffContextMenu"))
-		{
-			if (ImGui::Selectable("Inspect"))
-			{
-				char buffer[512] = { 0 };
-				FormatSpellLink(buffer, 512, spell);
+	//	if (ImGui::BeginPopupContextItem("BuffContextMenu"))
+	//	{
+	//		if (ImGui::Selectable("Inspect"))
+	//		{
+	//			char buffer[512] = { 0 };
+	//			FormatSpellLink(buffer, 512, spell);
 
-				TextTagInfo info = ExtractLink(buffer);
-				ExecuteTextLink(info);
-			}
+	//			TextTagInfo info = ExtractLink(buffer);
+	//			ExecuteTextLink(info);
+	//		}
 
-			ImGui::Separator();
+	//		ImGui::Separator();
 
-			if (ImGui::Selectable("Remove by Index"))
-			{
-				int nBuff = pLocalPC->GetEffectSlot(&buff);
-				RemoveBuffByIndex(nBuff);
-			}
+	//		if (ImGui::Selectable("Remove by Index"))
+	//		{
+	//			int nBuff = pLocalPC->GetEffectSlot(&buff);
+	//			RemoveBuffByIndex(nBuff);
+	//		}
 
-			if (spell && ImGui::Selectable("Remove by Name"))
-			{
-				RemoveBuffByName(spell->Name);
-			}
+	//		if (spell && ImGui::Selectable("Remove by Name"))
+	//		{
+	//			RemoveBuffByName(spell->Name);
+	//		}
 
-			if (ImGui::Selectable("Remove by Spell ID"))
-			{
-				RemoveBuffBySpellID(buff.SpellID);
-			}
+	//		if (ImGui::Selectable("Remove by Spell ID"))
+	//		{
+	//			RemoveBuffBySpellID(buff.SpellID);
+	//		}
 
-			ImGui::EndPopup();
-		}
+	//		ImGui::EndPopup();
+	//	}
 
-		// ID
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.SpellID);
+	//	// ID
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.SpellID);
 
-		// Level
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.Level);
+	//	// Level
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.Level);
 
-		// Duration
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.Duration);
+	//	// Duration
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.Duration);
 
-		// InitialDuration
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.InitialDuration);
+	//	// InitialDuration
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.InitialDuration);
 
-		// HitCount
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.HitCount);
+	//	// HitCount
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.HitCount);
 
-		// Type
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.Type);
+	//	// Type
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.Type);
 
-		// ChargesRemaining
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.ChargesRemaining);
+	//	// ChargesRemaining
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.ChargesRemaining);
 
-		// ViralTimer
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.ViralTimer);
+	//	// ViralTimer
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.ViralTimer);
 
-		// Flags
-		ImGui::TableNextColumn();
-		ImGui::Text("%x", buff.Flags);
+	//	// Flags
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%x", buff.Flags);
 
-		// Modifier
-		ImGui::TableNextColumn();
-		ImGui::Text("%.2f", buff.Modifier);
+	//	// Modifier
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%.2f", buff.Modifier);
 
-		// Activatable
-		ImGui::TableNextColumn();
-		ImGui::Text("%d", buff.Activatable);
+	//	// Activatable
+	//	ImGui::TableNextColumn();
+	//	ImGui::Text("%d", buff.Activatable);
 
-		// SlotData[0]
-		for (auto& slotData : buff.SlotData)
-		{
-			ImGui::TableNextColumn();
+	//	// SlotData[0]
+	//	for (auto& slotData : buff.SlotData)
+	//	{
+	//		ImGui::TableNextColumn();
 
-			int Slot = slotData.Slot;
-			int64_t Value = slotData.Value;
+	//		int Slot = slotData.Slot;
+	//		int64_t Value = slotData.Value;
 
-			if (Slot != -1)
-				ImGui::Text("%d: %I64", Slot, Value);
-		}
+	//		if (Slot != -1)
+	//			ImGui::Text("%d: %I64", Slot, Value);
+	//	}
 
-		ImGui::PopID();
-	}
+	//	ImGui::PopID();
+	//}
 
-	template <typename Iter>
-	int DoSpellAffectTable(const char* name, Iter first, Iter second, bool showEmpty = false)
-	{
-		ImGuiTableFlags tableFlags = 0
-			| ImGuiTableFlags_SizingFixedFit
-			| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
-			| ImGuiTableFlags_RowBg
-			| ImGuiTableFlags_Borders
-			| ImGuiTableFlags_Resizable;
+	//template <typename Iter>
+	//int DoSpellAffectTable(const char* name, Iter first, Iter second, bool showEmpty = false)
+	//{
+	//	ImGuiTableFlags tableFlags = 0
+	//		| ImGuiTableFlags_SizingFixedFit
+	//		| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
+	//		| ImGuiTableFlags_RowBg
+	//		| ImGuiTableFlags_Borders
+	//		| ImGuiTableFlags_Resizable;
 
-		int count = 2; // start with space for header and possible scroll bar
+	//	int count = 2; // start with space for header and possible scroll bar
 
-		// calculate the size
-		for (auto iter = first; iter != second; ++iter)
-		{
-			EQ_Affect& buff = *iter;
-			if (buff.SpellID == 0 && !showEmpty)
-				continue;
+	//	// calculate the size
+	//	for (auto iter = first; iter != second; ++iter)
+	//	{
+	//		EQ_Affect& buff = *iter;
+	//		if (buff.SpellID == 0 && !showEmpty)
+	//			continue;
 
-			count++;
-		}
-		count = 0;
+	//		count++;
+	//	}
+	//	count = 0;
 
-		if (ImGui::BeginTable(name, 17 + NUM_SLOTDATA, tableFlags))
-		{
-			ImGui::TableSetupScrollFreeze(2, 1);
-			DoSpellBuffTableHeaders();
-			int i = 0;
+	//	if (ImGui::BeginTable(name, 17 + NUM_SLOTDATA, tableFlags))
+	//	{
+	//		ImGui::TableSetupScrollFreeze(2, 1);
+	//		DoSpellBuffTableHeaders();
+	//		int i = 0;
 
-			for (auto iter = first; iter != second; ++iter)
-			{
-				EQ_Affect& buff = *iter;
-				++i;
+	//		for (auto iter = first; iter != second; ++iter)
+	//		{
+	//			EQ_Affect& buff = *iter;
+	//			++i;
 
-				if (buff.SpellID == 0 && !showEmpty)
-					continue;
+	//			if (buff.SpellID == 0 && !showEmpty)
+	//				continue;
 
-				DoSpellBuffTableRow(i, buff);
-				count++;
-			}
+	//			DoSpellBuffTableRow(i, buff);
+	//			count++;
+	//		}
 
-			ImGui::EndTable();
-		}
-		return count;
-	}
+	//		ImGui::EndTable();
+	//	}
+	//	return count;
+	//}
 
 	static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
 	{
@@ -343,25 +344,6 @@ public:
 	void DoBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 	{
-		ImGuiTableFlags tableFlags = 0
-			| ImGuiTableFlags_SizingFixedFit
-			| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
-			| ImGuiTableFlags_RowBg
-			| ImGuiTableFlags_Borders
-			| ImGuiTableFlags_Resizable;
-
-		//if (ImGui::BeginTable(name, 1, tableFlags))
-		//{
-		//	ImGui::TableSetupScrollFreeze(1, 1);
-
-		//	//ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 30.0f);
-		//	ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 24.0f);
-		//	//ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-		//	//ImGui::TableSetupColumn("Spell ID", ImGuiTableColumnFlags_WidthFixed, 46.0f);
-		//	//ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthFixed, 78.0f);
-			//ImGui::TableSetupColumn("Caster", ImGuiTableColumnFlags_WidthStretch);
-			//ImGui::TableHeadersRow();
-
 			for (const auto& buffInfo : Buffs)
 			{
 				EQ_Spell* spell = buffInfo.GetSpell();
@@ -407,7 +389,7 @@ public:
 						
 					}
 
-					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(24,24), tintCol, borderCol);
+					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
 					s_TarBuffLineSize += 24;
 					if (s_TarBuffLineSize < sizeX - 20)
 					{
@@ -509,205 +491,205 @@ public:
 		}*/
 	}
 
-	virtual bool IsEnabled()
-	{
-		PcProfile* pcProfile = GetPcProfile();
-		if (!pcProfile)
-		{
-			return false;
-		}
+	//virtual bool IsEnabled()
+	//{
+	//	PcProfile* pcProfile = GetPcProfile();
+	//	if (!pcProfile)
+	//	{
+	//		return false;
+	//	}
 
-		return true;
-	}
+	//	return true;
+	//}
 
-	void DoSpellStackingTests()
-	{
-		static bool bCheckSpellBuffs = true;
-		ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
+	//void DoSpellStackingTests()
+	//{
+	//	static bool bCheckSpellBuffs = true;
+	//	ImGui::Checkbox("Check buff stacking against active buffs", &bCheckSpellBuffs);
 
-		if (bCheckSpellBuffs)
-		{
-			ImGui::Text("Enter the name of a spell to test buff stacking:");
-		}
-		else
-		{
-			ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
-		}
+	//	if (bCheckSpellBuffs)
+	//	{
+	//		ImGui::Text("Enter the name of a spell to test buff stacking:");
+	//	}
+	//	else
+	//	{
+	//		ImGui::TextWrapped("Enter the name of two spells to test buff stacking. The test will check the second spell against the first.");
+	//	}
 
-		static char searchText[256] = { 0 };
-		static char searchText2[256] = { 0 };
+	//	static char searchText[256] = { 0 };
+	//	static char searchText2[256] = { 0 };
 
-		if (bCheckSpellBuffs)
-		{
-			ImGui::InputText("Spell Name", searchText2, 256);
-		}
-		else
-		{
-			ImGui::InputText("Spell 1", searchText, 256);
-			ImGui::InputText("Spell 2", searchText2, 256);
-		}
+	//	if (bCheckSpellBuffs)
+	//	{
+	//		ImGui::InputText("Spell Name", searchText2, 256);
+	//	}
+	//	else
+	//	{
+	//		ImGui::InputText("Spell 1", searchText, 256);
+	//		ImGui::InputText("Spell 2", searchText2, 256);
+	//	}
 
-		SPELL* pSpell = nullptr;
-		SPELL* pSpell2 = nullptr;
+	//	SPELL* pSpell = nullptr;
+	//	SPELL* pSpell2 = nullptr;
 
-		if (searchText[0])
-		{
-			pSpell = GetSpellByName(searchText);
-			if (!pSpell)
-			{
-				ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
-			}
-		}
+	//	if (searchText[0])
+	//	{
+	//		pSpell = GetSpellByName(searchText);
+	//		if (!pSpell)
+	//		{
+	//			ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText);
+	//		}
+	//	}
 
-		if (searchText2[0])
-		{
-			pSpell2 = GetSpellByName(searchText2);
-			if (!pSpell2)
-			{
-				ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
-			}
-		}
+	//	if (searchText2[0])
+	//	{
+	//		pSpell2 = GetSpellByName(searchText2);
+	//		if (!pSpell2)
+	//		{
+	//			ImGui::TextColored(ImColor(255, 0, 0), "No spell named '%s' found", searchText2);
+	//		}
+	//	}
 
-		if (!bCheckSpellBuffs && ImGui::Button("Swap"))
-		{
-			char temp[256];
-			strcpy_s(temp, searchText);
-			strcpy_s(searchText, searchText2);
-			strcpy_s(searchText2, temp);
-		}
+	//	if (!bCheckSpellBuffs && ImGui::Button("Swap"))
+	//	{
+	//		char temp[256];
+	//		strcpy_s(temp, searchText);
+	//		strcpy_s(searchText, searchText2);
+	//		strcpy_s(searchText2, temp);
+	//	}
 
-		if (pSpell2)
-		{
-			SPAWNINFO* pPlayer = pLocalPlayer;
-			PcClient* pPcClient = pPlayer->GetPcClient();
+	//	if (pSpell2)
+	//	{
+	//		SPAWNINFO* pPlayer = pLocalPlayer;
+	//		PcClient* pPcClient = pPlayer->GetPcClient();
 
-			EQ_Affect affect;
-			affect.Type = 2;
-			EQ_Affect* affectToPass = nullptr;
-			if (pSpell)
-			{
-				affect.SpellID = pSpell->ID;
-				affectToPass = &affect;
-			}
-			int slotIndex = -1;
+	//		EQ_Affect affect;
+	//		affect.Type = 2;
+	//		EQ_Affect* affectToPass = nullptr;
+	//		if (pSpell)
+	//		{
+	//			affect.SpellID = pSpell->ID;
+	//			affectToPass = &affect;
+	//		}
+	//		int slotIndex = -1;
 
-			EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
-				true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0);
+	//		EQ_Affect* ret = pPcClient->FindAffectSlot(pSpell2->ID, pPlayer, &slotIndex,
+	//			true, -1, affectToPass ? affectToPass : nullptr, affectToPass ? 1 : 0);
 
-			if (ret)
-			{
-				if (pSpell)
-				{
-					ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
-				}
-				else
-				{
-					ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
-				}
-			}
-			else
-			{
-				if (pSpell)
-				{
-					ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
-				}
-				else
-				{
-					ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
-				}
-			}
-		}
-	}
+	//		if (ret)
+	//		{
+	//			if (pSpell)
+	//			{
+	//				ImGui::TextColored(ImColor(0, 255, 0), "%s stacks with %s", pSpell2->Name, pSpell->Name);
+	//			}
+	//			else
+	//			{
+	//				ImGui::TextColored(ImColor(0, 255, 0), "%s stacks", pSpell2->Name);
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if (pSpell)
+	//			{
+	//				ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack with %s", pSpell2->Name, pSpell->Name);
+	//			}
+	//			else
+	//			{
+	//				ImGui::TextColored(ImColor(255, 0, 0), "%s doesn't stack", pSpell2->Name);
+	//			}
+	//		}
+	//	}
+	//}
 
-	virtual void Draw()
-	{
-		PcProfile* pcProfile = GetPcProfile();
-		if (!pcProfile)
-		{
-			ImGui::TextColored(ImColor(255, 0, 0), "You must be in game to use this");
-			return;
-		}
+	//virtual void Draw()
+	//{
+	//	PcProfile* pcProfile = GetPcProfile();
+	//	if (!pcProfile)
+	//	{
+	//		ImGui::TextColored(ImColor(255, 0, 0), "You must be in game to use this");
+	//		return;
+	//	}
 
-		if (ImGui::BeginTabBar("##SpellTabs"))
-		{
-			int arrayLength = MAX_TOTAL_BUFFS;
-			int count = 0;
+	//	if (ImGui::BeginTabBar("##SpellTabs"))
+	//	{
+	//		int arrayLength = MAX_TOTAL_BUFFS;
+	//		int count = 0;
 
-			// calculate the size
-			for (int i = 0; i < pcProfile->GetMaxEffects(); ++i)
-			{
-				if (pcProfile->GetEffect(i).SpellID > 0)
-					count++;
-			}
+	//		// calculate the size
+	//		for (int i = 0; i < pcProfile->GetMaxEffects(); ++i)
+	//		{
+	//			if (pcProfile->GetEffect(i).SpellID > 0)
+	//				count++;
+	//		}
 
-			char szLabel[64];
+	//		char szLabel[64];
 
-			if (pBuffWnd)
-			{
-				sprintf_s(szLabel, "Buffs (%d)###Buffs", pBuffWnd->GetTotalBuffCount());
+	//		if (pBuffWnd)
+	//		{
+	//			sprintf_s(szLabel, "Buffs (%d)###Buffs", pBuffWnd->GetTotalBuffCount());
 
-				if (ImGui::BeginTabItem(szLabel))
-				{
-					DoBuffsTable("BuffsTable", pBuffWnd->GetBuffRange(), false, true, pBuffWnd->firstEffectSlot);
+	//			if (ImGui::BeginTabItem(szLabel))
+	//			{
+	//				DoBuffsTable("BuffsTable", pBuffWnd->GetBuffRange(), false, true, pBuffWnd->firstEffectSlot);
 
-					ImGui::EndTabItem();
-				}
-			}
+	//				ImGui::EndTabItem();
+	//			}
+	//		}
 
-			if (pSongWnd)
-			{
-				sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", pSongWnd->GetTotalBuffCount());
+	//		if (pSongWnd)
+	//		{
+	//			sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", pSongWnd->GetTotalBuffCount());
 
-				if (ImGui::BeginTabItem(szLabel))
-				{
-					DoBuffsTable("ShortBuffsTable", pSongWnd->GetBuffRange(), false, true, pSongWnd->firstEffectSlot);
+	//			if (ImGui::BeginTabItem(szLabel))
+	//			{
+	//				DoBuffsTable("ShortBuffsTable", pSongWnd->GetBuffRange(), false, true, pSongWnd->firstEffectSlot);
 
-					ImGui::EndTabItem();
-				}
-			}
+	//				ImGui::EndTabItem();
+	//			}
+	//		}
 
-			if (pPetInfoWnd)
-			{
-				sprintf_s(szLabel, "Pet Buffs (%d)###PetBuffs", pPetInfoWnd->GetTotalBuffCount());
+	//		if (pPetInfoWnd)
+	//		{
+	//			sprintf_s(szLabel, "Pet Buffs (%d)###PetBuffs", pPetInfoWnd->GetTotalBuffCount());
 
-				if (ImGui::BeginTabItem(szLabel))
-				{
-					DoBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+	//			if (ImGui::BeginTabItem(szLabel))
+	//			{
+	//				DoBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 
-					ImGui::EndTabItem();
-				}
-			}
+	//				ImGui::EndTabItem();
+	//			}
+	//		}
 
-			if (pTargetWnd)
-			{
-				sprintf_s(szLabel, "Target Buffs (%d)###TargetBuffs", pTargetWnd->GetTotalBuffCount());
+	//		if (pTargetWnd)
+	//		{
+	//			sprintf_s(szLabel, "Target Buffs (%d)###TargetBuffs", pTargetWnd->GetTotalBuffCount());
 
-				if (ImGui::BeginTabItem(szLabel))
-				{
-					DoBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+	//			if (ImGui::BeginTabItem(szLabel))
+	//			{
+	//				DoBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 
-					ImGui::EndTabItem();
-				}
-			}
+	//				ImGui::EndTabItem();
+	//			}
+	//		}
 
-			if (ImGui::BeginTabItem("Stacking Tests"))
-			{
-				DoSpellStackingTests();
+	//		if (ImGui::BeginTabItem("Stacking Tests"))
+	//		{
+	//			DoSpellStackingTests();
 
-				ImGui::EndTabItem();
-			}
+	//			ImGui::EndTabItem();
+	//		}
 
-			sprintf_s(szLabel, "Spell Affects (%d)###SpellBuffs", count);
+	//		sprintf_s(szLabel, "Spell Affects (%d)###SpellBuffs", count);
 
-			if (ImGui::BeginTabItem(szLabel))
-			{
-				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
-				ImGui::EndTabItem();
-			}
+	//		if (ImGui::BeginTabItem(szLabel))
+	//		{
+	//			DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
+	//			ImGui::EndTabItem();
+	//		}
 
-			ImGui::EndTabBar();
-		}
-	}
+	//		ImGui::EndTabBar();
+	//	}
+	//}
 };
 static SpellsInspector* s_spellsInspector = nullptr;
 
@@ -793,15 +775,15 @@ static void LoadSettings()
 	s_PlayerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
 	s_TargetBarHeight = GetPrivateProfileInt("PlayerTarg", "TargetBarHeight", 15, &s_SettingsFile[0]);
 	s_AggroBarHeight = GetPrivateProfileInt("PlayerTarg", "AggroBarHeight", 10, &s_SettingsFile[0]);
-
+	s_BuffIconSize = GetPrivateProfileInt("PlayerTarg", "BuffIconSize", 24, &s_SettingsFile[0]);
 
 	//Color Settings
-	s_MinColorHP = LoadColorFromIni("Colors", "s_MinColorHP", ImVec4(0.876f, 0.341f, 1.000f, 1.000f), &s_SettingsFile[0]);
-	s_MaxColorHP = LoadColorFromIni("Colors", "s_MaxColorHP", ImVec4(0.845f, 0.151f, 0.151f, 1.000f), &s_SettingsFile[0]);
-	s_MinColorEnd = LoadColorFromIni("Colors", "s_MinColorEnd", ImVec4(1.000f, 0.437f, 0.019f, 1.000f), &s_SettingsFile[0]);
-	s_MaxColorEnd = LoadColorFromIni("Colors", "s_MaxColorEnd", ImVec4(0.7f, 0.6f, 0.1f, 0.7f), &s_SettingsFile[0]);
-	s_MinColorMP = LoadColorFromIni("Colors", "s_MinColorMP", ImVec4(0.259f, 0.114f, 0.514f, 1.000f), &s_SettingsFile[0]);
-	s_MaxColorMP = LoadColorFromIni("Colors", "s_MaxColorMP", ImVec4(0.079f, 0.468f, 0.848f, 1.000f), &s_SettingsFile[0]);
+	s_MinColorHP = LoadColorFromIni("Colors", "MinColorHP", ImVec4(0.876f, 0.341f, 1.000f, 1.000f), &s_SettingsFile[0]);
+	s_MaxColorHP = LoadColorFromIni("Colors", "MaxColorHP", ImVec4(0.845f, 0.151f, 0.151f, 1.000f), &s_SettingsFile[0]);
+	s_MinColorEnd = LoadColorFromIni("Colors", "MinColorEnd", ImVec4(1.000f, 0.437f, 0.019f, 1.000f), &s_SettingsFile[0]);
+	s_MaxColorEnd = LoadColorFromIni("Colors", "MaxColorEnd", ImVec4(0.7f, 0.6f, 0.1f, 0.7f), &s_SettingsFile[0]);
+	s_MinColorMP = LoadColorFromIni("Colors", "MinColorMP", ImVec4(0.259f, 0.114f, 0.514f, 1.000f), &s_SettingsFile[0]);
+	s_MaxColorMP = LoadColorFromIni("Colors", "MaxColorMP", ImVec4(0.079f, 0.468f, 0.848f, 1.000f), &s_SettingsFile[0]);
 }
 
 
@@ -819,14 +801,15 @@ static void SaveSettings()
 	WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
 	WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
 	WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 
 	//Color Settings
-	SaveColorToIni("Colors", "s_MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "s_MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "s_MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "s_MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "s_MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
-	SaveColorToIni("Colors", "s_MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
+	SaveColorToIni("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
+	SaveColorToIni("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
+	SaveColorToIni("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
+	SaveColorToIni("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+	SaveColorToIni("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
+	SaveColorToIni("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
 }
 
 
@@ -1239,6 +1222,13 @@ static void DrawConfigWindow()
 					DrawHelpIcon(label.c_str());
 				}
 
+				// Buff Icon Size Control
+				ImGui::SliderInt("Buff Icon Size", &s_BuffIconSize, 10, 40);
+				ImGui::SameLine();
+				DrawHelpIcon("Buff Icon Size");
+
+				// Bar Height Controls
+
 				ImGui::SliderInt("Player Bar Height", &s_PlayerBarHeight, 10, 40);
 				ImGui::SameLine();
 				DrawHelpIcon("Player Bar Height");
@@ -1257,16 +1247,18 @@ static void DrawConfigWindow()
 				// only Save when the user clicks the button. 
 				// If they close the window and don't click the button the settings will not be saved and only be temporary.
 				WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
 				WritePrivateProfileBool("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileBool("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileBool("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 
-				SaveColorToIni("Colors", "s_MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "s_MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "s_MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "s_MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "s_MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
-				SaveColorToIni("Colors", "s_MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+				SaveColorToIni("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
+				SaveColorToIni("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
+				SaveColorToIni("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
+				SaveColorToIni("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
+				SaveColorToIni("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
+				SaveColorToIni("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
 				s_ShowConfigWindow = false;
 			}
 		}
