@@ -61,6 +61,91 @@ static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 
 const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
+// Pet Buttons
+
+struct PetButtonData {
+	std::string name;
+	std::string command;
+	bool visible;
+};
+
+static std::vector<PetButtonData> petButtons = {
+	{"Attack", "/pet attack", true},
+	{"Sit", "/pet sit", true},
+	{"Follow", "/pet follow", true},
+	{"Hold", "/pet hold", true},
+	{"Taunt", "/pet taunt", true},
+	{"Guard", "/pet guard", true},
+	{"Back", "/pet back off", true},
+	{"Focus", "/pet focus", true},
+	{"Stop", "/pet stop", true},
+	{"Leave", "/pet get lost", true},
+	{"Regroup", "/pet regroup", true},
+	{"Report", "/pet report health", true},
+	{"Swarm", "/pet swarm", true},
+	{"Kill", "/pet kill", true},
+};
+
+// Function to display the petButtons
+static void DisplayPetButtons() {
+	int numColumns = (1, ImGui::GetColumnWidth() / 60);
+
+	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp)) {
+		for (auto& button : petButtons) {
+			if (button.visible) {
+				ImGui::TableNextColumn();
+				std::string btnLabel = button.name;
+
+				bool isAttacking = false;
+				bool isSitting = false;
+				if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
+				{
+					isAttacking = MyPet->WhoFollowing;
+					isSitting = MyPet->StandState != 100;
+				}
+
+				if ((btnLabel == "Attack" && isAttacking) || (btnLabel == "Sit" && isSitting))
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(GetMQColor(ColorName::Teal).ToImColor()));
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 18)))
+					{
+						EzCommand(button.command.c_str());
+					}
+					ImGui::PopStyleColor();
+				}
+				else
+				{
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 18)))
+					{
+						EzCommand(button.command.c_str());
+					}
+				}
+			}
+		}
+		ImGui::EndTable();
+	}
+}
+
+static void TogglePetButtonVisibilityMenu() {
+	int numColumns = (1, ImGui::GetContentRegionAvail().x / 75);
+
+	if (ImGui::BeginTable("CheckboxTable", numColumns, ImGuiTableFlags_SizingStretchProp))
+	{
+		for (auto& button : petButtons) {
+			ImGui::TableNextColumn();
+			ImGui::SetNextItemWidth(70);
+			if (ImGui::Checkbox(button.name.c_str(), &button.visible))
+			{
+				WritePrivateProfileBool("Pet", button.name.c_str(), button.visible, &s_SettingsFile[0]);
+			}
+		}
+		ImGui::EndTable();
+	}
+}
+
+
+// Settings Functions
+
 static void LoadSettings()
 {
 	// Load settings from the INI file
@@ -88,8 +173,11 @@ static void LoadSettings()
 	s_MinColorEnd = GetPrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
 	s_MaxColorEnd = GetPrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
 
+	// Load Pet button visibility settings
+	for (auto& button : petButtons) {
+		button.visible = GetPrivateProfileBool("Pet", button.name.c_str(), true, &s_SettingsFile[0]);
+	}
 }
-
 
 static void SaveSettings()
 {
@@ -116,6 +204,11 @@ static void SaveSettings()
 	WritePrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
 	WritePrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
 	WritePrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+
+	// Save Pet button visibility settings
+	for (const auto& button : petButtons) {
+		WritePrivateProfileBool("Pet", button.name.c_str(), button.visible, &s_SettingsFile[0]);
+	}
 }
 
 
@@ -163,11 +256,14 @@ static void UpdateSettingFile()
 	}
 }
 
+// Helpers 
+
 static void GetHeading()
 {
 	static PSPAWNINFO pSelfInfo = pLocalPlayer;
 	s_heading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
+
 
 static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 {
@@ -181,7 +277,6 @@ static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 	}
 }
 
-// GUI Windows
 static void DrawHelpIcon(const char* helpText)
 {
 	ImGui::SameLine();
@@ -468,7 +563,7 @@ static void DrawPetWindow()
 
 				if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
 				{
-					ImGui::Text(pPetTarget->DisplayedName);
+					ImGui::TextColored(ConColorToVec(ConColor(pPetTarget)),pPetTarget->DisplayedName);
 					float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
 					int petTargetLabel = pPetTarget->HPCurrent;
 					ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, pPetTarget->HPCurrent);
@@ -485,8 +580,12 @@ static void DrawPetWindow()
 					ImGui::Text("No Target");
 					ImGui::NewLine();
 				}
-
-				// TODO: Pet Window Buttons
+				
+				if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
+				{
+					DisplayPetButtons();
+				}
+				ImGui::EndChild();
 
 				// Pet Buffs Section (Column)
 				ImGui::TableNextColumn();
@@ -674,6 +773,9 @@ static void DrawConfigWindow()
 				ImGui::SameLine();
 				DrawHelpIcon("Show Title Bars");
 			}
+
+			ImGui::SeparatorText("Buttons");
+			TogglePetButtonVisibilityMenu();
 
 			if (ImGui::Button("Save & Close"))
 			{

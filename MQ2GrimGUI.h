@@ -160,7 +160,6 @@ static SpellsInspector* s_spellsInspector = nullptr;
 
 #pragma endregion
 
-
 // Color utility functions
 
 /**
