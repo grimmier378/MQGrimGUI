@@ -11,7 +11,7 @@
 #include "MQ2GrimGUI.h"
 
 PreSetup("MQ2GrimGUI");
-PLUGIN_VERSION(0.1);
+PLUGIN_VERSION(0.2);
 
 // Declare global plugin state variables
 static bool s_ShowMainWindow			= false;
@@ -316,7 +316,18 @@ static void DrawHelpIcon(const char* helpText)
 	}
 }
 
+static void GiveItem(PSPAWNINFO pSpawn)
+{
+	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		pTarget = pSpawn;
 
+		if (ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor))
+		{
+			EzCommand("/click left target");
+		}
+	}
+}
 // GUI Windows 
 
 static void DrawTargetWindow()
@@ -572,44 +583,61 @@ static void DrawPetWindow()
 				ImGui::TableHeadersRow();
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-
-				DrawLineOfSight(pLocalPlayer, MyPet);
-				ImGui::SameLine();
-				ImGui::Text("Lvl");
-				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", MyPet->Level);
-				ImGui::SameLine();
-				ImGui::Text("Dist:");
-				ImGui::SameLine();
-				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
-
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
-				ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
-				yPos = ImGui::GetCursorPosY();
-				ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
-				ImGui::PopStyleColor();
-				ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
-				ImGui::Text("%d %%", petLabel);
-
-				if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
+				if (ImGui::BeginChild("Pet", ImVec2(ImGui::GetColumnWidth(), 55), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
 				{
-					ImGui::TextColored(ImVec4(GetConColor(ConColor(pPetTarget)).ToImColor()), pPetTarget->DisplayedName);
-					float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
-					int petTargetLabel = pPetTarget->HPCurrent;
-					ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, pPetTarget->HPCurrent);
-					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHPTarget);
+					DrawLineOfSight(pLocalPlayer, MyPet);
+					ImGui::SameLine();
+					ImGui::Text("Lvl");
+					ImGui::SameLine();
+					ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", MyPet->Level);
+					ImGui::SameLine();
+					ImGui::Text("Dist:");
+					ImGui::SameLine();
+					ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
+					// pet health bar
+					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 					ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
 					yPos = ImGui::GetCursorPosY();
-					ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
+					ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
 					ImGui::PopStyleColor();
 					ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
-					ImGui::Text("%d %%", petTargetLabel);
+					ImGui::Text("%d %%", petLabel);
+
 				}
-				else
+				ImGui::EndChild();
+				if (ImGui::IsItemHovered())
 				{
-					ImGui::Text("No Target");
-					ImGui::NewLine();
+					GiveItem(pSpawnManager->GetSpawnByID(pLocalPlayer->PetID));
 				}
+
+				// Pet Target Section
+				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 55), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
+				{
+					if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
+					{
+						ImGui::Text("Lvl");
+						ImGui::SameLine();
+						ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", pPetTarget->Level);
+						ImGui::SameLine();
+						ImGui::Text(pPetTarget->DisplayedName);
+						float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
+						int petTargetLabel = pPetTarget->HPCurrent;
+						ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, pPetTarget->HPCurrent);
+						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHPTarget);
+						ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+						yPos = ImGui::GetCursorPosY();
+						ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
+						ImGui::PopStyleColor();
+						ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
+						ImGui::Text("%d %%", petTargetLabel);
+					}
+					else
+					{
+						ImGui::Text("No Target");
+						ImGui::NewLine();
+					}
+				}
+				ImGui::EndChild();
 				
 				if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
 				{
@@ -1044,14 +1072,11 @@ PLUGIN_API void OnMacroStop(const char* Name)
  */
 PLUGIN_API void OnLoadPlugin(const char* Name)
 {
-	AddCommand("/Grimgui", GrimCommandHandler, false, false, false);
 	// check settings file, if logged in use character specific INI else default
 	UpdateSettingFile();
 	//load settings
 	LoadSettings();
 	SaveSettings();
-	s_spellsInspector = new SpellsInspector();
-	WriteChatf("\aw[\ayGrimGUI\ax]\ag /grimgui \atToggles Main Window");
 
 	if (!s_ShowTitleBars)
 	{
@@ -1076,4 +1101,18 @@ PLUGIN_API void OnUnloadPlugin(const char* Name)
 	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
 	RemoveCommand("/Grimgui");
 	SaveSettings();
+}
+
+PLUGIN_API void InitializePlugin()
+{
+	DebugSpewAlways("Initializing MQ2GrimGUI");
+	AddCommand("/grimgui", GrimCommandHandler, false, false, false);
+	WriteChatf("\aw[\ayGrimGUI\ax]\ag /grimgui \atToggles Main Window");
+	s_spellsInspector = new SpellsInspector();
+}
+
+PLUGIN_API void ShutdownPlugin()
+{
+	DebugSpewAlways("Shutting down MQ2GrimGUI");
+	RemoveCommand("/grimui");
 }
