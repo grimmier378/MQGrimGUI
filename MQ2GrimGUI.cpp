@@ -107,7 +107,7 @@ static void DisplayPetButtons() {
 				if ((btnLabel == "Attack" && isAttacking) || (btnLabel == "Sit" && isSitting))
 				{
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(GetMQColor(ColorName::Teal).ToImColor()));
-					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 18)))
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
 					{
 						EzCommand(button.command.c_str());
 					}
@@ -115,7 +115,7 @@ static void DisplayPetButtons() {
 				}
 				else
 				{
-					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 18)))
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
 					{
 						EzCommand(button.command.c_str());
 					}
