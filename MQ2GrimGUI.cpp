@@ -17,7 +17,7 @@ PLUGIN_VERSION(0.1);
 static bool s_ShowMainWindow			= false;
 static bool s_ShowConfigWindow			= false;
 static bool s_SplitTargetWindow			= false;
-static bool s_ShowPetWindow = false;
+static bool s_ShowPetWindow				= false;
 static bool s_ShowPlayerWindow			= false;
 static bool s_FlashCombatFlag			= false;
 static bool s_FlashTintFlag				= false;
@@ -25,6 +25,7 @@ static bool s_ShowGroupWindow			= false;
 static bool s_ShowSpellsWindow			= false;
 static bool s_charIniLoaded				= false;
 static bool s_DefaultLoaded				= false;
+static bool s_ShowTitleBars				= true;
 
 static char s_SettingsFile[MAX_PATH]	= { 0 };
 
@@ -37,8 +38,8 @@ static mq::MQColor s_MinColorEnd(255, 111, 5, 255);
 static mq::MQColor s_MaxColorEnd(178, 153, 26, 178);
 
 
-static int s_FlashInterval				= 250;
-static int s_FlashBuffInterval			= 75;
+static int s_CombatFlashInterval				= 100;
+static int s_FlashBuffInterval			= 40;
 static int s_PlayerBarHeight			= 15;
 static int s_TargetBarHeight			= 15;
 static int s_AggroBarHeight				= 10;
@@ -56,6 +57,8 @@ std::chrono::steady_clock::time_point g_LastUpdateTime	= std::chrono::steady_clo
 std::chrono::steady_clock::time_point g_LastFlashTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastBuffFlashTime = std::chrono::steady_clock::now();
 
+static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
+
 const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
 static void LoadSettings()
@@ -63,18 +66,19 @@ static void LoadSettings()
 	// Load settings from the INI file
 	//window settings
 	s_ShowMainWindow = GetPrivateProfileBool("Settings", "ShowMainGui", true, &s_SettingsFile[0]);
+	s_ShowTitleBars = GetPrivateProfileBool("Settings", "ShowTitleBars", true, &s_SettingsFile[0]);
 	s_SplitTargetWindow = GetPrivateProfileBool("PlayerTarg", "SplitTarget", false, &s_SettingsFile[0]);
-	s_ShowPetWindow = GetPrivateProfileBool("Pet", "ShowPetWindow", false, &s_SettingsFile[0]);
 	s_ShowPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
+	s_ShowPetWindow = GetPrivateProfileBool("Pet", "ShowPetWindow", false, &s_SettingsFile[0]);
 	s_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	s_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
 
-	s_FlashInterval = GetPrivateProfileInt("PlayerTarg", "FlashInterval", 250, &s_SettingsFile[0]);
-	s_FlashBuffInterval = GetPrivateProfileInt("PlayerTarg", "FlashBuffInterval", 250, &s_SettingsFile[0]);
+	s_CombatFlashInterval = GetPrivateProfileInt("PlayerTarg", "CombatFlashInterval", 250, &s_SettingsFile[0]);
 	s_PlayerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
 	s_TargetBarHeight = GetPrivateProfileInt("PlayerTarg", "TargetBarHeight", 15, &s_SettingsFile[0]);
 	s_AggroBarHeight = GetPrivateProfileInt("PlayerTarg", "AggroBarHeight", 10, &s_SettingsFile[0]);
-	s_BuffIconSize = GetPrivateProfileInt("PlayerTarg", "BuffIconSize", 24, &s_SettingsFile[0]);
+	s_FlashBuffInterval = GetPrivateProfileInt("Settings", "FlashBuffInterval", 250, &s_SettingsFile[0]);
+	s_BuffIconSize = GetPrivateProfileInt("Settings", "BuffIconSize", 24, &s_SettingsFile[0]);
 
 	//Color Settings
 	s_MinColorHP = GetPrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
@@ -91,18 +95,19 @@ static void SaveSettings()
 {
 	//Window Settings
 	WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Settings", "ShowTitleBars", s_ShowTitleBars, &s_SettingsFile[0]);
 	WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_ShowPlayerWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Group", "ShowGroupWindow", s_ShowGroupWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_ShowSpellsWindow, &s_SettingsFile[0]);
 
-	WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
-	WritePrivateProfileInt("PlayerTarg", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", s_CombatFlashInterval, &s_SettingsFile[0]);
 	WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
 	WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
 	WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
-	WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Settings", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Settings", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
 
 	//Color Settings
 	WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
@@ -277,7 +282,7 @@ static void DrawPlayerWindow()
 			return;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("Player##MQ2GrimGUI", &s_ShowPlayerWindow, ImGuiWindowFlags_MenuBar))
+		if (ImGui::Begin("Player##MQ2GrimGUI", &s_ShowPlayerWindow, s_WindowFlags | ImGuiWindowFlags_MenuBar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
@@ -425,7 +430,7 @@ static void DrawPetWindow()
 		const char* petName = MyPet->DisplayedName;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow))
+		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow, s_WindowFlags ))
 		{
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
@@ -519,7 +524,7 @@ static void DrawConfigWindow()
 
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 
-		if (ImGui::Begin("Config##ConfigWindow", &s_ShowConfigWindow))
+		if (ImGui::Begin("Config##ConfigWindow", &s_ShowConfigWindow, s_WindowFlags))
 		{
 			if (ImGui::CollapsingHeader("Color Settings"))
 			{
@@ -606,21 +611,23 @@ static void DrawConfigWindow()
 				ImGui::PopStyleColor();
 			}
 
-			if (ImGui::CollapsingHeader("Window Settings"))
+			if (ImGui::CollapsingHeader("Window Settings Sliders"))
 			{
 				// Flash Interval Control
-				ImGui::SliderInt("Flash Speed", &s_FlashInterval, 0, 500);
+				ImGui::SetNextItemWidth(150);
+				ImGui::SliderInt("Flash Speed", &s_CombatFlashInterval, 0, 500);
 				ImGui::SameLine();
-				if (s_FlashInterval == 0)
+				if (s_CombatFlashInterval == 0)
 				{
 					DrawHelpIcon("Flash Interval Disabled");
 				}
 				else
 				{
-					std::string label = "Flash Speed: " + std::to_string(s_FlashInterval) + " \nLower is slower, Higher is faster. 0 = Disabled";
+					std::string label = "Flash Speed: " + std::to_string(s_CombatFlashInterval) + " \nLower is slower, Higher is faster. 0 = Disabled";
 					DrawHelpIcon(label.c_str());
 				}
 
+				ImGui::SetNextItemWidth(150);
 				ImGui::SliderInt("Buff Flash Speed", &s_FlashBuffInterval, 0, 500);
 				ImGui::SameLine();
 				if (s_FlashBuffInterval == 0)
@@ -634,38 +641,52 @@ static void DrawConfigWindow()
 				}
 
 				// Buff Icon Size Control
+				ImGui::SetNextItemWidth(150);
 				ImGui::SliderInt("Buff Icon Size", &s_BuffIconSize, 10, 40);
 				ImGui::SameLine();
 				DrawHelpIcon("Buff Icon Size");
 
 				// Bar Height Controls
 
+				ImGui::SetNextItemWidth(150);
 				ImGui::SliderInt("Player Bar Height", &s_PlayerBarHeight, 10, 40);
 				ImGui::SameLine();
 				DrawHelpIcon("Player Bar Height");
 
+				ImGui::SetNextItemWidth(150);
 				ImGui::SliderInt("Target Bar Height", &s_TargetBarHeight, 10, 40);
 				ImGui::SameLine();
 				DrawHelpIcon("Target Bar Height");
 
+				ImGui::SetNextItemWidth(150);
 				ImGui::SliderInt("Aggro Bar Height", &s_AggroBarHeight, 10, 40);
 				ImGui::SameLine();
 				DrawHelpIcon("Aggro Bar Height");
 
 			}
 
+			if (ImGui::CollapsingHeader("Window Settings Toggles"))
+			{
+				if (ImGui::Checkbox("Show Title Bars", &s_ShowTitleBars))
+				{
+					s_WindowFlags = s_ShowTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
+				}
+				ImGui::SameLine();
+				DrawHelpIcon("Show Title Bars");
+			}
 
 			if (ImGui::Button("Save & Close"))
 			{
-
 				// only Save when the user clicks the button. 
-// If they close the window and don't click the button the settings will not be saved and only be temporary.
-				WritePrivateProfileInt("PlayerTarg", "FlashInterval", s_FlashInterval, &s_SettingsFile[0]);
-				WritePrivateProfileInt("PlayerTarg", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
+				// If they close the window and don't click the button the settings will not be saved and only be temporary.
+				WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", s_CombatFlashInterval, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_TargetBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
-				WritePrivateProfileInt("PlayerTarg", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Settings", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Settings", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
+
+				WritePrivateProfileBool("Settings", "ShowTitleBars", s_ShowTitleBars, &s_SettingsFile[0]);
 
 				WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, s_SettingsFile);
 				WritePrivateProfileColor("Colors", "MaxColorHP", s_MaxColorHP, s_SettingsFile);
@@ -688,7 +709,7 @@ static void DrawMainWindow()
 		{
 
 			ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("GrimGUI##MainWindow", &s_ShowMainWindow))
+			if (ImGui::Begin("GrimGUI##MainWindow", &s_ShowMainWindow, s_WindowFlags))
 			{
 				if (ImGui::Checkbox("Player Win", &s_ShowPlayerWindow))
 				{
@@ -787,9 +808,9 @@ PLUGIN_API void OnPulse()
 			s_FlashTintFlag = false;
 		}
 
-		if (s_FlashInterval > 0)
+		if (s_CombatFlashInterval > 0)
 		{
-			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - s_FlashInterval))
+			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - s_CombatFlashInterval))
 			{
 				s_FlashCombatFlag = !s_FlashCombatFlag;
 				g_LastFlashTime = now;
@@ -811,22 +832,21 @@ PLUGIN_API void OnUpdateImGui()
 {
 	// Draw the GUI elements
 
-	// Main Window no state check needed 
-	if (s_ShowMainWindow)
+	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		DrawMainWindow();
-		
-		if (!s_ShowMainWindow)
+		if (s_ShowMainWindow)
 		{
-			WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
+			DrawMainWindow();
+
+			if (!s_ShowMainWindow)
+			{
+				WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
+			}
 		}
 
 		if (s_ShowConfigWindow)
 			DrawConfigWindow();
-	}
 
-	if (GetGameState() == GAMESTATE_INGAME)
-	{
 		// Player Window (also target if not split)
 		if (s_ShowPlayerWindow)
 		{
@@ -854,7 +874,7 @@ PLUGIN_API void OnUpdateImGui()
 		if (s_SplitTargetWindow)
 		{
 			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_SplitTargetWindow))
+			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_SplitTargetWindow, s_WindowFlags))
 			{
 				DrawTargetWindow();
 			}
@@ -917,6 +937,10 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	s_spellsInspector = new SpellsInspector();
 	WriteChatf("/grimgui to toggle main window");
 
+	if (!s_ShowTitleBars)
+	{
+		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
+	}
 }
 
 /**
