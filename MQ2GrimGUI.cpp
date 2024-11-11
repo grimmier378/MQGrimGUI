@@ -13,6 +13,7 @@
 PreSetup("MQ2GrimGUI");
 PLUGIN_VERSION(0.2);
 
+#pragma region Main Setting Variables
 // Declare global plugin state variables
 static bool s_ShowMainWindow			= false;
 static bool s_ShowConfigWindow			= false;
@@ -27,9 +28,28 @@ static bool s_charIniLoaded				= false;
 static bool s_DefaultLoaded				= false;
 static bool s_ShowTitleBars				= true;
 
+static int s_CombatFlashInterval = 100;
+static int s_FlashBuffInterval = 40;
+static int s_PlayerBarHeight = 15;
+static int s_TargetBarHeight = 15;
+static int s_AggroBarHeight = 10;
+static int s_myAgroPct = 0;
+static int s_secondAgroPct = 0;
+static int s_BuffIconSize = 24;
+static int s_TestInt = 100; // Color Test Value for Config Window
+
 static char s_SettingsFile[MAX_PATH]	= { 0 };
 
-// Colors for Progress Bar Transitions
+static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
+
+static const char* s_secondAgroName = "Unknown";
+static const char* s_heading = "N";
+static int s_TarBuffLineSize = 0;
+
+#pragma endregion
+
+#pragma region Colors for Progress Bar Transitions
+
 static mq::MQColor s_MinColorHP(223, 87, 255, 255);
 static mq::MQColor s_MaxColorHP(216, 39, 39, 255);
 static mq::MQColor s_MinColorMP(66, 29, 131, 255);
@@ -37,31 +57,18 @@ static mq::MQColor s_MaxColorMP(20, 119, 216, 255);
 static mq::MQColor s_MinColorEnd(255, 111, 5, 255);
 static mq::MQColor s_MaxColorEnd(178, 153, 26, 178);
 
+#pragma endregion
 
-static int s_CombatFlashInterval				= 100;
-static int s_FlashBuffInterval			= 40;
-static int s_PlayerBarHeight			= 15;
-static int s_TargetBarHeight			= 15;
-static int s_AggroBarHeight				= 10;
-static int s_myAgroPct					= 0;
-static int s_secondAgroPct				= 0;
-static int s_BuffIconSize				= 24;
-static int s_TestInt					= 100; // Color Test Value for Config Window
-
-static const char* s_secondAgroName		= "Unknown";
-static const char* s_heading			= "N";
-static int s_TarBuffLineSize = 0;
-
-// Timers
+#pragma region Timers
 std::chrono::steady_clock::time_point g_LastUpdateTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastFlashTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastBuffFlashTime = std::chrono::steady_clock::now();
 
-static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
-
 const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
-// Pet Buttons
+#pragma endregion
+
+#pragma region Pet Buttons
 
 struct PetButtonData {
 	std::string name;
@@ -142,8 +149,9 @@ static void TogglePetButtonVisibilityMenu() {
 	}
 }
 
+#pragma endregion
 
-// Settings Functions
+#pragma region Settings Functions
 
 static void LoadSettings()
 {
@@ -210,7 +218,6 @@ static void SaveSettings()
 	}
 }
 
-
 // Update the settings file to use the character-specific INI file if the player is in-game
 static void UpdateSettingFile()
 {
@@ -255,7 +262,9 @@ static void UpdateSettingFile()
 	}
 }
 
-// Helpers 
+#pragma endregion
+
+#pragma region Helpers 
 
 static void GetHeading()
 {
@@ -328,7 +337,10 @@ static void GiveItem(PSPAWNINFO pSpawn)
 		}
 	}
 }
-// GUI Windows 
+
+#pragma endregion
+
+#pragma region GUI Windows 
 
 static void DrawTargetWindow()
 	{
@@ -913,8 +925,9 @@ static void DrawMainWindow()
 		}
 	}
 
+#pragma endregion
 
-// Called periodically by MQ2
+#pragma region Plugin API
 PLUGIN_API void OnPulse()
 {
 	auto now = std::chrono::steady_clock::now();
@@ -1116,3 +1129,5 @@ PLUGIN_API void ShutdownPlugin()
 	DebugSpewAlways("Shutting down MQ2GrimGUI");
 	RemoveCommand("/grimui");
 }
+
+#pragma endregion

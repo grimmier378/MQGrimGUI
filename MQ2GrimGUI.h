@@ -161,7 +161,7 @@ static SpellsInspector* s_spellsInspector = nullptr;
 
 #pragma endregion
 
-// Color utility functions
+#pragma region Color utility functions
 
 /**
 * @fn CalculateProgressiveColor
@@ -292,3 +292,4 @@ static MQColor GetConColor(int color_code)
 	}
 }
 
+#pragma endregion
