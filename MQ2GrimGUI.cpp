@@ -86,7 +86,6 @@ static std::vector<PetButtonData> petButtons = {
 	{"Kill", "/pet kill", true},
 };
 
-// Function to display the petButtons
 static void DisplayPetButtons() {
 	int numColumns = (1, ImGui::GetColumnWidth() / 60);
 
@@ -264,7 +263,28 @@ static void GetHeading()
 	s_heading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
+/**
+ * @fn GrimCommandHandler
+ *
+ * Command handler for the /Grimgui command
+ *
+ * @param pPC PlayerClient* Pointer to the player client structure
+ * @param pszLine const char* Command line text
+*/
+static void GrimCommandHandler(PlayerClient*, const char*)
+{
+	s_ShowMainWindow = !s_ShowMainWindow;
+	WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
+}
 
+/**
+* @fn DrawLineOfSight
+ *
+ * Draws a line of sight indicator based on the result of the LineOfSight function
+ * 
+ * @param pFrom PSPAWNINFO Pointer to the source spawn
+ * @param pTo PSPAWNINFO Pointer to the target spawn
+*/
 static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 {
 	if (LineOfSight(pFrom, pTo))
@@ -277,6 +297,13 @@ static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 	}
 }
 
+/**
+ * @fn DrawHelpIcon
+ *
+ * Draws a help icon with a tooltip
+ * 
+ * @param helpText const char* Text to display in the tooltip
+*/
 static void DrawHelpIcon(const char* helpText)
 {
 	ImGui::SameLine();
@@ -288,6 +315,9 @@ static void DrawHelpIcon(const char* helpText)
 		ImGui::EndTooltip();
 	}
 }
+
+
+// GUI Windows 
 
 static void DrawTargetWindow()
 	{
@@ -335,7 +365,7 @@ static void DrawTargetWindow()
 			ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
 
 			ImGui::SameLine(sizeX * .5);
-			ImGui::TextColored(ConColorToVec(ConColor(pTarget)),ICON_MD_LENS);
+			ImGui::TextColored(ImVec4(GetConColor(ConColor(pTarget)).ToImColor()),ICON_MD_LENS);
 
 
 			if (s_myAgroPct < 100)
@@ -563,7 +593,7 @@ static void DrawPetWindow()
 
 				if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
 				{
-					ImGui::TextColored(ConColorToVec(ConColor(pPetTarget)),pPetTarget->DisplayedName);
+					ImGui::TextColored(ImVec4(GetConColor(ConColor(pPetTarget)).ToImColor()), pPetTarget->DisplayedName);
 					float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
 					int petTargetLabel = pPetTarget->HPCurrent;
 					ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, pPetTarget->HPCurrent);
@@ -613,8 +643,6 @@ static void DrawBuffWindow()
 {
 	//TODO: Buff Window
 }
-
-
 
 static void DrawConfigWindow()
 	{
@@ -858,20 +886,6 @@ static void DrawMainWindow()
 	}
 
 
-/**
- * @fn GrimCommandHandler
- *
- * Command handler for the /Grimgui command
- *
- * @param pPC PlayerClient* Pointer to the player client structure
- * @param pszLine const char* Command line text
-*/
-static void GrimCommandHandler(PlayerClient*, const char*)
-{
-	s_ShowMainWindow = !s_ShowMainWindow;
-	WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
-}
-
 // Called periodically by MQ2
 PLUGIN_API void OnPulse()
 {
@@ -1037,7 +1051,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	LoadSettings();
 	SaveSettings();
 	s_spellsInspector = new SpellsInspector();
-	WriteChatf("/grimgui to toggle main window");
+	WriteChatf("\aw[\ayGrimGUI\ax]\ag /grimgui \atToggles Main Window");
 
 	if (!s_ShowTitleBars)
 	{

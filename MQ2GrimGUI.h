@@ -156,6 +156,7 @@ public:
 		}
 	}
 };
+
 static SpellsInspector* s_spellsInspector = nullptr;
 
 #pragma endregion
@@ -177,12 +178,10 @@ static SpellsInspector* s_spellsInspector = nullptr;
 */
 static ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColor, int value, const MQColor* midColor = nullptr, int midValue = 50)
 {
-	// Clamp value between 0 and 100
 	value = std::max(0, std::min(100, value));
 
 	float r, g, b, a;
 
-	// Lambda to convert color component to 0-1 float for ImGui
 	auto toFloat = [](uint8_t colorComponent) { return static_cast<float>(colorComponent) / 255.0f; };
 
 	if (midColor)
@@ -275,29 +274,21 @@ constexpr MQColor GetMQColor(ColorName color)
 	}
 }
 
-/**
-* @fn ConColorToVec
-*
-* Function to convert a CONCOLOR value to an ImVec4 color value
-*
-* @param color_code int CONCOLOR value to convert to ImVec4
-* @return ImVec4 color value
-*/
-static ImVec4 ConColorToVec(int color_code)
+static MQColor GetConColor(int color_code)
 {
 	switch (color_code)
 	{
-	case 0x06: return ImVec4(0.6f, 0.6f, 0.6f, 1.0f); // CONCOLOR_GREY
-	case 0x02: return ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // CONCOLOR_GREEN
-	case 0x12: return ImVec4(0.37f, 0.704f, 1.0f, 1.0f); // CONCOLOR_LIGHTBLUE
-	case 0x04: return ImVec4(0.0f, 0.0f, 1.0f, 1.0f); // CONCOLOR_BLUE
-	case 0x14: return ImVec4(0.0f, 0.0f, 0.0f, 1.0f); // CONCOLOR_BLACK
-	case 0x0a: return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // CONCOLOR_WHITE
-	case 0x0f: return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // CONCOLOR_YELLOW
-	case 0x0d: return ImVec4(0.9f, 0.1f, 0.1f, 1.0f); // CONCOLOR_RED
+	case 0x06: return COLOR_GREY;          // CONCOLOR_GREY
+	case 0x02: return COLOR_GREEN;         // CONCOLOR_GREEN
+	case 0x12: return COLOR_SOFT_BLUE;     // CONCOLOR_LIGHTBLUE
+	case 0x04: return COLOR_BLUE;          // CONCOLOR_BLUE
+	case 0x14: return COLOR_DEFAULT_WHITE; // CONCOLOR_BLACK (or default to white for transparency)
+	case 0x0a: return COLOR_WHITE;         // CONCOLOR_WHITE
+	case 0x0f: return COLOR_YELLOW;        // CONCOLOR_YELLOW
+	case 0x0d: return COLOR_RED;           // CONCOLOR_RED
 
 		// Default color if the color code doesn't match any known values
-	default: return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+	default: return COLOR_DEFAULT_WHITE;
 	}
 }
 
