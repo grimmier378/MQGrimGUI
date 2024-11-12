@@ -23,6 +23,9 @@
     <ClInclude Include="MQ2GrimGUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="imgui_theme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2GrimGUI.rc">

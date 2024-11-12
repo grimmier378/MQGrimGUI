@@ -9,6 +9,7 @@
 #include <sstream>
 #include <filesystem>
 #include "MQ2GrimGUI.h"
+#include "imgui_theme.h"
 
 PreSetup("MQ2GrimGUI");
 PLUGIN_VERSION(0.2);
@@ -39,6 +40,12 @@ static int s_BuffIconSize = 24;
 static int s_TestInt = 100; // Color Test Value for Config Window
 
 static char s_SettingsFile[MAX_PATH]	= { 0 };
+static const char* s_PlayerWinTheme = "Default";
+static const char* s_TargetWinTheme = "Default";
+static const char* s_PetWinTheme = "Default";
+static const char* s_GroupWinTheme = "Default";
+static const char* s_SpellsWinTheme = "Default";
+
 
 static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 
@@ -430,6 +437,7 @@ static void DrawPlayerWindow()
 			return;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+		int popCounts = PushTheme(s_PlayerWinTheme);
 		if (ImGui::Begin("Player##MQ2GrimGUI", &s_ShowPlayerWindow, s_WindowFlags | ImGuiWindowFlags_MenuBar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
@@ -458,6 +466,7 @@ static void DrawPlayerWindow()
 
 					ImGui::EndMenu();
 				}
+				s_PlayerWinTheme = DrawThemePicker(s_PlayerWinTheme);
 				ImGui::EndMenuBar();
 			}
 
@@ -563,6 +572,7 @@ static void DrawPlayerWindow()
 				DrawTargetWindow();
 			}
 		}
+		PopTheme(popCounts);
 		ImGui::End();
 	}
 
