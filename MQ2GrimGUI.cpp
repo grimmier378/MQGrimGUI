@@ -40,11 +40,10 @@ static int s_BuffIconSize = 24;
 static int s_TestInt = 100; // Color Test Value for Config Window
 
 static char s_SettingsFile[MAX_PATH]	= { 0 };
-static const char* s_PlayerWinTheme = "Default";
-static const char* s_TargetWinTheme = "Default";
-static const char* s_PetWinTheme = "Default";
-static const char* s_GroupWinTheme = "Default";
-static const char* s_SpellsWinTheme = "Default";
+static std::string s_PlayerWinTheme = "Default";
+static std::string s_PetWinTheme = "Default";
+static std::string s_GroupWinTheme = "Default";
+static std::string s_SpellsWinTheme = "Default";
 
 
 static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
@@ -140,7 +139,9 @@ static void DisplayPetButtons() {
 }
 
 static void TogglePetButtonVisibilityMenu() {
-	int numColumns = (1, ImGui::GetContentRegionAvail().x / 75);
+	int numColumns = (1, (ImGui::GetWindowWidth() - 10) / 75);
+	if (numColumns < 1)
+		numColumns = 1;
 
 	if (ImGui::BeginTable("CheckboxTable", numColumns, ImGuiTableFlags_SizingStretchProp))
 	{
@@ -187,6 +188,12 @@ static void LoadSettings()
 	s_MinColorEnd = GetPrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
 	s_MaxColorEnd = GetPrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
 
+	//Theme Settings
+	s_PlayerWinTheme = GetPrivateProfileString("PlayerTarg", "Theme", s_PlayerWinTheme, &s_SettingsFile[0]);
+	s_PetWinTheme = GetPrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
+	s_GroupWinTheme = GetPrivateProfileString("Group", "Theme", s_GroupWinTheme, &s_SettingsFile[0]);
+	s_SpellsWinTheme = GetPrivateProfileString("Spells", "Theme", s_SpellsWinTheme, &s_SettingsFile[0]);
+
 	// Load Pet button visibility settings
 	for (auto& button : petButtons) {
 		button.visible = GetPrivateProfileBool("Pet", button.name.c_str(), true, &s_SettingsFile[0]);
@@ -218,6 +225,12 @@ static void SaveSettings()
 	WritePrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
 	WritePrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
 	WritePrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+
+	//Theme Settings
+	WritePrivateProfileString("Spells", "Theme", s_SpellsWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Group", "Theme", s_GroupWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("PlayerTarg", "Theme", s_PlayerWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
 
 	// Save Pet button visibility settings
 	for (const auto& button : petButtons) {
@@ -435,7 +448,6 @@ static void DrawPlayerWindow()
 	{
 		if (!s_ShowPlayerWindow)
 			return;
-
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_PlayerWinTheme);
 		if (ImGui::Begin("Player##MQ2GrimGUI", &s_ShowPlayerWindow, s_WindowFlags | ImGuiWindowFlags_MenuBar))
@@ -466,7 +478,7 @@ static void DrawPlayerWindow()
 
 					ImGui::EndMenu();
 				}
-				s_PlayerWinTheme = DrawThemePicker(s_PlayerWinTheme);
+				
 				ImGui::EndMenuBar();
 			}
 
@@ -588,6 +600,7 @@ static void DrawPetWindow()
 		const char* petName = MyPet->DisplayedName;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+		int popCounts = PushTheme(s_PetWinTheme);
 		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_ShowPetWindow, s_WindowFlags ))
 		{
 			float sizeX = ImGui::GetWindowWidth();
@@ -632,7 +645,6 @@ static void DrawPetWindow()
 					GiveItem(pSpawnManager->GetSpawnByID(pLocalPlayer->PetID));
 				}
 
-				// Pet Target Section
 				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 55), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
 				{
 					if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
@@ -679,6 +691,7 @@ static void DrawPetWindow()
 			}
 
 		}
+		PopTheme(popCounts);
 		ImGui::End();
 	}
 
@@ -852,8 +865,29 @@ static void DrawConfigWindow()
 				DrawHelpIcon("Show Title Bars");
 			}
 
-			ImGui::SeparatorText("Buttons");
-			TogglePetButtonVisibilityMenu();
+			if (ImGui::CollapsingHeader("Window Themes"))
+			{
+				ImGui::SetNextItemWidth(100);
+				s_PlayerWinTheme = DrawThemePicker(s_PlayerWinTheme, "PlayerWin");
+
+				ImGui::SameLine();
+
+				ImGui::SetNextItemWidth(100);
+				s_PetWinTheme = DrawThemePicker(s_PetWinTheme, "PetWin");
+
+				ImGui::SetNextItemWidth(100);
+				s_GroupWinTheme = DrawThemePicker(s_GroupWinTheme, "GroupWin");
+
+				ImGui::SameLine();
+
+				ImGui::SetNextItemWidth(100);
+				s_SpellsWinTheme = DrawThemePicker(s_SpellsWinTheme, "SpellsWin");
+			}
+
+			if (ImGui::CollapsingHeader("Pet Buttons"))
+			{
+				TogglePetButtonVisibilityMenu();
+			}
 
 			if (ImGui::Button("Save & Close"))
 			{
@@ -868,12 +902,17 @@ static void DrawConfigWindow()
 
 				WritePrivateProfileBool("Settings", "ShowTitleBars", s_ShowTitleBars, &s_SettingsFile[0]);
 
-				WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, s_SettingsFile);
-				WritePrivateProfileColor("Colors", "MaxColorHP", s_MaxColorHP, s_SettingsFile);
-				WritePrivateProfileColor("Colors", "MinColorMP", s_MinColorMP, s_SettingsFile);
-				WritePrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, s_SettingsFile);
-				WritePrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, s_SettingsFile);
-				WritePrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, s_SettingsFile);
+				WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MaxColorHP", s_MaxColorHP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MinColorMP", s_MinColorMP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MaxColorMP", s_MaxColorMP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MinColorEnd", s_MinColorEnd, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MaxColorEnd", s_MaxColorEnd, &s_SettingsFile[0]);
+
+				WritePrivateProfileString("Spells", "Theme", s_SpellsWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Group", "Theme", s_GroupWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("PlayerTarg", "Theme", s_PlayerWinTheme,  &s_SettingsFile[0]);
+				WritePrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
 
 				s_ShowConfigWindow = false;
 			}
@@ -1041,10 +1080,12 @@ PLUGIN_API void OnUpdateImGui()
 		if (s_SplitTargetWindow)
 		{
 			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+			int popCountsPlay = PushTheme(s_PlayerWinTheme);
 			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_SplitTargetWindow, s_WindowFlags))
 			{
 				DrawTargetWindow();
 			}
+			PopTheme(popCountsPlay);
 			ImGui::End();
 
 			if (!s_SplitTargetWindow)
