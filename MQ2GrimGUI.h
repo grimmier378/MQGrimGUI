@@ -92,7 +92,7 @@ public:
 	{
 		if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable))
 		{
-			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, s_BuffIconSize);
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_BuffIconSize));
 			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 65);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableHeadersRow();
@@ -121,9 +121,12 @@ public:
 					if (!spell->IsBeneficialSpell())
 						borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
 
-					std::string caster = buffInfo.GetCaster();
-					if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
-						borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
+					if (!playerBuffs)
+					{
+						std::string caster = buffInfo.GetCaster();
+						if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
+							borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
+					}
 
 					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 					if (secondsLeft < 18 && !petBuffs)
@@ -186,7 +189,7 @@ public:
 					*m_pTASpellIcon = *temp;
 			}
 
-			int sizeX = ImGui::GetContentRegionAvailWidth();
+			int sizeX = static_cast<int>(ImGui::GetContentRegionAvail().x);
 			s_TarBuffLineSize = 0;
 			if (spell)
 			{

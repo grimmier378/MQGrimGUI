@@ -105,7 +105,7 @@ static std::vector<PetButtonData> petButtons = {
 };
 
 static void DisplayPetButtons() {
-	int numColumns = (1, ImGui::GetColumnWidth() / 60);
+	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / 60);
 
 	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp)) {
 		for (auto& button : petButtons) {
@@ -144,7 +144,7 @@ static void DisplayPetButtons() {
 }
 
 static void TogglePetButtonVisibilityMenu() {
-	int numColumns = (1, (ImGui::GetWindowWidth() - 10) / 75);
+	int numColumns = static_cast<int>(1, (ImGui::GetWindowWidth() - 10) / 75);
 	if (numColumns < 1)
 		numColumns = 1;
 
@@ -178,7 +178,7 @@ static void LoadSettings()
 	s_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	s_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
 	s_ShowBuffWindow = GetPrivateProfileBool("Buffs", "ShowBuffWindow", false, &s_SettingsFile[0]);
-	s_ShowSongWindow = GetPrivateProfileBool("Buffs", "ShowSongWindow", false, &s_SettingsFile[0]);
+	s_ShowSongWindow = GetPrivateProfileBool("Songs", "ShowSongWindow", false, &s_SettingsFile[0]);
 
 	s_CombatFlashInterval = GetPrivateProfileInt("PlayerTarg", "CombatFlashInterval", 250, &s_SettingsFile[0]);
 	s_PlayerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
@@ -243,6 +243,7 @@ static void SaveSettings()
 	WritePrivateProfileString("PlayerTarg", "Theme", s_PlayerWinTheme, &s_SettingsFile[0]);
 	WritePrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
 	WritePrivateProfileString("Buffs", "Theme", s_BuffsWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Songs", "Theme", s_SongWinTheme, &s_SettingsFile[0]);
 
 	// Save Pet button visibility settings
 	for (const auto& button : petButtons) {
@@ -396,13 +397,13 @@ static void DrawTargetWindow()
 			ImGui::SameLine();
 			ImGui::Text(CurTarget->DisplayedName);
 
-			ImGui::SameLine(sizeX * .75);
+			ImGui::SameLine(sizeX * .75f);
 			ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.1f m", GetDistance(pLocalPlayer, pTarget));
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
-			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, s_TargetBarHeight), "##");
+			ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, static_cast<float>(s_TargetBarHeight)), "##");
 			ImGui::PopStyleColor();
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
 			ImGui::Text("%d %%", tar_label);
@@ -419,7 +420,7 @@ static void DrawTargetWindow()
 			ImGui::SameLine();
 			ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
 
-			ImGui::SameLine(sizeX * .5);
+			ImGui::SameLine(sizeX * .5f);
 			ImGui::TextColored(ImVec4(GetConColor(ConColor(pTarget)).ToImColor()),ICON_MD_LENS);
 
 
@@ -431,9 +432,9 @@ static void DrawTargetWindow()
 			{
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Purple).ToImColor()));
 			}
-			ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(static_cast<float>(s_myAgroPct) / 100, ImVec2(0.0f, s_AggroBarHeight), "##Aggro");
+			ImGui::ProgressBar(static_cast<float>(s_myAgroPct) / 100, ImVec2(0.0f, static_cast<float>(s_AggroBarHeight)), "##Aggro");
 			ImGui::PopStyleColor();
 			ImGui::SetCursorPos(ImVec2(10, yPos));
 			ImGui::Text(s_secondAgroName);
@@ -515,7 +516,7 @@ static void DrawPlayerWindow()
 			{
 				if (ImGui::BeginTable("##Player", 3))
 				{
-					ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x * .5);
+					ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x * .5f);
 					ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_WidthFixed, 30);
 					ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_WidthStretch, 60);
 					ImGui::TableNextRow();
@@ -537,9 +538,9 @@ static void DrawPlayerWindow()
 
 			ImVec4 colorHP = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, healthPctInt);
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorHP);
-			ImGui::SetNextItemWidth(sizeX - 15);
+			ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 			float yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(healthPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##hp");
+			ImGui::ProgressBar(healthPctFloat, ImVec2(0.0f, static_cast<float>(s_PlayerBarHeight)), "##hp");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -557,9 +558,9 @@ static void DrawPlayerWindow()
 				ImVec4 colorMP = CalculateProgressiveColor(s_MinColorMP, s_MaxColorMP, manaPctInt);
 
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorMP);
-				ImGui::SetNextItemWidth(sizeX - 15);
+				ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 				yPos = ImGui::GetCursorPosY();
-				ImGui::ProgressBar(manaPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##Mana");
+				ImGui::ProgressBar(manaPctFloat, ImVec2(0.0f, static_cast<float>(s_PlayerBarHeight)), "##Mana");
 				ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered())
 				{
@@ -577,9 +578,9 @@ static void DrawPlayerWindow()
 			ImVec4 colorEP = CalculateProgressiveColor(s_MinColorEnd, s_MaxColorEnd, endurPctInt);
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorEP);
-			ImGui::SetNextItemWidth(sizeX - 15);
+			ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(endurPctFloat, ImVec2(0.0f, s_PlayerBarHeight), "##Endur");
+			ImGui::ProgressBar(endurPctFloat, ImVec2(0.0f, static_cast<float>(s_PlayerBarHeight)), "##Endur");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -643,9 +644,9 @@ static void DrawPetWindow()
 					ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.1f m", GetDistance(pLocalPlayer, MyPet));
 					// pet health bar
 					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
-					ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+					ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 					yPos = ImGui::GetCursorPosY();
-					ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
+					ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_PlayerBarHeight)), "##");
 					ImGui::PopStyleColor();
 					ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
 					ImGui::Text("%d %%", petLabel);
@@ -670,9 +671,9 @@ static void DrawPetWindow()
 						int petTargetLabel = pPetTarget->HPCurrent;
 						ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_MinColorHP, s_MaxColorHP, pPetTarget->HPCurrent);
 						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHPTarget);
-						ImGui::SetNextItemWidth(static_cast<int>(sizeX) - 15);
+						ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 						yPos = ImGui::GetCursorPosY();
-						ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, s_PlayerBarHeight), "##");
+						ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_PlayerBarHeight)), "##");
 						ImGui::PopStyleColor();
 						ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
 						ImGui::Text("%d %%", petTargetLabel);
@@ -757,6 +758,7 @@ static void DrawConfigWindow()
 
 		if (ImGui::Begin("Config##ConfigWindow", &s_ShowConfigWindow, s_WindowFlags))
 		{
+			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 
 			if (ImGui::CollapsingHeader("Color Settings"))
 			{
@@ -858,6 +860,7 @@ static void DrawConfigWindow()
 					std::string label = "Flash Speed: " + std::to_string(s_CombatFlashInterval) + " \nLower is slower, Higher is faster. 0 = Disabled";
 					DrawHelpIcon(label.c_str());
 				}
+
 
 				ImGui::SetNextItemWidth(150);
 				ImGui::SliderInt("Buff Flash Speed", &s_FlashBuffInterval, 0, 500);
@@ -982,32 +985,40 @@ static void DrawMainWindow()
 			ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 			if (ImGui::Begin("GrimGUI##MainWindow", &s_ShowMainWindow, s_WindowFlags))
 			{
-				if (ImGui::Checkbox("Player Win", &s_ShowPlayerWindow))
+
+				struct WindowOption {
+					const char* label;
+					bool* setting;
+					const char* section;
+					const char* key;
+				};
+
+				WindowOption options[] = {
+					{"Player Win", &s_ShowPlayerWindow, "PlayerTarg", "ShowPlayerWindow"},
+					{"Target Win", &s_ShowTargetWindow, "PlayerTarg", "SplitTarget"},
+					{"Pet Win", &s_ShowPetWindow, "Pet", "ShowPetWindow"},
+					{"Buff Win", &s_ShowBuffWindow, "Buffs", "ShowBuffWindow"},
+					{"Song Win", &s_ShowSongWindow, "Songs", "ShowSongWindow"},
+				};
+
+				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+				int col = 1;
+				col = sizeX / 100;
+				if (col < 1)
+					col = 1;
+
+				if (ImGui::BeginTable("Window List", col))
 				{
-					WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_ShowPlayerWindow, &s_SettingsFile[0]);
+					ImGui::TableNextRow();
+					for (const auto& option : options) {
+						if (ImGui::Checkbox(option.label, option.setting)) {
+							WritePrivateProfileBool(option.section, option.key, *option.setting, &s_SettingsFile[0]);
+						}
+						ImGui::TableNextColumn();
+					}
+					ImGui::EndTable();
 				}
 
-				ImGui::SameLine();
-
-				if (ImGui::Checkbox("Split Target", &s_ShowTargetWindow))
-				{
-					WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_ShowTargetWindow, &s_SettingsFile[0]);
-				}
-
-				if (ImGui::Checkbox("Pet Win", &s_ShowPetWindow))
-				{
-					WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
-				}
-
-				if (ImGui::Checkbox("Buff Win", &s_ShowBuffWindow))
-				{
-					WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_ShowBuffWindow, &s_SettingsFile[0]);
-				}
-
-				if (ImGui::Checkbox("Song Win", &s_ShowSongWindow))
-				{
-					WritePrivateProfileBool("Songs", "ShowSongWindow", s_ShowSongWindow, &s_SettingsFile[0]);
-				}
 
 				//TODO: More Windows
 				//ImGui::Separator();
