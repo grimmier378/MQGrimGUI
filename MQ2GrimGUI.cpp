@@ -25,7 +25,7 @@ static bool s_FlashCombatFlag			= false;
 static bool s_FlashTintFlag				= false;
 static bool s_ShowGroupWindow			= false;
 static bool s_ShowSpellsWindow			= false;
-static bool s_charIniLoaded				= false;
+static bool s_CharIniLoaded				= false;
 static bool s_DefaultLoaded				= false;
 static bool s_ShowTitleBars				= true;
 
@@ -230,7 +230,7 @@ static void UpdateSettingFile()
 {
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (!s_charIniLoaded)
+		if (!s_CharIniLoaded)
 		{
 			if (PSPAWNINFO pCharInfo = pLocalPlayer)
 			{
@@ -252,17 +252,17 @@ static void UpdateSettingFile()
 				strcpy_s(s_SettingsFile, CharIniFile);
 
 				LoadSettings();
-				s_charIniLoaded = true;
+				s_CharIniLoaded = true;
 			}
 		}
 	}
 	else
 	{
-		if (s_charIniLoaded || !s_DefaultLoaded)
+		if (s_CharIniLoaded || !s_DefaultLoaded)
 		{
 			memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
 			fmt::format_to(s_SettingsFile, "{}/MQ2GrimGUI.ini", gPathConfig);
-			s_charIniLoaded = false;
+			s_CharIniLoaded = false;
 			LoadSettings();
 			s_DefaultLoaded = true;
 		}
