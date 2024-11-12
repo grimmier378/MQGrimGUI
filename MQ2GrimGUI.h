@@ -4,10 +4,8 @@
 #include <imgui.h>
 #include "mq/base/Color.h"
 
-extern bool s_FlashTintFlag;
-extern int s_BuffIconSize;
-extern int s_TarBuffLineSize;
-extern int s_BuffTimerThreshold;
+extern struct WinVisSettings winVis;
+extern struct NumericSettings numSet;
 
 #pragma region Spells Inspector
 
@@ -93,7 +91,7 @@ public:
 	{
 		if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
 		{
-			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_BuffIconSize));
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(numSet.buffIconSize));
 			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 65);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupScrollFreeze(0, 1);
@@ -133,12 +131,12 @@ public:
 					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 					if (secondsLeft < 18 && !petBuffs)
 					{
-						if (s_FlashTintFlag)
+						if (winVis.flashTintFlag)
 							tintCol = MQColor(0, 0, 0, 255);
 
 					}
 					ImGui::PushID(buffInfo.GetIndex());
-					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
+					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(numSet.buffIconSize, numSet.buffIconSize), tintCol, borderCol);
 					ImGui::PopID();
 					if (ImGui::IsItemHovered())
 					{
@@ -156,7 +154,7 @@ public:
 					}
 
 					ImGui::TableNextColumn();
-					if (secondsLeft < s_BuffTimerThreshold || s_BuffTimerThreshold == 0)
+					if (secondsLeft < numSet.buffTimerThreshold || numSet.buffTimerThreshold == 0)
 					{
 						char timeLabel[64];
 						FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
@@ -209,13 +207,13 @@ public:
 				int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 				if (secondsLeft < 18 && !petBuffs)
 				{
-					if (s_FlashTintFlag)
+					if (winVis.flashTintFlag)
 						tintCol = MQColor(0, 0, 0, 255);
 
 				}
 
-				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
-				s_TarBuffLineSize += s_BuffIconSize + 2;
+				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(numSet.buffIconSize, numSet.buffIconSize), tintCol, borderCol);
+				s_TarBuffLineSize += numSet.buffIconSize + 2;
 				if (s_TarBuffLineSize < sizeX - 20)
 				{
 					ImGui::SameLine(0.0f, 2);
