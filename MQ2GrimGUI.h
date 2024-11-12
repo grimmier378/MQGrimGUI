@@ -7,6 +7,7 @@
 extern bool s_FlashTintFlag;
 extern int s_BuffIconSize;
 extern int s_TarBuffLineSize;
+extern int s_BuffTimerThreshold;
 
 #pragma region Spells Inspector
 
@@ -90,11 +91,12 @@ public:
 	void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 	{
-		if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable))
+		if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
 		{
 			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_BuffIconSize));
 			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 65);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
 			for (const auto& buffInfo : Buffs)
 			{
@@ -154,11 +156,12 @@ public:
 					}
 
 					ImGui::TableNextColumn();
-
-					char timeLabel[64];
-					FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-					ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%s", timeLabel);
-
+					if (secondsLeft < s_BuffTimerThreshold || s_BuffTimerThreshold == 0)
+					{
+						char timeLabel[64];
+						FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+						ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%s", timeLabel);
+					}
 					ImGui::TableNextColumn();
 
 					ImGui::Text("%s", spell->Name);

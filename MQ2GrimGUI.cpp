@@ -41,6 +41,7 @@ static int s_AggroBarHeight = 10;
 static int s_myAgroPct = 0;
 static int s_secondAgroPct = 0;
 static int s_BuffIconSize = 24;
+static int s_BuffTimerThreshold = 0;
 static int s_TestInt = 100; // Color Test Value for Config Window
 
 static char s_SettingsFile[MAX_PATH]	= { 0 };
@@ -186,6 +187,7 @@ static void LoadSettings()
 	s_AggroBarHeight = GetPrivateProfileInt("PlayerTarg", "AggroBarHeight", 10, &s_SettingsFile[0]);
 	s_FlashBuffInterval = GetPrivateProfileInt("Settings", "FlashBuffInterval", 250, &s_SettingsFile[0]);
 	s_BuffIconSize = GetPrivateProfileInt("Settings", "BuffIconSize", 24, &s_SettingsFile[0]);
+	s_BuffTimerThreshold = GetPrivateProfileInt("Buffs", "BuffTimerThreshold", 30, &s_SettingsFile[0]);
 
 	//Color Settings
 	s_MinColorHP = GetPrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
@@ -228,6 +230,7 @@ static void SaveSettings()
 	WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
 	WritePrivateProfileInt("Settings", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 	WritePrivateProfileInt("Settings", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Buffs", "BuffTimerThreshold", s_BuffTimerThreshold, &s_SettingsFile[0]);
 
 	//Color Settings
 	WritePrivateProfileColor("Colors", "MinColorHP", s_MinColorHP, &s_SettingsFile[0]);
@@ -722,7 +725,7 @@ static void DrawBuffWindow()
 
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_BuffsWinTheme);
-	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_ShowBuffWindow, s_WindowFlags))
+	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_ShowBuffWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
 	{
 
 		s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
@@ -741,7 +744,7 @@ static void DrawSongWindow()
 
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_SongWinTheme);
-	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_ShowSongWindow, s_WindowFlags))
+	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_ShowSongWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
 	{
 		s_spellsInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
 	}
@@ -844,61 +847,56 @@ static void DrawConfigWindow()
 				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
 				ImGui::PopStyleColor();
 			}
+			ImGui::Spacing();
 
 			if (ImGui::CollapsingHeader("Window Settings Sliders"))
 			{
-				// Flash Interval Control
-				ImGui::SetNextItemWidth(150);
-				ImGui::SliderInt("Flash Speed", &s_CombatFlashInterval, 0, 500);
-				ImGui::SameLine();
-				if (s_CombatFlashInterval == 0)
+				struct SliderOption {
+				    const char* label;
+				    int* value;
+				    int min;
+				    int max;
+				    const char* helpText;
+				};
+						
+				SliderOption sliderOptions[] = {
+				    {"Flash Speed", &s_CombatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+				    {"Buff Flash Speed", &s_FlashBuffInterval, 0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+				    {"Buff Icon Size", &s_BuffIconSize, 10, 40, "Buff Icon Size"},
+				    {"Buff Timer Threshold", &s_BuffTimerThreshold, 0, 18000, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+				    {"Player Bar Height", &s_PlayerBarHeight, 10, 40, "Player Bar Height"},
+				    {"Target Bar Height", &s_TargetBarHeight, 10, 40, "Target Bar Height"},
+				    {"Aggro Bar Height", &s_AggroBarHeight, 10, 40, "Aggro Bar Height"}
+				};
+			
+				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+				int col = sizeX / 200;
+				if (col < 1)
+					col = 1;
+				
+				if (ImGui::BeginTable("Slider Controls", col))
 				{
-					DrawHelpIcon("Flash Interval Disabled");
+				    ImGui::TableNextRow();
+				    for (const auto& slider : sliderOptions)
+					{
+				        ImGui::SetNextItemWidth(100);
+				        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max);
+				
+				        ImGui::SameLine();
+				        if (*slider.value == 0 && (std::string(slider.label).find("Flash") != std::string::npos))
+						{
+							DrawHelpIcon((std::string(slider.label) + " Disabled").c_str());
+						} else {
+				            DrawHelpIcon(slider.helpText);
+				        }
+				
+				        ImGui::TableNextColumn();
+				    }
+				    ImGui::EndTable();
 				}
-				else
-				{
-					std::string label = "Flash Speed: " + std::to_string(s_CombatFlashInterval) + " \nLower is slower, Higher is faster. 0 = Disabled";
-					DrawHelpIcon(label.c_str());
-				}
-
-
-				ImGui::SetNextItemWidth(150);
-				ImGui::SliderInt("Buff Flash Speed", &s_FlashBuffInterval, 0, 500);
-				ImGui::SameLine();
-				if (s_FlashBuffInterval == 0)
-				{
-					DrawHelpIcon("Buff Flash Interval Disabled");
-				}
-				else
-				{
-					std::string label = "Buff Flash Speed: " + std::to_string(s_FlashBuffInterval) + " \nLower is slower, Higher is faster. 0 = Disabled";
-					DrawHelpIcon(label.c_str());
-				}
-
-				// Buff Icon Size Control
-				ImGui::SetNextItemWidth(150);
-				ImGui::SliderInt("Buff Icon Size", &s_BuffIconSize, 10, 40);
-				ImGui::SameLine();
-				DrawHelpIcon("Buff Icon Size");
-
-				// Bar Height Controls
-
-				ImGui::SetNextItemWidth(150);
-				ImGui::SliderInt("Player Bar Height", &s_PlayerBarHeight, 10, 40);
-				ImGui::SameLine();
-				DrawHelpIcon("Player Bar Height");
-
-				ImGui::SetNextItemWidth(150);
-				ImGui::SliderInt("Target Bar Height", &s_TargetBarHeight, 10, 40);
-				ImGui::SameLine();
-				DrawHelpIcon("Target Bar Height");
-
-				ImGui::SetNextItemWidth(150);
-				ImGui::SliderInt("Aggro Bar Height", &s_AggroBarHeight, 10, 40);
-				ImGui::SameLine();
-				DrawHelpIcon("Aggro Bar Height");
-
+			
 			}
+			ImGui::Spacing();
 
 			if (ImGui::CollapsingHeader("Window Settings Toggles"))
 			{
@@ -909,38 +907,48 @@ static void DrawConfigWindow()
 				ImGui::SameLine();
 				DrawHelpIcon("Show Title Bars");
 			}
+			ImGui::Spacing();
 
 			if (ImGui::CollapsingHeader("Window Themes"))
 			{
-				ImGui::SetNextItemWidth(100);
-				s_PlayerWinTheme = DrawThemePicker(s_PlayerWinTheme, "PlayerWin");
+				struct ThemeOption {
+					const char* label;
+					std::string* theme;
+				};
 
-				ImGui::SameLine();
+				ThemeOption themeOptions[] = {
+					{"PlayerWin", &s_PlayerWinTheme},
+					{"PetWin", &s_PetWinTheme},
+					{"GroupWin", &s_GroupWinTheme},
+					{"SpellsWin", &s_SpellsWinTheme},
+					{"BuffsWin", &s_BuffsWinTheme},
+					{"SongWin", &s_SongWinTheme}
+				};
 
-				ImGui::SetNextItemWidth(100);
-				s_PetWinTheme = DrawThemePicker(s_PetWinTheme, "PetWin");
+				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+				int col = sizeX / 180;
+				if (col < 1)
+					col = 1;
 
-				ImGui::SetNextItemWidth(100);
-				s_GroupWinTheme = DrawThemePicker(s_GroupWinTheme, "GroupWin");
-
-				ImGui::SameLine();
-
-				ImGui::SetNextItemWidth(100);
-				s_SpellsWinTheme = DrawThemePicker(s_SpellsWinTheme, "SpellsWin");
-
-				ImGui::SetNextItemWidth(100);
-				s_BuffsWinTheme = DrawThemePicker(s_BuffsWinTheme, "BuffsWin");
-
-				ImGui::SameLine();
-
-				ImGui::SetNextItemWidth(100);
-				s_SongWinTheme = DrawThemePicker(s_SongWinTheme, "SongWin");
+				if (ImGui::BeginTable("Theme List", col))
+				{
+					ImGui::TableNextRow();
+					for (const auto& theme : themeOptions)
+					{
+						ImGui::SetNextItemWidth(100);
+						*theme.theme = DrawThemePicker(*theme.theme, theme.label);
+						ImGui::TableNextColumn();
+					}
+					ImGui::EndTable();
+				}
 			}
+			ImGui::Spacing();
 
 			if (ImGui::CollapsingHeader("Pet Buttons"))
 			{
 				TogglePetButtonVisibilityMenu();
 			}
+			ImGui::Spacing();
 
 			if (ImGui::Button("Save & Close"))
 			{
@@ -952,6 +960,7 @@ static void DrawConfigWindow()
 				WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_AggroBarHeight, &s_SettingsFile[0]);
 				WritePrivateProfileInt("Settings", "BuffIconSize", s_BuffIconSize, &s_SettingsFile[0]);
 				WritePrivateProfileInt("Settings", "FlashBuffInterval", s_FlashBuffInterval, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Buffs", "BuffTimerThreshold", s_BuffTimerThreshold, &s_SettingsFile[0]);
 
 				WritePrivateProfileBool("Settings", "ShowTitleBars", s_ShowTitleBars, &s_SettingsFile[0]);
 
@@ -1010,8 +1019,10 @@ static void DrawMainWindow()
 				if (ImGui::BeginTable("Window List", col))
 				{
 					ImGui::TableNextRow();
-					for (const auto& option : options) {
-						if (ImGui::Checkbox(option.label, option.setting)) {
+					for (const auto& option : options)
+					{
+						if (ImGui::Checkbox(option.label, option.setting))
+						{
 							WritePrivateProfileBool(option.section, option.key, *option.setting, &s_SettingsFile[0]);
 						}
 						ImGui::TableNextColumn();
