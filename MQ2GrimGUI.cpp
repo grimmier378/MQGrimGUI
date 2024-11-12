@@ -31,10 +31,6 @@ struct WinVisSettings {
 	bool showTitleBars = true;
 } winVis;
 
-//settings loaded toggles
-static bool s_CharIniLoaded				= false;
-static bool s_DefaultLoaded				= false;
-
 struct NumericSettings {
 	int combatFlashInterval = 100;
 	int flashBuffInterval = 40;
@@ -47,9 +43,6 @@ struct NumericSettings {
 	int buffTimerThreshold = 0;
 } numSet;
 
-static int s_TestInt = 100; // Color Test Value for Config Window
-static char s_SettingsFile[MAX_PATH]	= { 0 };
-
 struct ThemeSettings {
 	std::string playerWinTheme = "Default";
 	std::string petWinTheme = "Default";
@@ -58,16 +51,6 @@ struct ThemeSettings {
 	std::string buffsWinTheme = "Default";
 	std::string songWinTheme = "Default";
 } winThemes;
-
-static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
-
-static const char* s_SecondAggroName = "Unknown";
-static const char* s_CurrHeading = "N";
-static int s_TarBuffLineSize = 0;
-
-#pragma endregion
-
-#pragma region Colors for Progress Bar Transitions
 
 struct ColorSettings {
 	mq::MQColor minColorHP = mq::MQColor(223, 87, 255, 255);
@@ -78,6 +61,16 @@ struct ColorSettings {
 	mq::MQColor maxColorEnd = mq::MQColor(178, 153, 26, 178);
 } barColors;
 
+static bool s_CharIniLoaded = false;
+static bool s_DefaultLoaded = false;
+static int s_TestInt = 100; // Color Test Value for Config Window
+static char s_SettingsFile[MAX_PATH] = { 0 };
+
+static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
+
+static const char* s_SecondAggroName = "Unknown";
+static const char* s_CurrHeading = "N";
+static int s_TarBuffLineSize = 0;
 
 #pragma endregion
 
