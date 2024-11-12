@@ -863,7 +863,7 @@ static void DrawConfigWindow()
 				    {"Flash Speed", &s_CombatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
 				    {"Buff Flash Speed", &s_FlashBuffInterval, 0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
 				    {"Buff Icon Size", &s_BuffIconSize, 10, 40, "Buff Icon Size"},
-				    {"Buff Timer Threshold", &s_BuffTimerThreshold, 0, 18000, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+				    {"Buff Timer Threshold", &s_BuffTimerThreshold, 0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
 				    {"Player Bar Height", &s_PlayerBarHeight, 10, 40, "Player Bar Height"},
 				    {"Target Bar Height", &s_TargetBarHeight, 10, 40, "Target Bar Height"},
 				    {"Aggro Bar Height", &s_AggroBarHeight, 10, 40, "Aggro Bar Height"}
@@ -879,6 +879,7 @@ static void DrawConfigWindow()
 				    ImGui::TableNextRow();
 				    for (const auto& slider : sliderOptions)
 					{
+						ImGui::TableNextColumn();
 				        ImGui::SetNextItemWidth(100);
 				        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max);
 				
@@ -890,7 +891,6 @@ static void DrawConfigWindow()
 				            DrawHelpIcon(slider.helpText);
 				        }
 				
-				        ImGui::TableNextColumn();
 				    }
 				    ImGui::EndTable();
 				}
@@ -935,9 +935,9 @@ static void DrawConfigWindow()
 					ImGui::TableNextRow();
 					for (const auto& theme : themeOptions)
 					{
+						ImGui::TableNextColumn();
 						ImGui::SetNextItemWidth(100);
 						*theme.theme = DrawThemePicker(*theme.theme, theme.label);
-						ImGui::TableNextColumn();
 					}
 					ImGui::EndTable();
 				}
