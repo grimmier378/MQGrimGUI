@@ -87,7 +87,88 @@ public:
 	}
 
 	template <typename T>
-	void DoBuffs(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+	void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
+	{
+		if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, s_BuffIconSize);
+			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 65);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableHeadersRow();
+			for (const auto& buffInfo : Buffs)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+
+				EQ_Spell* spell = buffInfo.GetSpell();
+				if (!spell)
+					continue;
+
+				if (!m_pTASpellIcon)
+				{
+					m_pTASpellIcon = new CTextureAnimation();
+					if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+						*m_pTASpellIcon = *temp;
+				}
+
+				if (spell)
+				{
+
+					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+					MQColor borderCol = MQColor(0, 0, 250, 255); // Default color blue (beneficial)
+					MQColor tintCol = MQColor(255, 255, 255, 255);
+					if (!spell->IsBeneficialSpell())
+						borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
+
+					std::string caster = buffInfo.GetCaster();
+					if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
+						borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
+
+					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
+					if (secondsLeft < 18 && !petBuffs)
+					{
+						if (s_FlashTintFlag)
+							tintCol = MQColor(0, 0, 0, 255);
+
+					}
+					ImGui::PushID(buffInfo.GetIndex());
+					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
+					ImGui::PopID();
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						if (spell)
+						{
+							char timeLabel[64];
+							FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+							ImGui::Text("%s (%s)", spell->Name, timeLabel);
+							if (!petBuffs)
+								ImGui::Text("Caster: %s", buffInfo.GetCaster());
+
+						}
+						ImGui::EndTooltip();
+					}
+
+					ImGui::TableNextColumn();
+
+					char timeLabel[64];
+					FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+					ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%s", timeLabel);
+
+					ImGui::TableNextColumn();
+
+					ImGui::Text("%s", spell->Name);
+
+				}
+
+			}
+			ImGui::EndTable();
+		}
+	}
+	
+	template <typename T>
+	void DrawBuffsIcons(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 	{
 		for (const auto& buffInfo : Buffs)
@@ -128,7 +209,7 @@ public:
 				}
 
 				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_BuffIconSize, s_BuffIconSize), tintCol, borderCol);
-				s_TarBuffLineSize += s_BuffIconSize + 2 ;
+				s_TarBuffLineSize += s_BuffIconSize + 2;
 				if (s_TarBuffLineSize < sizeX - 20)
 				{
 					ImGui::SameLine(0.0f, 2);

@@ -18,16 +18,20 @@ PLUGIN_VERSION(0.2);
 // Declare global plugin state variables
 static bool s_ShowMainWindow			= false;
 static bool s_ShowConfigWindow			= false;
-static bool s_SplitTargetWindow			= false;
 static bool s_ShowPetWindow				= false;
 static bool s_ShowPlayerWindow			= false;
-static bool s_FlashCombatFlag			= false;
-static bool s_FlashTintFlag				= false;
 static bool s_ShowGroupWindow			= false;
 static bool s_ShowSpellsWindow			= false;
+static bool s_ShowTargetWindow = false;
+static bool s_ShowBuffWindow = false;
+static bool s_ShowSongWindow = false;
+static bool s_FlashCombatFlag = false;
+static bool s_FlashTintFlag = false;
+static bool s_ShowTitleBars = true;
+
+//settings loaded toggles
 static bool s_CharIniLoaded				= false;
 static bool s_DefaultLoaded				= false;
-static bool s_ShowTitleBars				= true;
 
 static int s_CombatFlashInterval = 100;
 static int s_FlashBuffInterval = 40;
@@ -44,7 +48,8 @@ static std::string s_PlayerWinTheme = "Default";
 static std::string s_PetWinTheme = "Default";
 static std::string s_GroupWinTheme = "Default";
 static std::string s_SpellsWinTheme = "Default";
-
+static std::string s_BuffsWinTheme = "Default";
+static std::string s_SongWinTheme = "Default";
 
 static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 
@@ -167,11 +172,13 @@ static void LoadSettings()
 	//window settings
 	s_ShowMainWindow = GetPrivateProfileBool("Settings", "ShowMainGui", true, &s_SettingsFile[0]);
 	s_ShowTitleBars = GetPrivateProfileBool("Settings", "ShowTitleBars", true, &s_SettingsFile[0]);
-	s_SplitTargetWindow = GetPrivateProfileBool("PlayerTarg", "SplitTarget", false, &s_SettingsFile[0]);
+	s_ShowTargetWindow = GetPrivateProfileBool("PlayerTarg", "SplitTarget", false, &s_SettingsFile[0]);
 	s_ShowPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
 	s_ShowPetWindow = GetPrivateProfileBool("Pet", "ShowPetWindow", false, &s_SettingsFile[0]);
 	s_ShowGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
 	s_ShowSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
+	s_ShowBuffWindow = GetPrivateProfileBool("Buffs", "ShowBuffWindow", false, &s_SettingsFile[0]);
+	s_ShowSongWindow = GetPrivateProfileBool("Buffs", "ShowSongWindow", false, &s_SettingsFile[0]);
 
 	s_CombatFlashInterval = GetPrivateProfileInt("PlayerTarg", "CombatFlashInterval", 250, &s_SettingsFile[0]);
 	s_PlayerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
@@ -193,6 +200,8 @@ static void LoadSettings()
 	s_PetWinTheme = GetPrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
 	s_GroupWinTheme = GetPrivateProfileString("Group", "Theme", s_GroupWinTheme, &s_SettingsFile[0]);
 	s_SpellsWinTheme = GetPrivateProfileString("Spells", "Theme", s_SpellsWinTheme, &s_SettingsFile[0]);
+	s_BuffsWinTheme = GetPrivateProfileString("Buffs", "Theme", s_BuffsWinTheme, &s_SettingsFile[0]);
+	s_SongWinTheme = GetPrivateProfileString("Songs", "Theme", s_SongWinTheme, &s_SettingsFile[0]);
 
 	// Load Pet button visibility settings
 	for (auto& button : petButtons) {
@@ -205,11 +214,13 @@ static void SaveSettings()
 	//Window Settings
 	WritePrivateProfileBool("Settings", "ShowMainGui", s_ShowMainWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Settings", "ShowTitleBars", s_ShowTitleBars, &s_SettingsFile[0]);
-	WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_ShowTargetWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_ShowPlayerWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Group", "ShowGroupWindow", s_ShowGroupWindow, &s_SettingsFile[0]);
 	WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_ShowSpellsWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_ShowBuffWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Songs", "ShowSongWindow", s_ShowSongWindow, &s_SettingsFile[0]);
 
 	WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", s_CombatFlashInterval, &s_SettingsFile[0]);
 	WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_PlayerBarHeight, &s_SettingsFile[0]);
@@ -231,6 +242,7 @@ static void SaveSettings()
 	WritePrivateProfileString("Group", "Theme", s_GroupWinTheme, &s_SettingsFile[0]);
 	WritePrivateProfileString("PlayerTarg", "Theme", s_PlayerWinTheme, &s_SettingsFile[0]);
 	WritePrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Buffs", "Theme", s_BuffsWinTheme, &s_SettingsFile[0]);
 
 	// Save Pet button visibility settings
 	for (const auto& button : petButtons) {
@@ -437,7 +449,7 @@ static void DrawTargetWindow()
 				{
 					//GetCachedBuffAtSlot(pTarget, 0);
 					//ImGui::Text("%s", buff);
-					s_spellsInspector->DoBuffs("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+					s_spellsInspector->DrawBuffsIcons("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 				}
 			}
 			ImGui::EndChild();
@@ -459,10 +471,10 @@ static void DrawPlayerWindow()
 			{
 				if (ImGui::BeginMenu("Main"))
 				{
-					if (ImGui::MenuItem("Split Target", NULL, s_SplitTargetWindow))
+					if (ImGui::MenuItem("Split Target", NULL, s_ShowTargetWindow))
 					{
-						s_SplitTargetWindow = !s_SplitTargetWindow;
-						WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
+						s_ShowTargetWindow = !s_ShowTargetWindow;
+						WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_ShowTargetWindow, &s_SettingsFile[0]);
 					}
 
 					if (ImGui::MenuItem("Show Config", NULL, s_ShowConfigWindow))
@@ -578,7 +590,7 @@ static void DrawPlayerWindow()
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX), yPos));
 			ImGui::Text("%d %%", endurPctInt);
 
-			if (!s_SplitTargetWindow)
+			if (!s_ShowTargetWindow)
 			{
 				ImGui::Separator();
 				DrawTargetWindow();
@@ -683,7 +695,7 @@ static void DrawPetWindow()
 				ImGui::TableNextColumn();
 				if (ImGui::BeginChild("PetBuffs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
 				{
-					s_spellsInspector->DoBuffs("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+					s_spellsInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 				}
 				ImGui::EndChild();
 
@@ -704,7 +716,36 @@ static void DrawSpellWindow()
 
 static void DrawBuffWindow()
 {
+	if (!s_ShowBuffWindow)
+		return;
+
+	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
+	int popCounts = PushTheme(s_BuffsWinTheme);
+	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_ShowBuffWindow, s_WindowFlags))
+	{
+
+		s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
+
+	}
+	PopTheme(popCounts);
+	ImGui::End();
+
 	//TODO: Buff Window
+}
+
+static void DrawSongWindow()
+{
+	if (!s_ShowSongWindow)
+		return;
+
+	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
+	int popCounts = PushTheme(s_SongWinTheme);
+	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_ShowSongWindow, s_WindowFlags))
+	{
+		s_spellsInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
+	}
+	PopTheme(popCounts);
+	ImGui::End();
 }
 
 static void DrawConfigWindow()
@@ -716,6 +757,7 @@ static void DrawConfigWindow()
 
 		if (ImGui::Begin("Config##ConfigWindow", &s_ShowConfigWindow, s_WindowFlags))
 		{
+
 			if (ImGui::CollapsingHeader("Color Settings"))
 			{
 				if (ImGui::BeginTable("##Settings", 2))
@@ -882,6 +924,14 @@ static void DrawConfigWindow()
 
 				ImGui::SetNextItemWidth(100);
 				s_SpellsWinTheme = DrawThemePicker(s_SpellsWinTheme, "SpellsWin");
+
+				ImGui::SetNextItemWidth(100);
+				s_BuffsWinTheme = DrawThemePicker(s_BuffsWinTheme, "BuffsWin");
+
+				ImGui::SameLine();
+
+				ImGui::SetNextItemWidth(100);
+				s_SongWinTheme = DrawThemePicker(s_SongWinTheme, "SongWin");
 			}
 
 			if (ImGui::CollapsingHeader("Pet Buttons"))
@@ -913,6 +963,8 @@ static void DrawConfigWindow()
 				WritePrivateProfileString("Group", "Theme", s_GroupWinTheme, &s_SettingsFile[0]);
 				WritePrivateProfileString("PlayerTarg", "Theme", s_PlayerWinTheme,  &s_SettingsFile[0]);
 				WritePrivateProfileString("Pet", "Theme", s_PetWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Buffs", "Theme", s_BuffsWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Songs", "Theme", s_SongWinTheme, &s_SettingsFile[0]);
 
 				s_ShowConfigWindow = false;
 			}
@@ -937,14 +989,24 @@ static void DrawMainWindow()
 
 				ImGui::SameLine();
 
-				if (ImGui::Checkbox("Split Target", &s_SplitTargetWindow))
+				if (ImGui::Checkbox("Split Target", &s_ShowTargetWindow))
 				{
-					WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
+					WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_ShowTargetWindow, &s_SettingsFile[0]);
 				}
 
 				if (ImGui::Checkbox("Pet Win", &s_ShowPetWindow))
 				{
 					WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
+				}
+
+				if (ImGui::Checkbox("Buff Win", &s_ShowBuffWindow))
+				{
+					WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_ShowBuffWindow, &s_SettingsFile[0]);
+				}
+
+				if (ImGui::Checkbox("Song Win", &s_ShowSongWindow))
+				{
+					WritePrivateProfileBool("Songs", "ShowSongWindow", s_ShowSongWindow, &s_SettingsFile[0]);
 				}
 
 				//TODO: More Windows
@@ -1075,51 +1137,47 @@ PLUGIN_API void OnUpdateImGui()
 				WritePrivateProfileBool("Pet", "ShowPetWindow", s_ShowPetWindow, &s_SettingsFile[0]);
 			}
 		}
+
+		//Buff Window
+		if (s_ShowBuffWindow)
+		{
+			DrawBuffWindow();
+
+			if (!s_ShowBuffWindow)
+			{
+				WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_ShowBuffWindow, &s_SettingsFile[0]);
+			}
+		}
+
+		// Song Window
+		if (s_ShowSongWindow)
+		{
+			DrawSongWindow();
+
+			if (!s_ShowSongWindow)
+			{
+				WritePrivateProfileBool("Songs", "ShowSongWindow", s_ShowSongWindow, &s_SettingsFile[0]);
+			}
+		}
 		
 		// Split Target Window
-		if (s_SplitTargetWindow)
+		if (s_ShowTargetWindow)
 		{
 			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
 			int popCountsPlay = PushTheme(s_PlayerWinTheme);
-			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_SplitTargetWindow, s_WindowFlags))
+			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_ShowTargetWindow, s_WindowFlags))
 			{
 				DrawTargetWindow();
 			}
 			PopTheme(popCountsPlay);
 			ImGui::End();
 
-			if (!s_SplitTargetWindow)
+			if (!s_ShowTargetWindow)
 			{
-				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_SplitTargetWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_ShowTargetWindow, &s_SettingsFile[0]);
 			}
 		}
 	}
-}
-
-
-/**
- * @fn OnMacroStart
- *
- * This is called each time a macro starts (ex: /mac somemacro.mac), prior to
- * launching the macro.
- *
- * @param Name const char* - The name of the macro that was launched
- */
-PLUGIN_API void OnMacroStart(const char* Name)
-{
-	// DebugSpewAlways("MQ2GrimGUI::OnMacroStart(%s)", Name);
-}
-
-/**
- * @fn OnMacroStop
- *
- * This is called each time a macro stops (ex: /endmac), after the macro has ended.
- *
- * @param Name const char* - The name of the macro that was stopped.
- */
-PLUGIN_API void OnMacroStop(const char* Name)
-{
-	// DebugSpewAlways("MQ2GrimGUI::OnMacroStop(%s)", Name);
 }
 
 /**
