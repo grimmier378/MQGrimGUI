@@ -4,8 +4,8 @@
 #include <imgui.h>
 #include "mq/base/Color.h"
 
-extern struct WinVisSettings winVis;
-extern struct NumericSettings numSet;
+extern struct WinVisSettings s_WinVis;
+extern struct NumericSettings s_NumSettings;
 
 #pragma region Spells Inspector
 
@@ -91,7 +91,8 @@ public:
 	{
 		if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
 		{
-			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(numSet.buffIconSize));
+			int slotNum = 0;
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_NumSettings.buffIconSize));
 			ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 65);
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupScrollFreeze(0, 1);
@@ -103,7 +104,10 @@ public:
 
 				EQ_Spell* spell = buffInfo.GetSpell();
 				if (!spell)
+				{
+					slotNum++;
 					continue;
+				}
 
 				if (!m_pTASpellIcon)
 				{
@@ -131,12 +135,12 @@ public:
 					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 					if (secondsLeft < 18 && !petBuffs)
 					{
-						if (winVis.flashTintFlag)
+						if (s_WinVis.flashTintFlag)
 							tintCol = MQColor(0, 0, 0, 255);
 
 					}
 					ImGui::PushID(buffInfo.GetIndex());
-					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(numSet.buffIconSize, numSet.buffIconSize), tintCol, borderCol);
+					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
 					ImGui::PopID();
 
 					if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
@@ -150,10 +154,22 @@ public:
 						{
 							EzCommand(("/blockspell add me " + std::to_string(spell->ID)).c_str());
 						}
-						//if (ImGui::MenuItem("Inspect##" , nullptr, false, true))
-						//{
-						//	ToDo: Inspect Buff
-						//}
+
+						if (ImGui::MenuItem("Inspect##" , nullptr, false, true))
+						{
+							#if defined(CSpellDisplayManager__ShowSpell_x)
+							if (pSpellDisplayManager)
+								pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
+							#else
+							char buffer[512] = { 0 };
+							if (Index[0])
+								FormatSpellLink(buffer, 512, spell, Index);
+							else
+								FormatSpellLink(buffer, 512, spell);
+							TextTagInfo info = ExtractLink(buffer);
+							ExecuteTextLink(info);
+							#endif
+						}
 
 						ImGui::EndPopup();
 					}
@@ -173,7 +189,7 @@ public:
 					}
 
 					ImGui::TableNextColumn();
-					if (secondsLeft < numSet.buffTimerThreshold || numSet.buffTimerThreshold == 0)
+					if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
 					{
 						char timeLabel[64];
 						FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
@@ -184,6 +200,7 @@ public:
 					ImGui::Text("%s", spell->Name);
 
 				}
+				slotNum++;
 
 			}
 			ImGui::EndTable();
@@ -226,13 +243,13 @@ public:
 				int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 				if (secondsLeft < 18 && !petBuffs)
 				{
-					if (winVis.flashTintFlag)
+					if (s_WinVis.flashTintFlag)
 						tintCol = MQColor(0, 0, 0, 255);
 
 				}
 
-				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(numSet.buffIconSize, numSet.buffIconSize), tintCol, borderCol);
-				s_TarBuffLineSize += numSet.buffIconSize + 2;
+				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
+				s_TarBuffLineSize += s_NumSettings.buffIconSize + 2;
 				if (s_TarBuffLineSize < sizeX - 20)
 				{
 					ImGui::SameLine(0.0f, 2);

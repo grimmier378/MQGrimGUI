@@ -16,7 +16,8 @@ PLUGIN_VERSION(0.2);
 #pragma region Main Setting Variables
 // Declare global plugin state variables
 
-struct WinVisSettings {
+struct WinVisSettings 
+{
 	bool showMainWindow = false;
 	bool showConfigWindow = false;
 	bool showPetWindow = false;
@@ -29,37 +30,77 @@ struct WinVisSettings {
 	bool flashCombatFlag = false;
 	bool flashTintFlag = false;
 	bool showTitleBars = true;
-} winVis;
+} s_WinVis;
 
-struct NumericSettings {
+struct NumericSettings 
+{
 	int combatFlashInterval = 100;
 	int flashBuffInterval = 40;
 	int playerBarHeight = 15;
 	int targetBarHeight = 15;
 	int aggroBarHeight = 10;
+	int groupBarHeight = 15;
 	int myAggroPct = 0;
 	int secondAggroPct = 0;
 	int buffIconSize = 24;
 	int buffTimerThreshold = 0;
-} numSet;
+} s_NumSettings;
 
-struct ThemeSettings {
+struct ThemeSettings
+{
 	std::string playerWinTheme = "Default";
 	std::string petWinTheme = "Default";
 	std::string groupWinTheme = "Default";
 	std::string spellsWinTheme = "Default";
 	std::string buffsWinTheme = "Default";
 	std::string songWinTheme = "Default";
-} winThemes;
+} s_WinTheme;
 
-struct ColorSettings {
+struct ColorSettings
+{
 	mq::MQColor minColorHP = mq::MQColor(223, 87, 255, 255);
 	mq::MQColor maxColorHP = mq::MQColor(216, 39, 39, 255);
 	mq::MQColor minColorMP = mq::MQColor(66, 29, 131, 255);
 	mq::MQColor maxColorMP = mq::MQColor(20, 119, 216, 255);
 	mq::MQColor minColorEnd = mq::MQColor(255, 111, 5, 255);
 	mq::MQColor maxColorEnd = mq::MQColor(178, 153, 26, 178);
-} barColors;
+} s_BarColors;
+
+enum class GrimCommand
+{
+	Show,
+	Player,
+	Target,
+	Pet,
+	Group,
+	Spells,
+	Buffs,
+	Songs,
+	Config,
+	Help
+};
+
+struct CommandInfo
+{
+	GrimCommand command;
+	const char* commandText;
+	const char* description;
+};
+
+const std::array<CommandInfo, 10> commandList = {
+	{
+		{GrimCommand::Show, "show", "Toggles Main Window"},
+		{GrimCommand::Player, "player", "Toggles Player Window"},
+		{GrimCommand::Target, "target", "Toggles Target Window"},
+		{GrimCommand::Pet, "pet", "Toggles Pet Window"},
+		{GrimCommand::Group, "group", "Toggles Group Window"},
+		{GrimCommand::Spells, "spells", "Toggles Spells Window"},
+		{GrimCommand::Buffs, "buffs", "Toggles Buffs Window"},
+		{GrimCommand::Songs, "songs", "Toggles Songs Window"},
+		{GrimCommand::Config, "config", "Opens Configuration Window"},
+		{GrimCommand::Help, "help", "Displays this help message"}
+	}
+};
 
 static bool s_CharIniLoaded = false;
 static bool s_DefaultLoaded = false;
@@ -85,7 +126,8 @@ const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
 #pragma region Pet Buttons
 
-struct PetButtonData {
+struct PetButtonData
+{
 	std::string name;
 	std::string command;
 	bool visible;
@@ -108,7 +150,8 @@ static std::vector<PetButtonData> petButtons = {
 	{"Kill", "/pet kill", true},
 };
 
-static void DisplayPetButtons() {
+static void DisplayPetButtons()
+{
 	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / 60);
 
 	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp)) {
@@ -147,7 +190,8 @@ static void DisplayPetButtons() {
 	}
 }
 
-static void TogglePetButtonVisibilityMenu() {
+static void TogglePetButtonVisibilityMenu()
+{
 	int numColumns = static_cast<int>(1, (ImGui::GetWindowWidth() - 10) / 75);
 	if (numColumns < 1)
 		numColumns = 1;
@@ -168,45 +212,100 @@ static void TogglePetButtonVisibilityMenu() {
 
 #pragma endregion
 
+#pragma region Config Structs
+struct WindowOption
+{
+	const char* label;
+	bool* setting;
+	const char* section;
+	const char* key;
+};
+
+WindowOption options[] = {
+	{"Player Win", &s_WinVis.showPlayerWindow, "PlayerTarg", "ShowPlayerWindow"},
+	{"Target Win", &s_WinVis.showTargetWindow, "PlayerTarg", "SplitTarget"},
+	{"Pet Win", &s_WinVis.showPetWindow, "Pet", "ShowPetWindow"},
+	{"Buff Win", &s_WinVis.showBuffWindow, "Buffs", "ShowBuffWindow"},
+	{"Song Win", &s_WinVis.showSongWindow, "Songs", "ShowSongWindow"},
+	{"Group Win", &s_WinVis.showGroupWindow, "Group", "ShowGroupWindow"}
+};
+
+struct SliderOption
+{
+	const char* label;
+	int* value;
+	int min;
+	int max;
+	const char* helpText;
+};
+
+SliderOption sliderOptions[] = {
+	{"Flash Speed", &s_NumSettings.combatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Flash Speed", &s_NumSettings.flashBuffInterval, 0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Icon Size", &s_NumSettings.buffIconSize, 10, 40, "Buff Icon Size"},
+	{"Buff Timer Threshold", &s_NumSettings.buffTimerThreshold, 0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+	{"Player Bar Height", &s_NumSettings.playerBarHeight, 10, 40, "Player Bar Height"},
+	{"Target Bar Height", &s_NumSettings.targetBarHeight, 10, 40, "Target Bar Height"},
+	{"Aggro Bar Height", &s_NumSettings.aggroBarHeight, 10, 40, "Aggro Bar Height"},
+	{"Group Bar Height", &s_NumSettings.groupBarHeight, 10, 40, "Group Bar Height"}
+};
+
+struct ThemeOption
+{
+	const char* label;
+	std::string* theme;
+};
+
+ThemeOption themeOptions[] = {
+	{"PlayerWin", &s_WinTheme.playerWinTheme},
+	{"PetWin", &s_WinTheme.petWinTheme},
+	{"GroupWin", &s_WinTheme.groupWinTheme},
+	{"SpellsWin", &s_WinTheme.spellsWinTheme},
+	{"BuffsWin", &s_WinTheme.buffsWinTheme},
+	{"SongWin", &s_WinTheme.songWinTheme}
+};
+#pragma endregion
+
 #pragma region Settings Functions
 
 static void LoadSettings()
 {
 	// Load settings from the INI file
 	//window settings
-	winVis.showMainWindow = GetPrivateProfileBool("Settings", "ShowMainGui", true, &s_SettingsFile[0]);
-	winVis.showTitleBars = GetPrivateProfileBool("Settings", "ShowTitleBars", true, &s_SettingsFile[0]);
-	winVis.showTargetWindow = GetPrivateProfileBool("PlayerTarg", "SplitTarget", false, &s_SettingsFile[0]);
-	winVis.showPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
-	winVis.showPetWindow = GetPrivateProfileBool("Pet", "ShowPetWindow", false, &s_SettingsFile[0]);
-	winVis.showGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
-	winVis.showSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
-	winVis.showBuffWindow = GetPrivateProfileBool("Buffs", "ShowBuffWindow", false, &s_SettingsFile[0]);
-	winVis.showSongWindow = GetPrivateProfileBool("Songs", "ShowSongWindow", false, &s_SettingsFile[0]);
+	s_WinVis.showMainWindow = GetPrivateProfileBool("Settings", "ShowMainGui", true, &s_SettingsFile[0]);
+	s_WinVis.showTitleBars = GetPrivateProfileBool("Settings", "ShowTitleBars", true, &s_SettingsFile[0]);
+	s_WinVis.showTargetWindow = GetPrivateProfileBool("PlayerTarg", "SplitTarget", false, &s_SettingsFile[0]);
+	s_WinVis.showPlayerWindow = GetPrivateProfileBool("PlayerTarg", "ShowPlayerWindow", false, &s_SettingsFile[0]);
+	s_WinVis.showPetWindow = GetPrivateProfileBool("Pet", "ShowPetWindow", false, &s_SettingsFile[0]);
+	s_WinVis.showGroupWindow = GetPrivateProfileBool("Group", "ShowGroupWindow", false, &s_SettingsFile[0]);
+	s_WinVis.showSpellsWindow = GetPrivateProfileBool("Spells", "ShowSpellsWindow", false, &s_SettingsFile[0]);
+	s_WinVis.showBuffWindow = GetPrivateProfileBool("Buffs", "ShowBuffWindow", false, &s_SettingsFile[0]);
+	s_WinVis.showSongWindow = GetPrivateProfileBool("Songs", "ShowSongWindow", false, &s_SettingsFile[0]);
 
-	numSet.combatFlashInterval = GetPrivateProfileInt("PlayerTarg", "CombatFlashInterval", 250, &s_SettingsFile[0]);
-	numSet.playerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
-	numSet.targetBarHeight = GetPrivateProfileInt("PlayerTarg", "TargetBarHeight", 15, &s_SettingsFile[0]);
-	numSet.aggroBarHeight = GetPrivateProfileInt("PlayerTarg", "AggroBarHeight", 10, &s_SettingsFile[0]);
-	numSet.flashBuffInterval = GetPrivateProfileInt("Settings", "FlashBuffInterval", 250, &s_SettingsFile[0]);
-	numSet.buffIconSize = GetPrivateProfileInt("Settings", "BuffIconSize", 24, &s_SettingsFile[0]);
-	numSet.buffTimerThreshold = GetPrivateProfileInt("Buffs", "BuffTimerThreshold", 30, &s_SettingsFile[0]);
+	s_NumSettings.combatFlashInterval = GetPrivateProfileInt("PlayerTarg", "CombatFlashInterval", 250, &s_SettingsFile[0]);
+	s_NumSettings.playerBarHeight = GetPrivateProfileInt("PlayerTarg", "PlayerBarHeight", 15, &s_SettingsFile[0]);
+	s_NumSettings.targetBarHeight = GetPrivateProfileInt("PlayerTarg", "TargetBarHeight", 15, &s_SettingsFile[0]);
+	s_NumSettings.aggroBarHeight = GetPrivateProfileInt("PlayerTarg", "AggroBarHeight", 10, &s_SettingsFile[0]);
+	s_NumSettings.flashBuffInterval = GetPrivateProfileInt("Settings", "FlashBuffInterval", 250, &s_SettingsFile[0]);
+	s_NumSettings.buffIconSize = GetPrivateProfileInt("Settings", "BuffIconSize", 24, &s_SettingsFile[0]);
+	s_NumSettings.buffTimerThreshold = GetPrivateProfileInt("Buffs", "BuffTimerThreshold", 30, &s_SettingsFile[0]);
+	s_NumSettings.groupBarHeight = GetPrivateProfileInt("Group", "GroupBarHeight", 15, &s_SettingsFile[0]);
 
 	//Color Settings
-	barColors.minColorHP = GetPrivateProfileColor("Colors", "MinColorHP", barColors.minColorHP, &s_SettingsFile[0]);
-	barColors.maxColorHP = GetPrivateProfileColor("Colors", "MaxColorHP", barColors.maxColorHP, &s_SettingsFile[0]);
-	barColors.minColorMP = GetPrivateProfileColor("Colors", "MinColorMP", barColors.minColorMP, &s_SettingsFile[0]);
-	barColors.maxColorMP = GetPrivateProfileColor("Colors", "MaxColorMP", barColors.maxColorMP, &s_SettingsFile[0]);
-	barColors.minColorEnd = GetPrivateProfileColor("Colors", "MinColorEnd", barColors.minColorEnd, &s_SettingsFile[0]);
-	barColors.maxColorEnd = GetPrivateProfileColor("Colors", "MaxColorEnd", barColors.maxColorEnd, &s_SettingsFile[0]);
+	s_BarColors.minColorHP = GetPrivateProfileColor("Colors", "MinColorHP", s_BarColors.minColorHP, &s_SettingsFile[0]);
+	s_BarColors.maxColorHP = GetPrivateProfileColor("Colors", "MaxColorHP", s_BarColors.maxColorHP, &s_SettingsFile[0]);
+	s_BarColors.minColorMP = GetPrivateProfileColor("Colors", "MinColorMP", s_BarColors.minColorMP, &s_SettingsFile[0]);
+	s_BarColors.maxColorMP = GetPrivateProfileColor("Colors", "MaxColorMP", s_BarColors.maxColorMP, &s_SettingsFile[0]);
+	s_BarColors.minColorEnd = GetPrivateProfileColor("Colors", "MinColorEnd", s_BarColors.minColorEnd, &s_SettingsFile[0]);
+	s_BarColors.maxColorEnd = GetPrivateProfileColor("Colors", "MaxColorEnd", s_BarColors.maxColorEnd, &s_SettingsFile[0]);
 
 	//Theme Settings
-	winThemes.playerWinTheme = GetPrivateProfileString("PlayerTarg", "Theme", winThemes.playerWinTheme, &s_SettingsFile[0]);
-	winThemes.petWinTheme = GetPrivateProfileString("Pet", "Theme", winThemes.petWinTheme, &s_SettingsFile[0]);
-	winThemes.groupWinTheme = GetPrivateProfileString("Group", "Theme", winThemes.groupWinTheme, &s_SettingsFile[0]);
-	winThemes.spellsWinTheme = GetPrivateProfileString("Spells", "Theme", winThemes.spellsWinTheme, &s_SettingsFile[0]);
-	winThemes.buffsWinTheme = GetPrivateProfileString("Buffs", "Theme", winThemes.buffsWinTheme, &s_SettingsFile[0]);
-	winThemes.songWinTheme = GetPrivateProfileString("Songs", "Theme", winThemes.songWinTheme, &s_SettingsFile[0]);
+	s_WinTheme.playerWinTheme = GetPrivateProfileString("PlayerTarg", "Theme", s_WinTheme.playerWinTheme, &s_SettingsFile[0]);
+	s_WinTheme.petWinTheme = GetPrivateProfileString("Pet", "Theme", s_WinTheme.petWinTheme, &s_SettingsFile[0]);
+	s_WinTheme.groupWinTheme = GetPrivateProfileString("Group", "Theme", s_WinTheme.groupWinTheme, &s_SettingsFile[0]);
+	s_WinTheme.spellsWinTheme = GetPrivateProfileString("Spells", "Theme", s_WinTheme.spellsWinTheme, &s_SettingsFile[0]);
+	s_WinTheme.buffsWinTheme = GetPrivateProfileString("Buffs", "Theme", s_WinTheme.buffsWinTheme, &s_SettingsFile[0]);
+	s_WinTheme.songWinTheme = GetPrivateProfileString("Songs", "Theme", s_WinTheme.songWinTheme, &s_SettingsFile[0]);
 
 	// Load Pet button visibility settings
 	for (auto& button : petButtons) {
@@ -217,39 +316,40 @@ static void LoadSettings()
 static void SaveSettings()
 {
 	//Window Settings
-	WritePrivateProfileBool("Settings", "ShowMainGui", winVis.showMainWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Settings", "ShowTitleBars", winVis.showTitleBars, &s_SettingsFile[0]);
-	WritePrivateProfileBool("PlayerTarg", "SplitTarget", winVis.showTargetWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", winVis.showPlayerWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Pet", "ShowPetWindow", winVis.showPetWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Group", "ShowGroupWindow", winVis.showGroupWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Spells", "ShowSpellsWindow", winVis.showSpellsWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Buffs", "ShowBuffWindow", winVis.showBuffWindow, &s_SettingsFile[0]);
-	WritePrivateProfileBool("Songs", "ShowSongWindow", winVis.showSongWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Settings", "ShowTitleBars", s_WinVis.showTitleBars, &s_SettingsFile[0]);
+	WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinVis.showPlayerWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinVis.showPetWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinVis.showGroupWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinVis.showBuffWindow, &s_SettingsFile[0]);
+	WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinVis.showSongWindow, &s_SettingsFile[0]);
 
-	WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", numSet.combatFlashInterval, &s_SettingsFile[0]);
-	WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", numSet.playerBarHeight, &s_SettingsFile[0]);
-	WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", numSet.targetBarHeight, &s_SettingsFile[0]);
-	WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", numSet.aggroBarHeight, &s_SettingsFile[0]);
-	WritePrivateProfileInt("Settings", "BuffIconSize", numSet.buffIconSize, &s_SettingsFile[0]);
-	WritePrivateProfileInt("Settings", "FlashBuffInterval", numSet.flashBuffInterval, &s_SettingsFile[0]);
-	WritePrivateProfileInt("Buffs", "BuffTimerThreshold", numSet.buffTimerThreshold, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", s_NumSettings.combatFlashInterval, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_NumSettings.playerBarHeight, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_NumSettings.targetBarHeight, &s_SettingsFile[0]);
+	WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_NumSettings.aggroBarHeight, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Settings", "BuffIconSize", s_NumSettings.buffIconSize, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Settings", "FlashBuffInterval", s_NumSettings.flashBuffInterval, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Buffs", "BuffTimerThreshold", s_NumSettings.buffTimerThreshold, &s_SettingsFile[0]);
+	WritePrivateProfileInt("Group", "GroupBarHeight", s_NumSettings.groupBarHeight, &s_SettingsFile[0]);
 
 	//Color Settings
-	WritePrivateProfileColor("Colors", "MinColorHP", barColors.minColorHP, &s_SettingsFile[0]);
-	WritePrivateProfileColor("Colors", "MaxColorHP", barColors.maxColorHP, &s_SettingsFile[0]);
-	WritePrivateProfileColor("Colors", "MinColorMP", barColors.minColorMP, &s_SettingsFile[0]);
-	WritePrivateProfileColor("Colors", "MaxColorMP", barColors.maxColorMP, &s_SettingsFile[0]);
-	WritePrivateProfileColor("Colors", "MinColorEnd", barColors.minColorEnd, &s_SettingsFile[0]);
-	WritePrivateProfileColor("Colors", "MaxColorEnd", barColors.maxColorEnd, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MinColorHP", s_BarColors.minColorHP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MaxColorHP", s_BarColors.maxColorHP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MinColorMP", s_BarColors.minColorMP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MaxColorMP", s_BarColors.maxColorMP, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MinColorEnd", s_BarColors.minColorEnd, &s_SettingsFile[0]);
+	WritePrivateProfileColor("Colors", "MaxColorEnd", s_BarColors.maxColorEnd, &s_SettingsFile[0]);
 
 	//Theme Settings
-	WritePrivateProfileString("Spells", "Theme", winThemes.spellsWinTheme, &s_SettingsFile[0]);
-	WritePrivateProfileString("Group", "Theme", winThemes.groupWinTheme, &s_SettingsFile[0]);
-	WritePrivateProfileString("PlayerTarg", "Theme", winThemes.playerWinTheme, &s_SettingsFile[0]);
-	WritePrivateProfileString("Pet", "Theme", winThemes.petWinTheme, &s_SettingsFile[0]);
-	WritePrivateProfileString("Buffs", "Theme", winThemes.buffsWinTheme, &s_SettingsFile[0]);
-	WritePrivateProfileString("Songs", "Theme", winThemes.songWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Spells", "Theme", s_WinTheme.spellsWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Group", "Theme", s_WinTheme.groupWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("PlayerTarg", "Theme", s_WinTheme.playerWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Pet", "Theme", s_WinTheme.petWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Buffs", "Theme", s_WinTheme.buffsWinTheme, &s_SettingsFile[0]);
+	WritePrivateProfileString("Songs", "Theme", s_WinTheme.songWinTheme, &s_SettingsFile[0]);
 
 	// Save Pet button visibility settings
 	for (const auto& button : petButtons) {
@@ -313,18 +413,93 @@ static void GetHeading()
 	s_CurrHeading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
-/**
-* @fn GrimCommandHandler
-*
-* @brief Command handler for the /Grimgui command
-*
-* @param pPC PlayerClient* Pointer to the player client structure
-* @param pszLine const char* Command line text
-*/
-static void GrimCommandHandler(PlayerClient*, const char*)
+static void PrintGrimHelp()
 {
-	winVis.showMainWindow = !winVis.showMainWindow;
-	WritePrivateProfileBool("Settings", "ShowMainGui", winVis.showMainWindow, &s_SettingsFile[0]);
+	for (const auto& cmdInfo : commandList)
+	{
+		WriteChatf("\aw[\ayGrimGUI\ax] \at/grimgui\ax [\ag%s\ax] - \ay%s", cmdInfo.commandText, cmdInfo.description);
+	}
+}
+
+static void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
+{
+	char arg[MAX_STRING] = {};
+	GetArg(arg, szLine, 1);
+
+	if (strlen(arg))
+	{
+		GrimCommand command;
+
+		if (strcmp(arg, "show") == 0)
+			command = GrimCommand::Show;
+		else if (strcmp(arg, "player") == 0)
+			command = GrimCommand::Player;
+		else if (strcmp(arg, "target") == 0)
+			command = GrimCommand::Target;
+		else if (strcmp(arg, "pet") == 0)
+			command = GrimCommand::Pet;
+		else if (strcmp(arg, "group") == 0)
+			command = GrimCommand::Group;
+		else if (strcmp(arg, "spells") == 0)
+			command = GrimCommand::Spells;
+		else if (strcmp(arg, "buffs") == 0)
+			command = GrimCommand::Buffs;
+		else if (strcmp(arg, "songs") == 0)
+			command = GrimCommand::Songs;
+		else if (strcmp(arg, "config") == 0)
+			command = GrimCommand::Config;
+		else if (strcmp(arg, "help") == 0)
+			command = GrimCommand::Help;
+		else
+			return;
+
+		switch (command)
+		{
+		case GrimCommand::Help:
+			PrintGrimHelp();
+			break;
+		case GrimCommand::Show:
+			s_WinVis.showMainWindow = !s_WinVis.showMainWindow;
+			WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Player:
+			s_WinVis.showPlayerWindow = !s_WinVis.showPlayerWindow;
+			WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinVis.showPlayerWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Target:
+			s_WinVis.showTargetWindow = !s_WinVis.showTargetWindow;
+			WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Pet:
+			s_WinVis.showPetWindow = !s_WinVis.showPetWindow;
+			WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinVis.showPetWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Group:
+			s_WinVis.showGroupWindow = !s_WinVis.showGroupWindow;
+			WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinVis.showGroupWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Spells:
+			s_WinVis.showSpellsWindow = !s_WinVis.showSpellsWindow;
+			WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, & s_SettingsFile[0]);
+			break;
+		case GrimCommand::Buffs:
+			s_WinVis.showBuffWindow = !s_WinVis.showBuffWindow;
+			WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinVis.showBuffWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Songs:
+			s_WinVis.showSongWindow = !s_WinVis.showSongWindow;
+			WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinVis.showSongWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Config:
+			s_WinVis.showConfigWindow = !s_WinVis.showConfigWindow;
+			break;
+		}
+	}
+	else
+	{
+		s_WinVis.showMainWindow = !s_WinVis.showMainWindow;
+		PrintGrimHelp();
+	}
 }
 
 /**
@@ -392,14 +567,14 @@ static void DrawTargetWindow()
 			float midX = (sizeX / 2);
 			float tarPercentage = static_cast<float>(CurTarget->HPCurrent) / 100;
 			int tar_label = CurTarget->HPCurrent;
-			ImVec4 colorTarHP = CalculateProgressiveColor(barColors.minColorHP, barColors.maxColorHP, CurTarget->HPCurrent);
+			ImVec4 colorTarHP = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, CurTarget->HPCurrent);
 
 			if (strncmp(pTarget->DisplayedName, pLocalPC->Name, 64) == 0)
 			{
 				tarPercentage = static_cast<float>(CurTarget->HPCurrent) / CurTarget->HPMax;
 				int healthIntPct = static_cast<int>(tarPercentage * 100);
 				tar_label = healthIntPct;
-				colorTarHP = CalculateProgressiveColor(barColors.minColorHP, barColors.maxColorHP, healthIntPct);
+				colorTarHP = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, healthIntPct);
 			}
 			DrawLineOfSight(pLocalPlayer, pTarget);
 			ImGui::SameLine();
@@ -411,7 +586,7 @@ static void DrawTargetWindow()
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, static_cast<float>(numSet.targetBarHeight)), "##");
+			ImGui::ProgressBar(tarPercentage, ImVec2(0.0f, static_cast<float>(s_NumSettings.targetBarHeight)), "##");
 			ImGui::PopStyleColor();
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
 			ImGui::Text("%d %%", tar_label);
@@ -432,7 +607,7 @@ static void DrawTargetWindow()
 			ImGui::TextColored(ImVec4(GetConColor(ConColor(pTarget)).ToImColor()),ICON_MD_LENS);
 
 
-			if (numSet.myAggroPct < 100)
+			if (s_NumSettings.myAggroPct < 100)
 			{
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Orange).ToImColor()));
 			}
@@ -442,14 +617,14 @@ static void DrawTargetWindow()
 			}
 			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(static_cast<float>(numSet.myAggroPct) / 100, ImVec2(0.0f, static_cast<float>(numSet.aggroBarHeight)), "##Aggro");
+			ImGui::ProgressBar(static_cast<float>(s_NumSettings.myAggroPct) / 100, ImVec2(0.0f, static_cast<float>(s_NumSettings.aggroBarHeight)), "##Aggro");
 			ImGui::PopStyleColor();
 			ImGui::SetCursorPos(ImVec2(10, yPos));
 			ImGui::Text(s_SecondAggroName);
 			ImGui::SetCursorPos(ImVec2((sizeX/2)-8, yPos));
-			ImGui::Text("%d %%", numSet.myAggroPct);
+			ImGui::Text("%d %%", s_NumSettings.myAggroPct);
 			ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
-			ImGui::Text("%d %%", numSet.secondAggroPct);	
+			ImGui::Text("%d %%", s_NumSettings.secondAggroPct);	
 
 			if (ImGui::BeginChild("TargetBuffs", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true, ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
 			{
@@ -467,11 +642,11 @@ static void DrawTargetWindow()
 
 static void DrawPlayerWindow()
 	{
-		if (!winVis.showPlayerWindow)
+		if (!s_WinVis.showPlayerWindow)
 			return;
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-		int popCounts = PushTheme(winThemes.playerWinTheme);
-		if (ImGui::Begin("Player##MQ2GrimGUI", &winVis.showPlayerWindow, s_WindowFlags | ImGuiWindowFlags_MenuBar))
+		int popCounts = PushTheme(s_WinTheme.playerWinTheme);
+		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinVis.showPlayerWindow, s_WindowFlags | ImGuiWindowFlags_MenuBar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
@@ -480,21 +655,21 @@ static void DrawPlayerWindow()
 			{
 				if (ImGui::BeginMenu("Main"))
 				{
-					if (ImGui::MenuItem("Split Target", NULL, winVis.showTargetWindow))
+					if (ImGui::MenuItem("Split Target", NULL, s_WinVis.showTargetWindow))
 					{
-						winVis.showTargetWindow = !winVis.showTargetWindow;
-						WritePrivateProfileBool("PlayerTarg", "SplitTarget", winVis.showTargetWindow, &s_SettingsFile[0]);
+						s_WinVis.showTargetWindow = !s_WinVis.showTargetWindow;
+						WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
 					}
 
-					if (ImGui::MenuItem("Show Config", NULL, winVis.showConfigWindow))
+					if (ImGui::MenuItem("Show Config", NULL, s_WinVis.showConfigWindow))
 					{
-						winVis.showConfigWindow = !winVis.showConfigWindow;
+						s_WinVis.showConfigWindow = !s_WinVis.showConfigWindow;
 					}
 
-					if (ImGui::MenuItem("Show Main", NULL, winVis.showMainWindow))
+					if (ImGui::MenuItem("Show Main", NULL, s_WinVis.showMainWindow))
 					{
-						winVis.showMainWindow = !winVis.showMainWindow;
-						WritePrivateProfileBool("Settings", "ShowMainGui", winVis.showMainWindow, &s_SettingsFile[0]);
+						s_WinVis.showMainWindow = !s_WinVis.showMainWindow;
+						WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
 					}
 
 					ImGui::EndMenu();
@@ -505,7 +680,7 @@ static void DrawPlayerWindow()
 
 			if (pEverQuestInfo->bAutoAttack)
 			{
-				if (winVis.flashCombatFlag)
+				if (s_WinVis.flashCombatFlag)
 				{
 					ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(GetMQColor(ColorName::Red).ToImColor()));
 				}
@@ -544,11 +719,11 @@ static void DrawPlayerWindow()
 			float healthPctFloat = static_cast<float>(GetCurHPS()) / GetMaxHPS();
 			int healthPctInt = static_cast<int>(healthPctFloat * 100);
 
-			ImVec4 colorHP = CalculateProgressiveColor(barColors.minColorHP, barColors.maxColorHP, healthPctInt);
+			ImVec4 colorHP = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, healthPctInt);
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorHP);
 			ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 			float yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(healthPctFloat, ImVec2(0.0f, static_cast<float>(numSet.playerBarHeight)), "##hp");
+			ImGui::ProgressBar(healthPctFloat, ImVec2(0.0f, static_cast<float>(s_NumSettings.playerBarHeight)), "##hp");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -563,12 +738,12 @@ static void DrawPlayerWindow()
 			{
 				float manaPctFloat = static_cast<float>(GetCurMana()) / GetMaxMana();
 				int manaPctInt = static_cast<int>(manaPctFloat * 100);
-				ImVec4 colorMP = CalculateProgressiveColor(barColors.minColorMP, barColors.maxColorMP, manaPctInt);
+				ImVec4 colorMP = CalculateProgressiveColor(s_BarColors.minColorMP, s_BarColors.maxColorMP, manaPctInt);
 
 				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorMP);
 				ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 				yPos = ImGui::GetCursorPosY();
-				ImGui::ProgressBar(manaPctFloat, ImVec2(0.0f, static_cast<float>(numSet.playerBarHeight)), "##Mana");
+				ImGui::ProgressBar(manaPctFloat, ImVec2(0.0f, static_cast<float>(s_NumSettings.playerBarHeight)), "##Mana");
 				ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered())
 				{
@@ -583,12 +758,12 @@ static void DrawPlayerWindow()
 
 			float endurPctFloat = static_cast<float>(GetCurEndurance()) / GetMaxEndurance();
 			int endurPctInt = static_cast<int>(endurPctFloat * 100);
-			ImVec4 colorEP = CalculateProgressiveColor(barColors.minColorEnd, barColors.maxColorEnd, endurPctInt);
+			ImVec4 colorEP = CalculateProgressiveColor(s_BarColors.minColorEnd, s_BarColors.maxColorEnd, endurPctInt);
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorEP);
 			ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(endurPctFloat, ImVec2(0.0f, static_cast<float>(numSet.playerBarHeight)), "##Endur");
+			ImGui::ProgressBar(endurPctFloat, ImVec2(0.0f, static_cast<float>(s_NumSettings.playerBarHeight)), "##Endur");
 			ImGui::PopStyleColor();
 			if (ImGui::IsItemHovered())
 			{
@@ -599,7 +774,7 @@ static void DrawPlayerWindow()
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX), yPos));
 			ImGui::Text("%d %%", endurPctInt);
 
-			if (!winVis.showTargetWindow)
+			if (!s_WinVis.showTargetWindow)
 			{
 				ImGui::Separator();
 				DrawTargetWindow();
@@ -611,8 +786,75 @@ static void DrawPlayerWindow()
 
 static void DrawGroupWindow()
 {
-	//TODO: Group Window
+	if (!s_WinVis.showGroupWindow)
+		return;
+
+	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+	int popCounts = PushTheme(s_WinTheme.groupWinTheme);
+	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinVis.showGroupWindow, s_WindowFlags))
+	{
+		PCHARINFO pChar = GetCharInfo();
+		if (pChar && pChar->pGroupInfo)
+		{
+			int groupSize = pChar->pGroupInfo->GetNumberOfMembersExcludingSelf() + 1; // including self
+
+			for (int i = 1; i < MAX_GROUP_SIZE; i++)
+			{
+				CGroupMember* pMember = pChar->pGroupInfo->GetGroupMember(i);
+				if (pMember && pMember->GetPlayer())
+				{	
+					SPAWNINFO* pSpawn = pMember->GetPlayer();
+					if (ImGui::BeginTable("Group", 2))
+					{
+						ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, -1);
+						ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 80);
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+						ImGui::Text("%s", pMember->GetName());
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", pSpawn->Level);
+						ImGui::EndTable();
+					}
+
+					if (pSpawn->HPCurrent && pSpawn->HPMax)
+					{
+						float healthPercentage = static_cast<float>(pSpawn->HPCurrent) / pSpawn->HPMax;
+						ImVec4 healthColor = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, healthPercentage * 100);
+						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, healthColor);
+						ImGui::ProgressBar(healthPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_NumSettings.groupBarHeight)), "##");
+						ImGui::PopStyleColor();
+					}
+
+					if (pSpawn->ManaCurrent && pSpawn->ManaMax)
+					{
+						float manaPercentage = static_cast<float>(pSpawn->ManaCurrent) / pSpawn->ManaMax;
+						ImVec4 manaColor = CalculateProgressiveColor(s_BarColors.minColorMP, s_BarColors.maxColorMP, manaPercentage * 100);
+						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, manaColor);
+						ImGui::ProgressBar(manaPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_NumSettings.groupBarHeight)), "##");
+						ImGui::PopStyleColor();
+					}
+					if (pSpawn->EnduranceCurrent && pSpawn->EnduranceMax)
+					{
+						float endurPercentage = static_cast<float>(pSpawn->EnduranceCurrent) / pSpawn->EnduranceMax;
+						ImVec4 endurColor = CalculateProgressiveColor(s_BarColors.minColorEnd, s_BarColors.maxColorEnd, endurPercentage * 100);
+						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, endurColor);
+						ImGui::ProgressBar(endurPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_NumSettings.groupBarHeight)), "##");
+						ImGui::PopStyleColor();
+					}
+				}
+
+			}
+		}
+
+	}
+	PopTheme(popCounts);
+	ImGui::End();
+
+
 }
+
+
 
 static void DrawPetWindow()
 {
@@ -621,8 +863,8 @@ static void DrawPetWindow()
 		const char* petName = MyPet->DisplayedName;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
-		int popCounts = PushTheme(winThemes.petWinTheme);
-		if (ImGui::Begin("Pet##MQ2GrimGUI", &winVis.showPetWindow, s_WindowFlags ))
+		int popCounts = PushTheme(s_WinTheme.petWinTheme);
+		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinVis.showPetWindow, s_WindowFlags ))
 		{
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
@@ -630,7 +872,7 @@ static void DrawPetWindow()
 			float petPercentage = static_cast<float>(MyPet->HPCurrent) / 100;
 			int petLabel = MyPet->HPCurrent;
 			
-			ImVec4 colorTarHP = CalculateProgressiveColor(barColors.minColorHP, barColors.maxColorHP, MyPet->HPCurrent);
+			ImVec4 colorTarHP = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, MyPet->HPCurrent);
 			if (ImGui::BeginTable("Pet", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable))
 			{
 				ImGui::TableSetupColumn(petName, ImGuiTableColumnFlags_None, -1);
@@ -654,7 +896,7 @@ static void DrawPetWindow()
 					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 					ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 					yPos = ImGui::GetCursorPosY();
-					ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(numSet.playerBarHeight)), "##");
+					ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_NumSettings.playerBarHeight)), "##");
 					ImGui::PopStyleColor();
 					ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
 					ImGui::Text("%d %%", petLabel);
@@ -677,11 +919,11 @@ static void DrawPetWindow()
 						ImGui::Text(pPetTarget->DisplayedName);
 						float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
 						int petTargetLabel = pPetTarget->HPCurrent;
-						ImVec4 colorTarHPTarget = CalculateProgressiveColor(barColors.minColorHP, barColors.maxColorHP, pPetTarget->HPCurrent);
+						ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, pPetTarget->HPCurrent);
 						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHPTarget);
 						ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 						yPos = ImGui::GetCursorPosY();
-						ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(numSet.playerBarHeight)), "##");
+						ImGui::ProgressBar(petTargetPercentage, ImVec2(ImGui::GetColumnWidth() - 5, static_cast<float>(s_NumSettings.playerBarHeight)), "##");
 						ImGui::PopStyleColor();
 						ImGui::SetCursorPos(ImVec2(ImGui::GetColumnWidth() / 2, yPos));
 						ImGui::Text("%d %%", petTargetLabel);
@@ -725,12 +967,12 @@ static void DrawSpellWindow()
 
 static void DrawBuffWindow()
 {
-	if (!winVis.showBuffWindow)
+	if (!s_WinVis.showBuffWindow)
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
-	int popCounts = PushTheme(winThemes.buffsWinTheme);
-	if (ImGui::Begin("Buffs##MQ2GrimGUI", &winVis.showBuffWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
+	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
+	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinVis.showBuffWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
 	{
 
 		s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
@@ -739,17 +981,16 @@ static void DrawBuffWindow()
 	PopTheme(popCounts);
 	ImGui::End();
 
-	//TODO: Buff Window
 }
 
 static void DrawSongWindow()
 {
-	if (!winVis.showSongWindow)
+	if (!s_WinVis.showSongWindow)
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
-	int popCounts = PushTheme(winThemes.songWinTheme);
-	if (ImGui::Begin("Songs##MQ2GrimGUI", &winVis.showSongWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
+	int popCounts = PushTheme(s_WinTheme.songWinTheme);
+	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinVis.showSongWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
 	{
 		s_spellsInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
 	}
@@ -759,12 +1000,12 @@ static void DrawSongWindow()
 
 static void DrawConfigWindow()
 	{
-		if (!winVis.showConfigWindow)
+		if (!s_WinVis.showConfigWindow)
 			return;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 
-		if (ImGui::Begin("Config##ConfigWindow", &winVis.showConfigWindow, s_WindowFlags))
+		if (ImGui::Begin("Config##ConfigWindow", &s_WinVis.showConfigWindow, s_WindowFlags))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 
@@ -775,60 +1016,60 @@ static void DrawConfigWindow()
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					ImVec4 minHPColor = barColors.minColorHP.ToImColor();
+					ImVec4 minHPColor = s_BarColors.minColorHP.ToImColor();
 					if (ImGui::ColorEdit4("Min HP Color", (float*)&minHPColor, ImGuiColorEditFlags_NoInputs))
 					{
-						barColors.minColorHP = MQColor(minHPColor);
+						s_BarColors.minColorHP = MQColor(minHPColor);
 					}
 					ImGui::SameLine();
 					DrawHelpIcon("Minimum HP Color");
 
 					ImGui::TableNextColumn();
 
-					ImVec4 maxHPColor = barColors.maxColorHP.ToImColor();
+					ImVec4 maxHPColor = s_BarColors.maxColorHP.ToImColor();
 					if (ImGui::ColorEdit4("Max HP Color", (float*)&maxHPColor, ImGuiColorEditFlags_NoInputs))
 					{
-						barColors.maxColorHP = MQColor(maxHPColor);
+						s_BarColors.maxColorHP = MQColor(maxHPColor);
 					}
 					ImGui::SameLine();
 					DrawHelpIcon("Maximum HP Color");
 
 					ImGui::TableNextColumn();
 
-					ImVec4 minMPColor = barColors.minColorMP.ToImColor();
+					ImVec4 minMPColor = s_BarColors.minColorMP.ToImColor();
 					if (ImGui::ColorEdit4("Min MP Color", (float*)&minMPColor, ImGuiColorEditFlags_NoInputs))
 					{
-						barColors.minColorMP = MQColor(minMPColor);
+						s_BarColors.minColorMP = MQColor(minMPColor);
 					}
 					ImGui::SameLine();
 					DrawHelpIcon("Minimum MP Color");
 
 					ImGui::TableNextColumn();
 
-					ImVec4 maxMPColor = barColors.maxColorMP.ToImColor();
+					ImVec4 maxMPColor = s_BarColors.maxColorMP.ToImColor();
 					if (ImGui::ColorEdit4("Max MP Color", (float*)&maxMPColor, ImGuiColorEditFlags_NoInputs))
 					{
-						barColors.maxColorMP = MQColor(maxMPColor);
+						s_BarColors.maxColorMP = MQColor(maxMPColor);
 					}
 					ImGui::SameLine();
 					DrawHelpIcon("Maximum MP Color");
 
 					ImGui::TableNextColumn();
 
-					ImVec4 minEndColor = barColors.minColorEnd.ToImColor();
+					ImVec4 minEndColor = s_BarColors.minColorEnd.ToImColor();
 					if (ImGui::ColorEdit4("Min End Color", (float*)&minEndColor, ImGuiColorEditFlags_NoInputs))
 					{
-						barColors.minColorEnd = MQColor(minEndColor);
+						s_BarColors.minColorEnd = MQColor(minEndColor);
 					}
 					ImGui::SameLine();
 					DrawHelpIcon("Minimum Endurance Color");
 
 					ImGui::TableNextColumn();
 
-					ImVec4 maxEndColor = barColors.maxColorEnd.ToImColor();
+					ImVec4 maxEndColor = s_BarColors.maxColorEnd.ToImColor();
 					if (ImGui::ColorEdit4("Max End Color", (float*)&maxEndColor, ImGuiColorEditFlags_NoInputs))
 					{
-						barColors.maxColorEnd = MQColor(maxEndColor);
+						s_BarColors.maxColorEnd = MQColor(maxEndColor);
 					}
 					ImGui::SameLine();
 					DrawHelpIcon("Maximum Endurance Color");
@@ -840,15 +1081,15 @@ static void DrawConfigWindow()
 
 				ImGui::SliderInt("Test Value", &s_TestInt, 0, 100);
 				float testVal = static_cast<float>(s_TestInt) / 100;
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(barColors.minColorHP, barColors.maxColorHP, s_TestInt));
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, s_TestInt));
 				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "HP##Test");
 				ImGui::PopStyleColor();
 
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(barColors.minColorMP, barColors.maxColorMP, s_TestInt));
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorMP, s_BarColors.maxColorMP, s_TestInt));
 				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "MP##Test");
 				ImGui::PopStyleColor();
 
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(barColors.minColorEnd, barColors.maxColorEnd, s_TestInt));
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorEnd, s_BarColors.maxColorEnd, s_TestInt));
 				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
 				ImGui::PopStyleColor();
 			}
@@ -856,24 +1097,7 @@ static void DrawConfigWindow()
 
 			if (ImGui::CollapsingHeader("Window Settings Sliders"))
 			{
-				struct SliderOption {
-				    const char* label;
-				    int* value;
-				    int min;
-				    int max;
-				    const char* helpText;
-				};
-						
-				SliderOption sliderOptions[] = {
-				    {"Flash Speed", &numSet.combatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-				    {"Buff Flash Speed", &numSet.flashBuffInterval, 0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-				    {"Buff Icon Size", &numSet.buffIconSize, 10, 40, "Buff Icon Size"},
-				    {"Buff Timer Threshold", &numSet.buffTimerThreshold, 0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
-				    {"Player Bar Height", &numSet.playerBarHeight, 10, 40, "Player Bar Height"},
-				    {"Target Bar Height", &numSet.targetBarHeight, 10, 40, "Target Bar Height"},
-				    {"Aggro Bar Height", &numSet.aggroBarHeight, 10, 40, "Aggro Bar Height"}
-				};
-			
+
 				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 				int col = sizeX / 200;
 				if (col < 1)
@@ -905,9 +1129,9 @@ static void DrawConfigWindow()
 
 			if (ImGui::CollapsingHeader("Window Settings Toggles"))
 			{
-				if (ImGui::Checkbox("Show Title Bars", &winVis.showTitleBars))
+				if (ImGui::Checkbox("Show Title Bars", &s_WinVis.showTitleBars))
 				{
-					s_WindowFlags = winVis.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
+					s_WindowFlags = s_WinVis.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
 				}
 				ImGui::SameLine();
 				DrawHelpIcon("Show Title Bars");
@@ -916,19 +1140,6 @@ static void DrawConfigWindow()
 
 			if (ImGui::CollapsingHeader("Window Themes"))
 			{
-				struct ThemeOption {
-					const char* label;
-					std::string* theme;
-				};
-
-				ThemeOption themeOptions[] = {
-					{"PlayerWin", &winThemes.playerWinTheme},
-					{"PetWin", &winThemes.petWinTheme},
-					{"GroupWin", &winThemes.groupWinTheme},
-					{"SpellsWin", &winThemes.spellsWinTheme},
-					{"BuffsWin", &winThemes.buffsWinTheme},
-					{"SongWin", &winThemes.songWinTheme}
-				};
 
 				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 				int col = sizeX / 180;
@@ -959,31 +1170,32 @@ static void DrawConfigWindow()
 			{
 				// only Save when the user clicks the button. 
 				// If they close the window and don't click the button the settings will not be saved and only be temporary.
-				WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", numSet.combatFlashInterval, &s_SettingsFile[0]);
-				WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", numSet.playerBarHeight, &s_SettingsFile[0]);
-				WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", numSet.targetBarHeight, &s_SettingsFile[0]);
-				WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", numSet.aggroBarHeight, &s_SettingsFile[0]);
-				WritePrivateProfileInt("Settings", "BuffIconSize", numSet.buffIconSize, &s_SettingsFile[0]);
-				WritePrivateProfileInt("Settings", "FlashBuffInterval", numSet.flashBuffInterval, &s_SettingsFile[0]);
-				WritePrivateProfileInt("Buffs", "BuffTimerThreshold", numSet.buffTimerThreshold, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "CombatFlashInterval", s_NumSettings.combatFlashInterval, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "PlayerBarHeight", s_NumSettings.playerBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "TargetBarHeight", s_NumSettings.targetBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("PlayerTarg", "AggroBarHeight", s_NumSettings.aggroBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Group", "GroupBarHeight", s_NumSettings.groupBarHeight, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Settings", "BuffIconSize", s_NumSettings.buffIconSize, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Settings", "FlashBuffInterval", s_NumSettings.flashBuffInterval, &s_SettingsFile[0]);
+				WritePrivateProfileInt("Buffs", "BuffTimerThreshold", s_NumSettings.buffTimerThreshold, &s_SettingsFile[0]);
 
-				WritePrivateProfileBool("Settings", "ShowTitleBars", winVis.showTitleBars, &s_SettingsFile[0]);
+				WritePrivateProfileBool("Settings", "ShowTitleBars", s_WinVis.showTitleBars, &s_SettingsFile[0]);
 
-				WritePrivateProfileColor("Colors", "MinColorHP", barColors.minColorHP, &s_SettingsFile[0]);
-				WritePrivateProfileColor("Colors", "MaxColorHP", barColors.maxColorHP, &s_SettingsFile[0]);
-				WritePrivateProfileColor("Colors", "MinColorMP", barColors.minColorMP, &s_SettingsFile[0]);
-				WritePrivateProfileColor("Colors", "MaxColorMP", barColors.maxColorMP, &s_SettingsFile[0]);
-				WritePrivateProfileColor("Colors", "MinColorEnd", barColors.minColorEnd, &s_SettingsFile[0]);
-				WritePrivateProfileColor("Colors", "MaxColorEnd", barColors.maxColorEnd, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MinColorHP", s_BarColors.minColorHP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MaxColorHP", s_BarColors.maxColorHP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MinColorMP", s_BarColors.minColorMP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MaxColorMP", s_BarColors.maxColorMP, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MinColorEnd", s_BarColors.minColorEnd, &s_SettingsFile[0]);
+				WritePrivateProfileColor("Colors", "MaxColorEnd", s_BarColors.maxColorEnd, &s_SettingsFile[0]);
 
-				WritePrivateProfileString("Spells", "Theme", winThemes.spellsWinTheme, &s_SettingsFile[0]);
-				WritePrivateProfileString("Group", "Theme", winThemes.groupWinTheme, &s_SettingsFile[0]);
-				WritePrivateProfileString("PlayerTarg", "Theme", winThemes.playerWinTheme,  &s_SettingsFile[0]);
-				WritePrivateProfileString("Pet", "Theme", winThemes.petWinTheme, &s_SettingsFile[0]);
-				WritePrivateProfileString("Buffs", "Theme", winThemes.buffsWinTheme, &s_SettingsFile[0]);
-				WritePrivateProfileString("Songs", "Theme", winThemes.songWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Spells", "Theme", s_WinTheme.spellsWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Group", "Theme", s_WinTheme.groupWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("PlayerTarg", "Theme", s_WinTheme.playerWinTheme,  &s_SettingsFile[0]);
+				WritePrivateProfileString("Pet", "Theme", s_WinTheme.petWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Buffs", "Theme", s_WinTheme.buffsWinTheme, &s_SettingsFile[0]);
+				WritePrivateProfileString("Songs", "Theme", s_WinTheme.songWinTheme, &s_SettingsFile[0]);
 
-				winVis.showConfigWindow = false;
+				s_WinVis.showConfigWindow = false;
 			}
 		}
 		ImGui::End();
@@ -993,27 +1205,12 @@ static void DrawConfigWindow()
 // Main Window, toggled with /Grimgui command, contains Toggles to show other windows
 static void DrawMainWindow()
 	{
-		if (winVis.showMainWindow)
+		if (s_WinVis.showMainWindow)
 		{
 
 			ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("GrimGUI##MainWindow", &winVis.showMainWindow, s_WindowFlags))
+			if (ImGui::Begin("GrimGUI##MainWindow", &s_WinVis.showMainWindow, s_WindowFlags))
 			{
-
-				struct WindowOption {
-					const char* label;
-					bool* setting;
-					const char* section;
-					const char* key;
-				};
-
-				WindowOption options[] = {
-					{"Player Win", &winVis.showPlayerWindow, "PlayerTarg", "ShowPlayerWindow"},
-					{"Target Win", &winVis.showTargetWindow, "PlayerTarg", "SplitTarget"},
-					{"Pet Win", &winVis.showPetWindow, "Pet", "ShowPetWindow"},
-					{"Buff Win", &winVis.showBuffWindow, "Buffs", "ShowBuffWindow"},
-					{"Song Win", &winVis.showSongWindow, "Songs", "ShowSongWindow"},
-				};
 
 				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 				int col = 1;
@@ -1039,23 +1236,17 @@ static void DrawMainWindow()
 				//TODO: More Windows
 				//ImGui::Separator();
 
-				//if (ImGui::Checkbox("Spells Win", &winVis.showSpellsWindow))
+				//if (ImGui::Checkbox("Spells Win", &s_WinVis.showSpellsWindow))
 				//{
-				//	WritePrivateProfileBool("Spells", "ShowSpellsWindow", winVis.showSpellsWindow, &s_SettingsFile[0]);
+				//	WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, &s_SettingsFile[0]);
 				//}
 
-				//ImGui::SameLine();
-
-				//if (ImGui::Checkbox("Group Win", &winVis.showGroupWindow))
-				//{
-				//	WritePrivateProfileBool("Group", "ShowGroupWindow", winVis.showGroupWindow, &s_SettingsFile[0]);
-				//}
 
 				ImGui::Separator();
 
 				if (ImGui::Button("Config"))
 				{
-					winVis.showConfigWindow = true;
+					s_WinVis.showConfigWindow = true;
 				}
 
 			}
@@ -1075,8 +1266,8 @@ PLUGIN_API void OnPulse()
 		{
 			if (pAggroInfo)
 			{
-				numSet.myAggroPct = pAggroInfo->aggroData[AD_Player].AggroPct;
-				numSet.secondAggroPct = pAggroInfo->aggroData[AD_Secondary].AggroPct;
+				s_NumSettings.myAggroPct = pAggroInfo->aggroData[AD_Player].AggroPct;
+				s_NumSettings.secondAggroPct = pAggroInfo->aggroData[AD_Secondary].AggroPct;
 				if (pAggroInfo->AggroSecondaryID)
 				{
 					s_SecondAggroName = GetSpawnByID(pAggroInfo->AggroSecondaryID)->DisplayedName;
@@ -1090,30 +1281,30 @@ PLUGIN_API void OnPulse()
 			g_LastUpdateTime = now;
 		}
 
-		if (numSet.flashBuffInterval > 0)
+		if (s_NumSettings.flashBuffInterval > 0)
 		{
-			if (now - g_LastBuffFlashTime >= std::chrono::milliseconds(500 - numSet.flashBuffInterval))
+			if (now - g_LastBuffFlashTime >= std::chrono::milliseconds(500 - s_NumSettings.flashBuffInterval))
 			{
-				winVis.flashTintFlag = !winVis.flashTintFlag;
+				s_WinVis.flashTintFlag = !s_WinVis.flashTintFlag;
 				g_LastBuffFlashTime = now;
 			}
 		}
 		else
 		{
-			winVis.flashTintFlag = false;
+			s_WinVis.flashTintFlag = false;
 		}
 
-		if (numSet.combatFlashInterval > 0)
+		if (s_NumSettings.combatFlashInterval > 0)
 		{
-			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - numSet.combatFlashInterval))
+			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - s_NumSettings.combatFlashInterval))
 			{
-				winVis.flashCombatFlag = !winVis.flashCombatFlag;
+				s_WinVis.flashCombatFlag = !s_WinVis.flashCombatFlag;
 				g_LastFlashTime = now;
 			}
 		}
 		else
 		{
-			winVis.flashCombatFlag = false;
+			s_WinVis.flashCombatFlag = false;
 		}
 
 		GetHeading();
@@ -1129,79 +1320,90 @@ PLUGIN_API void OnUpdateImGui()
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (winVis.showMainWindow)
+		if (s_WinVis.showMainWindow)
 		{
 			DrawMainWindow();
 
-			if (!winVis.showMainWindow)
+			if (!s_WinVis.showMainWindow)
 			{
-				WritePrivateProfileBool("Settings", "ShowMainGui", winVis.showMainWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
 			}
 		}
 
-		if (winVis.showConfigWindow)
+		if (s_WinVis.showConfigWindow)
 			DrawConfigWindow();
 
 		// Player Window (also target if not split)
-		if (winVis.showPlayerWindow)
+		if (s_WinVis.showPlayerWindow)
 		{
 			DrawPlayerWindow();
 
-			if (!winVis.showPlayerWindow)
+			if (!s_WinVis.showPlayerWindow)
 			{
-				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", winVis.showPlayerWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinVis.showPlayerWindow, &s_SettingsFile[0]);
 			}
 		}
 
 		// Pet Window
-		if (winVis.showPetWindow)
+		if (s_WinVis.showPetWindow)
 		{
 
 			DrawPetWindow();
 
-			if (!winVis.showPetWindow)
+			if (!s_WinVis.showPetWindow)
 			{
-				WritePrivateProfileBool("Pet", "ShowPetWindow", winVis.showPetWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinVis.showPetWindow, &s_SettingsFile[0]);
 			}
 		}
 
 		//Buff Window
-		if (winVis.showBuffWindow)
+		if (s_WinVis.showBuffWindow)
 		{
 			DrawBuffWindow();
 
-			if (!winVis.showBuffWindow)
+			if (!s_WinVis.showBuffWindow)
 			{
-				WritePrivateProfileBool("Buffs", "ShowBuffWindow", winVis.showBuffWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinVis.showBuffWindow, &s_SettingsFile[0]);
 			}
 		}
 
 		// Song Window
-		if (winVis.showSongWindow)
+		if (s_WinVis.showSongWindow)
 		{
 			DrawSongWindow();
 
-			if (!winVis.showSongWindow)
+			if (!s_WinVis.showSongWindow)
 			{
-				WritePrivateProfileBool("Songs", "ShowSongWindow", winVis.showSongWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinVis.showSongWindow, &s_SettingsFile[0]);
 			}
 		}
 		
 		// Split Target Window
-		if (winVis.showTargetWindow)
+		if (s_WinVis.showTargetWindow)
 		{
 			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
-			int popCountsPlay = PushTheme(winThemes.playerWinTheme);
-			if (ImGui::Begin("Tar##MQ2GrimGUI", &winVis.showTargetWindow, s_WindowFlags))
+			int popCountsPlay = PushTheme(s_WinTheme.playerWinTheme);
+			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_WinVis.showTargetWindow, s_WindowFlags))
 			{
 				DrawTargetWindow();
 			}
 			PopTheme(popCountsPlay);
 			ImGui::End();
 
-			if (!winVis.showTargetWindow)
+			if (!s_WinVis.showTargetWindow)
 			{
-				WritePrivateProfileBool("PlayerTarg", "SplitTarget", winVis.showTargetWindow, &s_SettingsFile[0]);
+				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
+			}
+		}
+
+		// Group Window
+		if (s_WinVis.showGroupWindow)
+		{
+			DrawGroupWindow();
+
+			if (!s_WinVis.showGroupWindow)
+			{
+				WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinVis.showGroupWindow, &s_SettingsFile[0]);
 			}
 		}
 	}
@@ -1227,7 +1429,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	LoadSettings();
 	SaveSettings();
 
-	if (!winVis.showTitleBars)
+	if (!s_WinVis.showTitleBars)
 	{
 		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
 	}
@@ -1255,8 +1457,8 @@ PLUGIN_API void OnUnloadPlugin(const char* Name)
 PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("Initializing MQ2GrimGUI");
-	AddCommand("/grimgui", GrimCommandHandler, false, false, false);
-	WriteChatf("\aw[\ayGrimGUI\ax]\ag /grimgui \atToggles Main Window");
+	AddCommand("/grimgui", GrimCommandHandler, false, true, true);
+	PrintGrimHelp();
 	s_spellsInspector = new SpellsInspector();
 }
 
