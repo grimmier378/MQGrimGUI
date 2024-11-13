@@ -1,12 +1,11 @@
 #pragma once
 #include "imgui.h"
-#include "imgui_internal.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
 #include <variant>
 
-#pragma region Themes Tables
+#pragma region Themes Sets
 
 struct ThemeColor
 {
@@ -27,9 +26,9 @@ struct Theme
 };
 
 // Themes
-std::unordered_map<std::string, Theme> themes = {
+std::unordered_map<std::string, Theme> themeSet = {
 	{"Halloween", {
-		{  // Colors
+		{  
 			{ImGuiCol_TextDisabled, ImVec4(0.4976f, 0.3929f, 0.2830f, 1.0000f)},
 			{ImGuiCol_WindowBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 1.0000f)},
 			{ImGuiCol_ChildBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 0.0000f)},
@@ -85,11 +84,11 @@ std::unordered_map<std::string, Theme> themes = {
 			{ImGuiCol_NavWindowingDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f)},
 			{ImGuiCol_ModalWindowDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f)},
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 	{"Burnt", {
-		{  // Colors
+		{  
 			{ImGuiCol_TextDisabled, ImVec4(0.4976f, 0.3929f, 0.2830f, 1.0000f)},
 			{ImGuiCol_WindowBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 1.0000f)},
 			{ImGuiCol_ChildBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 0.0000f)},
@@ -145,11 +144,11 @@ std::unordered_map<std::string, Theme> themes = {
 			{ImGuiCol_NavWindowingDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f)},
 			{ImGuiCol_ModalWindowDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f)},
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 	{"Lime", {
-		{  // Colors
+		{  
 			{ImGuiCol_TextDisabled, ImVec4(0.3629f, 0.3614f, 0.3598f, 1.0000f)},
 			{ImGuiCol_WindowBg, ImVec4(0.0170f, 0.1327f, 0.0258f, 1.0000f)},
 			{ImGuiCol_ChildBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 0.0000f)},
@@ -205,11 +204,11 @@ std::unordered_map<std::string, Theme> themes = {
 			{ImGuiCol_NavWindowingDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f)},
 			{ImGuiCol_ModalWindowDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f)},
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 	{"MonoChrome", {
-		{  // Colors
+		{  
 			{ImGuiCol_TextDisabled, ImVec4(0.5000f, 0.5000f, 0.5000f, 1.0000f)},
 			{ImGuiCol_WindowBg, ImVec4(0.0600f, 0.0600f, 0.0600f, 0.8483f)},
 			{ImGuiCol_ChildBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 0.0000f)},
@@ -265,17 +264,17 @@ std::unordered_map<std::string, Theme> themes = {
 			{ImGuiCol_NavWindowingDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f)},
 			{ImGuiCol_ModalWindowDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f)},
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 	{"Default", {
-		{  // Colors
+		{  
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 	{"Grape", {
-		{  // Colors
+		{  
 			{ImGuiCol_TextDisabled, ImVec4(0.5000f, 0.5000f, 0.5000f, 1.0000f)},
 			{ImGuiCol_WindowBg, ImVec4(0.0168f, 0.0022f, 0.0474f, 0.9400f)},
 			{ImGuiCol_ChildBg, ImVec4(0.0630f, 0.0059f, 0.1564f, 0.0000f)},
@@ -331,11 +330,11 @@ std::unordered_map<std::string, Theme> themes = {
 			{ImGuiCol_NavWindowingDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f)},
 			{ImGuiCol_ModalWindowDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f)},
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 	{"Red", {
-		{  // Colors
+		{  
 			{ImGuiCol_TextDisabled, ImVec4(0.4976f, 0.3929f, 0.2830f, 1.0000f)},
 			{ImGuiCol_WindowBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 1.0000f)},
 			{ImGuiCol_ChildBg, ImVec4(0.0000f, 0.0000f, 0.0000f, 0.0000f)},
@@ -391,7 +390,7 @@ std::unordered_map<std::string, Theme> themes = {
 			{ImGuiCol_NavWindowingDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f)},
 			{ImGuiCol_ModalWindowDimBg, ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f)},
 		},
-		{  // Styles
+		{ 
 		}
 	}},
 };
@@ -400,12 +399,18 @@ std::unordered_map<std::string, Theme> themes = {
 
 #pragma region Theme Functions
 
+/**
+* @brief Applies the Selected ThemeSet to the ImGui Window using ImGui::PushStyleColor and ImGui::PushStyleVar
+* 
+* @param const std::string& themeName The name of the ThemeSet to Load
+* @return int The number of colors pushed + (the number of styles pushed << 16)
+*/
 int PushTheme(const std::string& themeName) {
 	int colorCount = 0;
 	int styleCount = 0;
 
-	auto themeIter = themes.find(themeName);
-	if (themeIter != themes.end()) {
+	auto themeIter = themeSet.find(themeName);
+	if (themeIter != themeSet.end()) {
 		const Theme& theme = themeIter->second;
 		for (const auto& color : theme.colors) {
 			ImGui::PushStyleColor(color.property, color.color);
@@ -428,6 +433,10 @@ int PushTheme(const std::string& themeName) {
 	return colorCount + (styleCount << 16);
 }
 
+/**
+* @brief Pop a theme from the ImGui context
+* @param int popCounts The number of colors pushed + (the number of styles pushed << 16)
+*/
 void PopTheme(int popCounts)
 {
 	int colorCount = popCounts & 0xFFFF;
@@ -436,9 +445,16 @@ void PopTheme(int popCounts)
 	ImGui::PopStyleVar(styleCount);
 }
 
+
+/**
+* @brief Draw a combo box to select a theme
+* @param const std::string& currentTheme The current theme name
+* @param const char* winName The name of the window
+* @return std::string The name of the selected theme
+*/
 std::string DrawThemePicker(const std::string& currentTheme, const char* winName) {
 	std::vector<std::string> themeNames;
-	for (const auto& theme : themes) {
+	for (const auto& theme : themeSet) {
 		themeNames.push_back(theme.first);
 	}
 

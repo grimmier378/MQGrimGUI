@@ -257,7 +257,9 @@ static void SaveSettings()
 	}
 }
 
-// Update the settings file to use the character-specific INI file if the player is in-game
+/**
+* @brief Updates the settings file based on the current game state
+*/
 static void UpdateSettingFile()
 {
 	if (GetGameState() == GAMESTATE_INGAME)
@@ -312,12 +314,12 @@ static void GetHeading()
 }
 
 /**
- * @fn GrimCommandHandler
- *
- * Command handler for the /Grimgui command
- *
- * @param pPC PlayerClient* Pointer to the player client structure
- * @param pszLine const char* Command line text
+* @fn GrimCommandHandler
+*
+* @brief Command handler for the /Grimgui command
+*
+* @param pPC PlayerClient* Pointer to the player client structure
+* @param pszLine const char* Command line text
 */
 static void GrimCommandHandler(PlayerClient*, const char*)
 {
@@ -327,11 +329,11 @@ static void GrimCommandHandler(PlayerClient*, const char*)
 
 /**
 * @fn DrawLineOfSight
- *
- * Draws a line of sight indicator based on the result of the LineOfSight function
- * 
- * @param pFrom PSPAWNINFO Pointer to the source spawn
- * @param pTo PSPAWNINFO Pointer to the target spawn
+*
+* @brief Draws a line of sight indicator based on the result of the LineOfSight function
+* 
+* @param pFrom PSPAWNINFO Pointer to the source spawn
+* @param pTo PSPAWNINFO Pointer to the target spawn
 */
 static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 {
@@ -346,11 +348,11 @@ static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 }
 
 /**
- * @fn DrawHelpIcon
- *
- * Draws a help icon with a tooltip
- * 
- * @param helpText const char* Text to display in the tooltip
+* @fn DrawHelpIcon
+*
+* @brief Draws a help icon with a tooltip
+* 
+* @param helpText const char* Text to display in the tooltip
 */
 static void DrawHelpIcon(const char* helpText)
 {
@@ -1206,17 +1208,17 @@ PLUGIN_API void OnUpdateImGui()
 }
 
 /**
- * @fn OnLoadPlugin
- *
- * This is called each time a plugin is loaded (ex: /plugin someplugin), after the
- * plugin has been loaded and any associated -AutoExec.cfg file has been launched.
- * This means it will be executed after the plugin's @ref InitializePlugin callback.
- *
- * This is also called when THIS plugin is loaded, but initialization tasks should
- * still be done in @ref InitializePlugin.
- *
- * @param Name const char* - The name of the plugin that was loaded
- */
+* @fn OnLoadPlugin
+*
+* This is called each time a plugin is loaded (ex: /plugin someplugin), after the
+* plugin has been loaded and any associated -AutoExec.cfg file has been launched.
+* This means it will be executed after the plugin's @ref InitializePlugin callback.
+*
+* This is also called when THIS plugin is loaded, but initialization tasks should
+* still be done in @ref InitializePlugin.
+*
+* @param Name const char* - The name of the plugin that was loaded
+*/
 PLUGIN_API void OnLoadPlugin(const char* Name)
 {
 	// check settings file, if logged in use character specific INI else default
@@ -1232,17 +1234,17 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 }
 
 /**
- * @fn OnUnloadPlugin
- *
- * This is called each time a plugin is unloaded (ex: /plugin someplugin unload),
- * just prior to the plugin unloading.  This means it will be executed prior to that
- * plugin's @ref ShutdownPlugin callback.
- *
- * This is also called when THIS plugin is unloaded, but shutdown tasks should still
- * be done in @ref ShutdownPlugin.
- *
- * @param Name const char* - The name of the plugin that is to be unloaded
- */
+* @fn OnUnloadPlugin
+*
+* This is called each time a plugin is unloaded (ex: /plugin someplugin unload),
+* just prior to the plugin unloading.  This means it will be executed prior to that
+* plugin's @ref ShutdownPlugin callback.
+*
+* This is also called when THIS plugin is unloaded, but shutdown tasks should still
+* be done in @ref ShutdownPlugin.
+*
+* @param Name const char* - The name of the plugin that is to be unloaded
+*/
 PLUGIN_API void OnUnloadPlugin(const char* Name)
 {
 	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);

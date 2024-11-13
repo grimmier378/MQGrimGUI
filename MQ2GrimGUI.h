@@ -138,6 +138,25 @@ public:
 					ImGui::PushID(buffInfo.GetIndex());
 					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(numSet.buffIconSize, numSet.buffIconSize), tintCol, borderCol);
 					ImGui::PopID();
+
+					if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
+					{
+						if (ImGui::MenuItem(("Remove##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
+						{
+							RemoveBuffByName(spell->Name);
+						}
+
+						if (ImGui::MenuItem(("Block##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
+						{
+							EzCommand(("/blockspell add me " + std::to_string(spell->ID)).c_str());
+						}
+						//if (ImGui::MenuItem("Inspect##" , nullptr, false, true))
+						//{
+						//	ToDo: Inspect Buff
+						//}
+
+						ImGui::EndPopup();
+					}
 					if (ImGui::IsItemHovered())
 					{
 						ImGui::BeginTooltip();
@@ -251,7 +270,7 @@ static SpellsInspector* s_spellsInspector = nullptr;
 /**
 * @fn CalculateProgressiveColor
 *
-* Function to calculate a color between two colors based on a value between 0 and 100
+* @brief Function to calculate a color between two colors based on a value between 0 and 100
 *
 * @param minColor const MQColor& Minimum color value
 * @param maxColor const MQColor& Maximum color value
@@ -301,7 +320,6 @@ static ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& 
 
 	return ImVec4(r, g, b, a);
 }
-
 
 enum class ColorName {
 	Red, Pink2, Pink, Orange, Tangerine, Yellow, Yellow2, White,
