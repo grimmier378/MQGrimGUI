@@ -23,7 +23,7 @@
     <ClInclude Include="MQ2GrimGUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_theme.h">
+    <ClInclude Include="Theme.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

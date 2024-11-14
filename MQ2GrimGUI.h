@@ -260,6 +260,28 @@ public:
 				}
 			}
 			ImGui::PopID();
+			if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
+			{
+
+				if (ImGui::MenuItem("Inspect##", nullptr, false, true))
+				{
+#if defined(CSpellDisplayManager__ShowSpell_x)
+					if (pSpellDisplayManager)
+						pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
+#else
+					char buffer[512] = { 0 };
+					if (Index[0])
+						FormatSpellLink(buffer, 512, spell, Index);
+					else
+						FormatSpellLink(buffer, 512, spell);
+					TextTagInfo info = ExtractLink(buffer);
+					ExecuteTextLink(info);
+#endif
+				}
+
+				ImGui::EndPopup();
+			}
+
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::BeginTooltip();
