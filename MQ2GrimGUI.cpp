@@ -32,7 +32,9 @@ struct WinVisSettings
 	bool showTitleBars = true;
 } s_WinVis;
 
-struct WinVisSetting {
+
+struct WinVisSetting
+{
 	const char* section;
 	const char* key;
 	bool* setting;
@@ -50,6 +52,7 @@ std::vector<WinVisSetting> winVisSettings = {
 	{"Songs", "ShowSongWindow", &s_WinVis.showSongWindow}
 };
 
+
 struct NumericSettings 
 {
 	int combatFlashInterval = 100;
@@ -64,7 +67,8 @@ struct NumericSettings
 	int buffTimerThreshold = 0;
 } s_NumSettings;
 
-struct NumericSetting {
+struct NumericSetting
+{
 	const char* section;
 	const char* key;
 	int* value;
@@ -81,6 +85,7 @@ std::vector<NumericSetting> numericSettings = {
 	{"Group", "GroupBarHeight", &s_NumSettings.groupBarHeight}
 };
 
+
 struct ThemeSettings
 {
 	std::string playerWinTheme = "Default";
@@ -91,7 +96,8 @@ struct ThemeSettings
 	std::string songWinTheme = "Default";
 } s_WinTheme;
 
-struct ThemeSetting {
+struct ThemeSetting
+{
 	const char* section;
 	const char* key;
 	std::string* theme;
@@ -106,6 +112,7 @@ std::vector<ThemeSetting> themeSettings = {
 	{"Songs", "Theme", &s_WinTheme.songWinTheme}
 };
 
+
 struct ColorSettings
 {
 	mq::MQColor minColorHP = mq::MQColor(223, 87, 255, 255);
@@ -116,7 +123,8 @@ struct ColorSettings
 	mq::MQColor maxColorEnd = mq::MQColor(178, 153, 26, 178);
 } s_BarColors;
 
-struct ColorSetting {
+struct ColorSetting
+{
 	const char* section;
 	const char* key;
 	mq::MQColor* theme;
@@ -130,6 +138,7 @@ std::vector<ColorSetting> colorSettings = {
 	{"Colors", "MinColorEnd", &s_BarColors.minColorEnd},
 	{"Colors", "MaxColorEnd", &s_BarColors.maxColorEnd}
 };
+
 
 enum class GrimCommand
 {
@@ -181,6 +190,8 @@ static int s_TarBuffLineSize = 0;
 
 #pragma endregion
 
+
+
 #pragma region Timers
 std::chrono::steady_clock::time_point g_LastUpdateTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastFlashTime	= std::chrono::steady_clock::now();
@@ -189,6 +200,8 @@ std::chrono::steady_clock::time_point g_LastBuffFlashTime = std::chrono::steady_
 const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
 #pragma endregion
+
+
 
 #pragma region Pet Buttons
 
@@ -238,17 +251,14 @@ static void DisplayPetButtons()
 				{
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(GetMQColor(ColorName::Teal).ToImColor()));
 					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
-					{
 						EzCommand(button.command.c_str());
-					}
+
 					ImGui::PopStyleColor();
 				}
 				else
 				{
 					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
-					{
 						EzCommand(button.command.c_str());
-					}
 				}
 			}
 		}
@@ -264,7 +274,8 @@ static void TogglePetButtonVisibilityMenu()
 
 	if (ImGui::BeginTable("CheckboxTable", numColumns, ImGuiTableFlags_SizingStretchProp))
 	{
-		for (auto& button : petButtons) {
+		for (auto& button : petButtons)
+		{
 			ImGui::TableNextColumn();
 			ImGui::SetNextItemWidth(70);
 			if (ImGui::Checkbox(button.name.c_str(), &button.visible))
@@ -277,6 +288,8 @@ static void TogglePetButtonVisibilityMenu()
 }
 
 #pragma endregion
+
+
 
 #pragma region Config Structs
 struct WindowOption
@@ -291,9 +304,11 @@ WindowOption options[] = {
 	{"Player Win", &s_WinVis.showPlayerWindow, "PlayerTarg", "ShowPlayerWindow"},
 	{"Target Win", &s_WinVis.showTargetWindow, "PlayerTarg", "SplitTarget"},
 	{"Pet Win", &s_WinVis.showPetWindow, "Pet", "ShowPetWindow"},
+	{"Spells Win", &s_WinVis.showSpellsWindow, "Spells", "ShowSpellsWindow"},
 	{"Buff Win", &s_WinVis.showBuffWindow, "Buffs", "ShowBuffWindow"},
 	{"Song Win", &s_WinVis.showSongWindow, "Songs", "ShowSongWindow"},
-	{"Group Win", &s_WinVis.showGroupWindow, "Group", "ShowGroupWindow"}
+	{"Group Win", &s_WinVis.showGroupWindow, "Group", "ShowGroupWindow"},
+
 };
 
 
@@ -335,30 +350,36 @@ ThemeOption themeOptions[] = {
 
 #pragma endregion
 
-#pragma region Settings Functions
 
+
+#pragma region Settings Functions
 
 static void LoadSettings()
 {
 	// Load settings from the INI file
 
-	for (const auto& setting : winVisSettings) {
+	for (const auto& setting : winVisSettings)
+	{
 		*setting.setting = GetPrivateProfileBool(setting.section, setting.key, false, &s_SettingsFile[0]);
 	}
 
-	for (const auto& setting : numericSettings) {
+	for (const auto& setting : numericSettings)
+	{
 		*setting.value = GetPrivateProfileInt(setting.section, setting.key, 0, &s_SettingsFile[0]);
 	}
 
-	for (const auto& setting : themeSettings) {
+	for (const auto& setting : themeSettings)
+	{
 		*setting.theme = GetPrivateProfileString(setting.section, setting.key, *setting.theme, &s_SettingsFile[0]);
 	}
 
-	for (const auto& setting : colorSettings) {
+	for (const auto& setting : colorSettings)
+	{
 		*setting.theme = GetPrivateProfileColor(setting.section, setting.key, *setting.theme, &s_SettingsFile[0]);
 	}
 
-	for (auto& button : petButtons) {
+	for (auto& button : petButtons)
+	{
 		button.visible = GetPrivateProfileBool("Pet", button.name.c_str(), true, &s_SettingsFile[0]);
 	}
 }
@@ -366,23 +387,28 @@ static void LoadSettings()
 
 static void SaveSettings()
 {
-	for (const auto& setting : winVisSettings) {
+	for (const auto& setting : winVisSettings)
+	{
 		WritePrivateProfileBool(setting.section, setting.key, *setting.setting, &s_SettingsFile[0]);
 	}
 
-	for (const auto& setting : numericSettings) {
+	for (const auto& setting : numericSettings)
+	{
 		WritePrivateProfileInt(setting.section, setting.key, *setting.value, &s_SettingsFile[0]);
 	}
 
-	for (const auto& setting : themeSettings) {
+	for (const auto& setting : themeSettings)
+	{
 		WritePrivateProfileString(setting.section, setting.key, setting.theme->c_str(), &s_SettingsFile[0]);
 	}
 
-	for (const auto& setting : colorSettings) {
+	for (const auto& setting : colorSettings)
+	{
 		WritePrivateProfileColor(setting.section, setting.key, *setting.theme, &s_SettingsFile[0]);
 	}
 
-	for (const auto& button : petButtons) {
+	for (const auto& button : petButtons)
+	{
 		WritePrivateProfileBool("Pet", button.name.c_str(), button.visible, &s_SettingsFile[0]);
 	}
 }
@@ -435,6 +461,8 @@ static void UpdateSettingFile()
 }
 
 #pragma endregion
+
+
 
 #pragma region Helpers 
 
@@ -584,15 +612,13 @@ static void GiveItem(PSPAWNINFO pSpawn)
 		pTarget = pSpawn;
 
 		if (ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor))
-		{
 			EzCommand("/click left target");
-		}
 	}
 }
 
 
 /**
-* @fn DrawProgressBar
+* @fn DrawBar
 * 
 *  @brief Draws a progress bar, using Progressive coloring with a label and tooltip
 * 
@@ -604,7 +630,7 @@ static void GiveItem(PSPAWNINFO pSpawn)
 *  @param maxColor MQColor Maximum color of the progress bar
 *  @param tooltip const char* Tooltip text to display when hovering over the progress bar
 */
-static void DrawProgressBar(const char* label, int current, int max, int height, mq::MQColor minColor, mq::MQColor maxColor, const char* tooltip)
+static void DrawBar(const char* label, int current, int max, int height, mq::MQColor minColor, mq::MQColor maxColor, const char* tooltip)
 {
 	float percentage = static_cast<float>(current) / max;
 	int percentageInt = static_cast<int>(percentage * 100);
@@ -736,26 +762,22 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 
 		ImGui::PopStyleVar(2);
 		if (drawCombatBorder)
-		{
 			ImGui::PopStyleColor();
-		}
 
 		// Health bar
-		DrawProgressBar("##hp", GetCurHPS(), GetMaxHPS(), barHeight, s_BarColors.minColorHP, s_BarColors.maxColorHP, "HP");
+		DrawBar("##hp", GetCurHPS(), GetMaxHPS(), barHeight, s_BarColors.minColorHP, s_BarColors.maxColorHP, "HP");
 
 		// Mana bar if you have mana that is
 		if (GetMaxMana() > 0)
-			DrawProgressBar("##Mana", GetCurMana(), GetMaxMana(), barHeight, s_BarColors.minColorMP, s_BarColors.maxColorMP, "Mana");
+			DrawBar("##Mana", GetCurMana(), GetMaxMana(), barHeight, s_BarColors.minColorMP, s_BarColors.maxColorMP, "Mana");
 
 		// Endurance bar
-		DrawProgressBar("##Endur", GetCurEndurance(), GetMaxEndurance(), barHeight, s_BarColors.minColorEnd, s_BarColors.maxColorEnd, "Endur");
+		DrawBar("##Endur", GetCurEndurance(), GetMaxEndurance(), barHeight, s_BarColors.minColorEnd, s_BarColors.maxColorEnd, "Endur");
 
 		if (drawPet)
 		{
 			if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
-			{
 				DrawPetInfo(MyPet, false);
-			}
 		}
 	}
 	ImGui::EndChild();
@@ -797,36 +819,79 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true)
 
 			// Health bar
 			if (pSpawn->HPCurrent && pSpawn->HPMax)
-				DrawProgressBar("##hp", pSpawn->HPCurrent, pSpawn->HPMax, s_NumSettings.groupBarHeight, s_BarColors.minColorHP, s_BarColors.maxColorHP, "HP");
+				DrawBar("##hp", pSpawn->HPCurrent, pSpawn->HPMax, s_NumSettings.groupBarHeight, s_BarColors.minColorHP, s_BarColors.maxColorHP, "HP");
 
 			// Mana bar maybe?
 			if (pSpawn->ManaCurrent && pSpawn->ManaMax)
-				DrawProgressBar("##Mana", pSpawn->ManaCurrent, pSpawn->ManaMax, s_NumSettings.groupBarHeight, s_BarColors.minColorMP, s_BarColors.maxColorMP, "Mana");
+				DrawBar("##Mana", pSpawn->ManaCurrent, pSpawn->ManaMax, s_NumSettings.groupBarHeight, s_BarColors.minColorMP, s_BarColors.maxColorMP, "Mana");
 
 			// Endurance bar
 			if (pSpawn->EnduranceCurrent && pSpawn->EnduranceMax)
-				DrawProgressBar("##Endur", pSpawn->EnduranceCurrent, pSpawn->EnduranceMax, s_NumSettings.groupBarHeight, s_BarColors.minColorEnd, s_BarColors.maxColorEnd, "Endurance");
+				DrawBar("##Endur", pSpawn->EnduranceCurrent, pSpawn->EnduranceMax, s_NumSettings.groupBarHeight, s_BarColors.minColorEnd, s_BarColors.maxColorEnd, "Endurance");
 		
 			ImGui::EndGroup();
 		}
 		ImGui::PopID();
 		if (ImGui::IsItemHovered())
-		{
 			GiveItem(pSpawn);
-		}
 
 		if (drawPet)
 		{
 			if (PSPAWNINFO petInfo = pSpawnManager->GetSpawnByID(pSpawn->PetID))
-			{
 				DrawPetInfo(petInfo, false);
-			}
 		}
 	}
 	ImGui::EndChild();
 }
 
 #pragma endregion
+
+
+//static void DrawSpellbookPopup()
+//{
+//	if (!ImGui::BeginPopup("SpellbookPopup")) return;
+//
+//	static char searchFilter[128] = "";
+//	ImGui::InputText("Search##Spellbook", searchFilter, IM_ARRAYSIZE(searchFilter));
+//
+//	ImGui::BeginTable("SpellbookTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable);
+//	ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+//	ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed);
+//	ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch);
+//	ImGui::TableSetupColumn("Subcategory", ImGuiTableColumnFlags_WidthStretch);
+//	ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthStretch);
+//	ImGui::TableHeadersRow();
+//
+//	PCHARINFO pChar = GetCharInfo();
+//	if (!pChar) return;
+//
+//	for (int spellID = 0; spellID < MAX_SPELLBOOK_SPELLS; ++spellID)
+//	{
+//		PSPELL pSpell = pChar->(spellID); // Replace with actual spellbook fetching
+//		if (!pSpell) continue;
+//
+//		if (searchFilter[0] && !strstr(pSpell->Name, searchFilter)) continue;
+//
+//		ImGui::TableNextRow();
+//		ImGui::TableSetColumnIndex(0);
+//		ImGui::Text("%s", pSpell->Name);
+//		ImGui::TableSetColumnIndex(1);
+//		ImGui::Text("%d", pSpell->ClassLevel[pChar->Class]);
+//		ImGui::TableSetColumnIndex(2);
+//		ImGui::Text("%d", pSpell->Category);
+//		ImGui::TableSetColumnIndex(3);
+//		ImGui::Text("%d", pSpell->Subcategory);
+//		ImGui::TableSetColumnIndex(4);
+//		ImGui::Text("%d", pSpell->SpellType);
+//	}
+//
+//	ImGui::EndTable();
+//	ImGui::EndPopup();
+//}
+
+
+
+
 
 #pragma region GUI Windows 
 
@@ -931,9 +996,7 @@ static void DrawPlayerWindow()
 					}
 
 					if (ImGui::MenuItem("Show Config", NULL, s_WinVis.showConfigWindow))
-					{
 						s_WinVis.showConfigWindow = !s_WinVis.showConfigWindow;
-					}
 
 					if (ImGui::MenuItem("Show Main", NULL, s_WinVis.showMainWindow))
 					{
@@ -990,29 +1053,22 @@ static void DrawGroupWindow()
 
 		ImGui::SetCursorPosX(posX);
 
-		
 		if (pLocalPlayer->InvitedToGroup)
 		{
 			if (ImGui::Button("Accept", ImVec2(60, 20)))
-			{
 				EzCommand("/invite");
-			}
 		}
 		else
 		{
 			if (ImGui::Button("Invite", ImVec2(60, 20)))
 			{
 				if (pTarget)
-				{
 					EzCommand(fmt::format("/invite {}", pTarget->Name).c_str());
-				}
 			}
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Disband", ImVec2(60, 20)))
-		{
 			EzCommand("/disband");
-		}
 	}
 	PopTheme(popCounts);
 	ImGui::End();
@@ -1072,17 +1128,16 @@ static void DrawPetWindow()
 				ImGui::EndChild();
 				
 				if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),  ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
-				{
 					DisplayPetButtons();
-				}
+
 				ImGui::EndChild();
 
 				// Pet Buffs Section (Column)
 				ImGui::TableNextColumn();
+				
 				if (ImGui::BeginChild("PetBuffs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
-				{
 					s_spellsInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
-				}
+				
 				ImGui::EndChild();
 
 				ImGui::EndTable();
@@ -1097,8 +1152,19 @@ static void DrawPetWindow()
 
 static void DrawSpellWindow()
 {
-	//TODO: Spell Window
+	if (!s_WinVis.showSpellsWindow) return;
+
+	ImGui::SetNextWindowSize(ImVec2(100, 350), ImGuiCond_FirstUseEver);
+	int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
+
+	if (ImGui::Begin("Spell Bar##MQ2GrimGUI", &s_WinVis.showSpellsWindow, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		s_spellsInspector->DrawSpellBarIcons();
+	}
+	ImGui::End();
+	PopTheme(popCounts);
 }
+
 
 static void DrawBuffWindow()
 {
@@ -1108,11 +1174,8 @@ static void DrawBuffWindow()
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
 	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinVis.showBuffWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
-	{
-
 		s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
-
-	}
+	
 	PopTheme(popCounts);
 	ImGui::End();
 
@@ -1126,237 +1189,230 @@ static void DrawSongWindow()
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.songWinTheme);
 	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinVis.showSongWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
-	{
 		s_spellsInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
-	}
+	
 	PopTheme(popCounts);
 	ImGui::End();
 }
 
 static void DrawConfigWindow()
+{
+	if (!s_WinVis.showConfigWindow)
+		return;
+
+	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Config##ConfigWindow", &s_WinVis.showConfigWindow, s_WindowFlags))
 	{
-		if (!s_WinVis.showConfigWindow)
-			return;
+		int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 
-		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+		if (ImGui::CollapsingHeader("Color Settings"))
+		{
+			if (ImGui::BeginTable("##Settings", 2))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
 
-		if (ImGui::Begin("Config##ConfigWindow", &s_WinVis.showConfigWindow, s_WindowFlags))
+				ImVec4 minHPColor = s_BarColors.minColorHP.ToImColor();
+				if (ImGui::ColorEdit4("Min HP Color", (float*)&minHPColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.minColorHP = MQColor(minHPColor);
+				
+				ImGui::SameLine();
+				DrawHelpIcon("Minimum HP Color");
+
+				ImGui::TableNextColumn();
+
+				ImVec4 maxHPColor = s_BarColors.maxColorHP.ToImColor();
+				if (ImGui::ColorEdit4("Max HP Color", (float*)&maxHPColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.maxColorHP = MQColor(maxHPColor);
+				
+				ImGui::SameLine();
+				DrawHelpIcon("Maximum HP Color");
+
+				ImGui::TableNextColumn();
+
+				ImVec4 minMPColor = s_BarColors.minColorMP.ToImColor();
+				if (ImGui::ColorEdit4("Min MP Color", (float*)&minMPColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.minColorMP = MQColor(minMPColor);
+
+				ImGui::SameLine();
+				DrawHelpIcon("Minimum MP Color");
+
+				ImGui::TableNextColumn();
+
+				ImVec4 maxMPColor = s_BarColors.maxColorMP.ToImColor();
+				if (ImGui::ColorEdit4("Max MP Color", (float*)&maxMPColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.maxColorMP = MQColor(maxMPColor);
+
+				ImGui::SameLine();
+				DrawHelpIcon("Maximum MP Color");
+
+				ImGui::TableNextColumn();
+
+				ImVec4 minEndColor = s_BarColors.minColorEnd.ToImColor();
+				if (ImGui::ColorEdit4("Min End Color", (float*)&minEndColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.minColorEnd = MQColor(minEndColor);
+
+				ImGui::SameLine();
+				DrawHelpIcon("Minimum Endurance Color");
+
+				ImGui::TableNextColumn();
+
+				ImVec4 maxEndColor = s_BarColors.maxColorEnd.ToImColor();
+				if (ImGui::ColorEdit4("Max End Color", (float*)&maxEndColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.maxColorEnd = MQColor(maxEndColor);
+
+				ImGui::SameLine();
+				DrawHelpIcon("Maximum Endurance Color");
+
+				ImGui::EndTable();
+			}
+
+			ImGui::SeparatorText("Test Color");
+
+			ImGui::SliderInt("Test Value", &s_TestInt, 0, 100);
+			float testVal = static_cast<float>(s_TestInt) / 100;
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, s_TestInt));
+			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "HP##Test");
+			ImGui::PopStyleColor();
+
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorMP, s_BarColors.maxColorMP, s_TestInt));
+			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "MP##Test");
+			ImGui::PopStyleColor();
+
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorEnd, s_BarColors.maxColorEnd, s_TestInt));
+			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
+			ImGui::PopStyleColor();
+		}
+		ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Window Settings Sliders"))
+		{
+
+			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+			int col = sizeX / 200;
+			if (col < 1)
+				col = 1;
+			
+			if (ImGui::BeginTable("Slider Controls", col))
+			{
+			    ImGui::TableNextRow();
+			    for (const auto& slider : sliderOptions)
+				{
+					ImGui::TableNextColumn();
+			        ImGui::SetNextItemWidth(100);
+			        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max);
+			        ImGui::SameLine();
+
+			        if (*slider.value == 0 && (std::string(slider.label).find("Flash") != std::string::npos))
+					{
+						DrawHelpIcon((std::string(slider.label) + " Disabled").c_str());
+					} else {
+			            DrawHelpIcon(slider.helpText);
+			        }
+
+			    }
+			    ImGui::EndTable();
+			}
+		
+		}
+		ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Window Settings Toggles"))
+		{
+			if (ImGui::Checkbox("Show Title Bars", &s_WinVis.showTitleBars))
+			{
+				s_WindowFlags = s_WinVis.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
+			}
+			ImGui::SameLine();
+			DrawHelpIcon("Show Title Bars");
+		}
+		ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Window Themes"))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+			int col = sizeX / 180;
+			if (col < 1)
+				col = 1;
 
-			if (ImGui::CollapsingHeader("Color Settings"))
+			if (ImGui::BeginTable("Theme List", col))
 			{
-				if (ImGui::BeginTable("##Settings", 2))
+				ImGui::TableNextRow();
+				for (const auto& theme : themeOptions)
 				{
-					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-
-					ImVec4 minHPColor = s_BarColors.minColorHP.ToImColor();
-					if (ImGui::ColorEdit4("Min HP Color", (float*)&minHPColor, ImGuiColorEditFlags_NoInputs))
-					{
-						s_BarColors.minColorHP = MQColor(minHPColor);
-					}
-					ImGui::SameLine();
-					DrawHelpIcon("Minimum HP Color");
-
-					ImGui::TableNextColumn();
-
-					ImVec4 maxHPColor = s_BarColors.maxColorHP.ToImColor();
-					if (ImGui::ColorEdit4("Max HP Color", (float*)&maxHPColor, ImGuiColorEditFlags_NoInputs))
-					{
-						s_BarColors.maxColorHP = MQColor(maxHPColor);
-					}
-					ImGui::SameLine();
-					DrawHelpIcon("Maximum HP Color");
-
-					ImGui::TableNextColumn();
-
-					ImVec4 minMPColor = s_BarColors.minColorMP.ToImColor();
-					if (ImGui::ColorEdit4("Min MP Color", (float*)&minMPColor, ImGuiColorEditFlags_NoInputs))
-					{
-						s_BarColors.minColorMP = MQColor(minMPColor);
-					}
-					ImGui::SameLine();
-					DrawHelpIcon("Minimum MP Color");
-
-					ImGui::TableNextColumn();
-
-					ImVec4 maxMPColor = s_BarColors.maxColorMP.ToImColor();
-					if (ImGui::ColorEdit4("Max MP Color", (float*)&maxMPColor, ImGuiColorEditFlags_NoInputs))
-					{
-						s_BarColors.maxColorMP = MQColor(maxMPColor);
-					}
-					ImGui::SameLine();
-					DrawHelpIcon("Maximum MP Color");
-
-					ImGui::TableNextColumn();
-
-					ImVec4 minEndColor = s_BarColors.minColorEnd.ToImColor();
-					if (ImGui::ColorEdit4("Min End Color", (float*)&minEndColor, ImGuiColorEditFlags_NoInputs))
-					{
-						s_BarColors.minColorEnd = MQColor(minEndColor);
-					}
-					ImGui::SameLine();
-					DrawHelpIcon("Minimum Endurance Color");
-
-					ImGui::TableNextColumn();
-
-					ImVec4 maxEndColor = s_BarColors.maxColorEnd.ToImColor();
-					if (ImGui::ColorEdit4("Max End Color", (float*)&maxEndColor, ImGuiColorEditFlags_NoInputs))
-					{
-						s_BarColors.maxColorEnd = MQColor(maxEndColor);
-					}
-					ImGui::SameLine();
-					DrawHelpIcon("Maximum Endurance Color");
-
-					ImGui::EndTable();
+					ImGui::SetNextItemWidth(100);
+					*theme.theme = DrawThemePicker(*theme.theme, theme.label);
 				}
-
-				ImGui::SeparatorText("Test Color");
-
-				ImGui::SliderInt("Test Value", &s_TestInt, 0, 100);
-				float testVal = static_cast<float>(s_TestInt) / 100;
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, s_TestInt));
-				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "HP##Test");
-				ImGui::PopStyleColor();
-
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorMP, s_BarColors.maxColorMP, s_TestInt));
-				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "MP##Test");
-				ImGui::PopStyleColor();
-
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorEnd, s_BarColors.maxColorEnd, s_TestInt));
-				ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
-				ImGui::PopStyleColor();
-			}
-			ImGui::Spacing();
-
-			if (ImGui::CollapsingHeader("Window Settings Sliders"))
-			{
-
-				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
-				int col = sizeX / 200;
-				if (col < 1)
-					col = 1;
-				
-				if (ImGui::BeginTable("Slider Controls", col))
-				{
-				    ImGui::TableNextRow();
-				    for (const auto& slider : sliderOptions)
-					{
-						ImGui::TableNextColumn();
-				        ImGui::SetNextItemWidth(100);
-				        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max);
-				
-				        ImGui::SameLine();
-				        if (*slider.value == 0 && (std::string(slider.label).find("Flash") != std::string::npos))
-						{
-							DrawHelpIcon((std::string(slider.label) + " Disabled").c_str());
-						} else {
-				            DrawHelpIcon(slider.helpText);
-				        }
-
-				
-				    }
-				    ImGui::EndTable();
-				}
-			
-			}
-			ImGui::Spacing();
-
-			if (ImGui::CollapsingHeader("Window Settings Toggles"))
-			{
-				if (ImGui::Checkbox("Show Title Bars", &s_WinVis.showTitleBars))
-				{
-					s_WindowFlags = s_WinVis.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
-				}
-				ImGui::SameLine();
-				DrawHelpIcon("Show Title Bars");
-			}
-			ImGui::Spacing();
-
-			if (ImGui::CollapsingHeader("Window Themes"))
-			{
-
-				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
-				int col = sizeX / 180;
-				if (col < 1)
-					col = 1;
-
-				if (ImGui::BeginTable("Theme List", col))
-				{
-					ImGui::TableNextRow();
-					for (const auto& theme : themeOptions)
-					{
-						ImGui::TableNextColumn();
-						ImGui::SetNextItemWidth(100);
-						*theme.theme = DrawThemePicker(*theme.theme, theme.label);
-					}
-					ImGui::EndTable();
-				}
-			}
-			ImGui::Spacing();
-
-			if (ImGui::CollapsingHeader("Pet Buttons"))
-			{
-				TogglePetButtonVisibilityMenu();
-			}
-			ImGui::Spacing();
-
-			if (ImGui::Button("Save & Close"))
-			{
-				// only Save when the user clicks the button. 
-				// If they close the window and don't click the button the settings will not be saved and only be temporary.
-				s_WinVis.showConfigWindow = false;
-				SaveSettings();
+				ImGui::EndTable();
 			}
 		}
-		ImGui::End();
+		ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Pet Buttons"))
+		{
+			TogglePetButtonVisibilityMenu();
+		}
+		ImGui::Spacing();
+
+		if (ImGui::Button("Save & Close"))
+		{
+			// only Save when the user clicks the button. 
+			// If they close the window and don't click the button the settings will not be saved and only be temporary.
+			s_WinVis.showConfigWindow = false;
+			SaveSettings();
+		}
 	}
+	ImGui::End();
+}
 
 
 // Main Window, toggled with /Grimgui command, contains Toggles to show other windows
 static void DrawMainWindow()
+{
+	if (s_WinVis.showMainWindow)
 	{
-		if (s_WinVis.showMainWindow)
+
+		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("GrimGUI##MainWindow", &s_WinVis.showMainWindow, s_WindowFlags))
 		{
 
-			ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("GrimGUI##MainWindow", &s_WinVis.showMainWindow, s_WindowFlags))
+			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+			int col = 1;
+			col = sizeX / 100;
+			if (col < 1)
+				col = 1;
+
+			if (ImGui::BeginTable("Window List", col))
 			{
-
-				int sizeX = static_cast<int>(ImGui::GetWindowWidth());
-				int col = 1;
-				col = sizeX / 100;
-				if (col < 1)
-					col = 1;
-
-				if (ImGui::BeginTable("Window List", col))
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				for (const auto& option : options)
 				{
-					ImGui::TableNextRow();
-					for (const auto& option : options)
+					if (ImGui::Checkbox(option.label, option.setting))
 					{
-						if (ImGui::Checkbox(option.label, option.setting))
-						{
-							WritePrivateProfileBool(option.section, option.key, *option.setting, &s_SettingsFile[0]);
-						}
-						ImGui::TableNextColumn();
+						WritePrivateProfileBool(option.section, option.key, *option.setting, &s_SettingsFile[0]);
 					}
-					ImGui::EndTable();
+					ImGui::TableNextColumn();
 				}
-
-				ImGui::Separator();
-
-				if (ImGui::Button("Config"))
-				{
-					s_WinVis.showConfigWindow = true;
-				}
-
+				ImGui::EndTable();
 			}
-			ImGui::End();
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Config"))
+			{
+				s_WinVis.showConfigWindow = true;
+			}
+
 		}
+		ImGui::End();
 	}
+}
 
 #pragma endregion
+
+
 
 #pragma region Plugin API
 PLUGIN_API void OnPulse()
@@ -1427,9 +1483,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawMainWindow();
 
 			if (!s_WinVis.showMainWindow)
-			{
 				WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
-			}
 		}
 
 		if (s_WinVis.showConfigWindow)
@@ -1441,9 +1495,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawPlayerWindow();
 
 			if (!s_WinVis.showPlayerWindow)
-			{
 				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinVis.showPlayerWindow, &s_SettingsFile[0]);
-			}
 		}
 
 		// Pet Window
@@ -1453,9 +1505,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawPetWindow();
 
 			if (!s_WinVis.showPetWindow)
-			{
 				WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinVis.showPetWindow, &s_SettingsFile[0]);
-			}
 		}
 
 		//Buff Window
@@ -1464,9 +1514,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawBuffWindow();
 
 			if (!s_WinVis.showBuffWindow)
-			{
 				WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinVis.showBuffWindow, &s_SettingsFile[0]);
-			}
 		}
 
 		// Song Window
@@ -1475,9 +1523,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawSongWindow();
 
 			if (!s_WinVis.showSongWindow)
-			{
 				WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinVis.showSongWindow, &s_SettingsFile[0]);
-			}
 		}
 		
 		// Split Target Window
@@ -1486,16 +1532,13 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
 			int popCountsPlay = PushTheme(s_WinTheme.playerWinTheme);
 			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_WinVis.showTargetWindow, s_WindowFlags))
-			{
 				DrawTargetWindow();
-			}
+			
 			PopTheme(popCountsPlay);
 			ImGui::End();
 
 			if (!s_WinVis.showTargetWindow)
-			{
 				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
-			}
 		}
 
 		// Group Window
@@ -1504,9 +1547,16 @@ PLUGIN_API void OnUpdateImGui()
 			DrawGroupWindow();
 
 			if (!s_WinVis.showGroupWindow)
-			{
 				WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinVis.showGroupWindow, &s_SettingsFile[0]);
-			}
+		}
+
+		// Spell Window
+		if (s_WinVis.showSpellsWindow)
+		{
+			DrawSpellWindow();
+
+			if (!s_WinVis.showSpellsWindow)
+				WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, &s_SettingsFile[0]);
 		}
 	}
 }
@@ -1532,9 +1582,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	SaveSettings();
 
 	if (!s_WinVis.showTitleBars)
-	{
 		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
-	}
 }
 
 /**
@@ -1552,7 +1600,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 PLUGIN_API void OnUnloadPlugin(const char* Name)
 {
 	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
-	RemoveCommand("/Grimgui");
+	RemoveCommand("/grimgui");
 	SaveSettings();
 }
 
