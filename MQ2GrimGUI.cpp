@@ -65,6 +65,7 @@ struct NumericSettings
 	int secondAggroPct = 0;
 	int buffIconSize = 24;
 	int buffTimerThreshold = 0;
+	int spellGemHeight = 32;
 } s_NumSettings;
 
 struct NumericSetting
@@ -82,7 +83,8 @@ std::vector<NumericSetting> numericSettings = {
 	{"Settings", "BuffIconSize", &s_NumSettings.buffIconSize},
 	{"Settings", "FlashBuffInterval", &s_NumSettings.flashBuffInterval},
 	{"Buffs", "BuffTimerThreshold", &s_NumSettings.buffTimerThreshold},
-	{"Group", "GroupBarHeight", &s_NumSettings.groupBarHeight}
+	{"Group", "GroupBarHeight", &s_NumSettings.groupBarHeight},
+	{"Spells", "SpellGemHeight",& s_NumSettings.spellGemHeight},
 };
 
 
@@ -178,6 +180,7 @@ const std::array<CommandInfo, 10> commandList = {
 
 static bool s_CharIniLoaded = false;
 static bool s_DefaultLoaded = false;
+static bool s_IsCaster = false;
 static int s_TestInt = 100; // Color Test Value for Config Window
 static char s_SettingsFile[MAX_PATH] = { 0 };
 
@@ -329,7 +332,8 @@ SliderOption sliderOptions[] = {
 	{"Player Bar Height", &s_NumSettings.playerBarHeight, 10, 40, "Player Bar Height"},
 	{"Target Bar Height", &s_NumSettings.targetBarHeight, 10, 40, "Target Bar Height"},
 	{"Aggro Bar Height", &s_NumSettings.aggroBarHeight, 10, 40, "Aggro Bar Height"},
-	{"Group Bar Height", &s_NumSettings.groupBarHeight, 10, 40, "Group Bar Height"}
+	{"Group Bar Height", &s_NumSettings.groupBarHeight, 10, 40, "Group Bar Height"},
+	{"Spell Gem Height", &s_NumSettings.spellGemHeight, 10, 100, "Spell Gem Height"}
 };
 
 
@@ -444,7 +448,9 @@ static void UpdateSettingFile()
 
 				LoadSettings();
 				s_CharIniLoaded = true;
-			}
+				if (GetMaxMana() > 0)
+					s_IsCaster = true;
+			}			
 		}
 	}
 	else
@@ -456,6 +462,7 @@ static void UpdateSettingFile()
 			s_CharIniLoaded = false;
 			LoadSettings();
 			s_DefaultLoaded = true;
+			s_IsCaster = false;
 		}
 	}
 }
@@ -824,7 +831,7 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true)
 			// Mana bar maybe?
 			if (pSpawn->ManaCurrent && pSpawn->ManaMax)
 				DrawBar("##Mana", pSpawn->ManaCurrent, pSpawn->ManaMax, s_NumSettings.groupBarHeight, s_BarColors.minColorMP, s_BarColors.maxColorMP, "Mana");
-
+			
 			// Endurance bar
 			if (pSpawn->EnduranceCurrent && pSpawn->EnduranceMax)
 				DrawBar("##Endur", pSpawn->EnduranceCurrent, pSpawn->EnduranceMax, s_NumSettings.groupBarHeight, s_BarColors.minColorEnd, s_BarColors.maxColorEnd, "Endurance");
@@ -845,51 +852,6 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true)
 }
 
 #pragma endregion
-
-
-//static void DrawSpellbookPopup()
-//{
-//	if (!ImGui::BeginPopup("SpellbookPopup")) return;
-//
-//	static char searchFilter[128] = "";
-//	ImGui::InputText("Search##Spellbook", searchFilter, IM_ARRAYSIZE(searchFilter));
-//
-//	ImGui::BeginTable("SpellbookTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable);
-//	ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-//	ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed);
-//	ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch);
-//	ImGui::TableSetupColumn("Subcategory", ImGuiTableColumnFlags_WidthStretch);
-//	ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthStretch);
-//	ImGui::TableHeadersRow();
-//
-//	PCHARINFO pChar = GetCharInfo();
-//	if (!pChar) return;
-//
-//	for (int spellID = 0; spellID < MAX_SPELLBOOK_SPELLS; ++spellID)
-//	{
-//		PSPELL pSpell = pChar->(spellID); // Replace with actual spellbook fetching
-//		if (!pSpell) continue;
-//
-//		if (searchFilter[0] && !strstr(pSpell->Name, searchFilter)) continue;
-//
-//		ImGui::TableNextRow();
-//		ImGui::TableSetColumnIndex(0);
-//		ImGui::Text("%s", pSpell->Name);
-//		ImGui::TableSetColumnIndex(1);
-//		ImGui::Text("%d", pSpell->ClassLevel[pChar->Class]);
-//		ImGui::TableSetColumnIndex(2);
-//		ImGui::Text("%d", pSpell->Category);
-//		ImGui::TableSetColumnIndex(3);
-//		ImGui::Text("%d", pSpell->Subcategory);
-//		ImGui::TableSetColumnIndex(4);
-//		ImGui::Text("%d", pSpell->SpellType);
-//	}
-//
-//	ImGui::EndTable();
-//	ImGui::EndPopup();
-//}
-
-
 
 
 
@@ -967,7 +929,7 @@ static void DrawTargetWindow()
 			{
 
 				if (gTargetbuffs)
-					s_spellsInspector->DrawBuffsIcons("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+					GrimGui::s_spellsInspector->DrawBuffsIcons("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 			}
 			ImGui::EndChild();
 		}
@@ -1136,7 +1098,7 @@ static void DrawPetWindow()
 				ImGui::TableNextColumn();
 				
 				if (ImGui::BeginChild("PetBuffs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
-					s_spellsInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+					GrimGui::s_spellsInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 				
 				ImGui::EndChild();
 
@@ -1152,17 +1114,21 @@ static void DrawPetWindow()
 
 static void DrawSpellWindow()
 {
-	if (!s_WinVis.showSpellsWindow) return;
+	if (!s_WinVis.showSpellsWindow)
+		return;
 
-	ImGui::SetNextWindowSize(ImVec2(100, 350), ImGuiCond_FirstUseEver);
-	int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
-
-	if (ImGui::Begin("Spell Bar##MQ2GrimGUI", &s_WinVis.showSpellsWindow, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
+	if (s_IsCaster)
 	{
-		s_spellsInspector->DrawSpellBarIcons();
+		ImGui::SetNextWindowSize(ImVec2(100, 350), ImGuiCond_FirstUseEver);
+		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
+	
+		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinVis.showSpellsWindow, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			GrimGui::s_spellsInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
+		}
+		ImGui::End();
+		PopTheme(popCounts);
 	}
-	ImGui::End();
-	PopTheme(popCounts);
 }
 
 
@@ -1174,7 +1140,7 @@ static void DrawBuffWindow()
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
 	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinVis.showBuffWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
-		s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
+		GrimGui::s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
 	
 	PopTheme(popCounts);
 	ImGui::End();
@@ -1189,7 +1155,7 @@ static void DrawSongWindow()
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.songWinTheme);
 	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinVis.showSongWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
-		s_spellsInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
+		GrimGui::s_spellsInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
 	
 	PopTheme(popCounts);
 	ImGui::End();
@@ -1609,7 +1575,7 @@ PLUGIN_API void InitializePlugin()
 	DebugSpewAlways("Initializing MQ2GrimGUI");
 	AddCommand("/grimgui", GrimCommandHandler, false, true, true);
 	PrintGrimHelp();
-	s_spellsInspector = new SpellsInspector();
+	GrimGui::s_spellsInspector = new GrimGui::SpellsInspector();
 }
 
 PLUGIN_API void ShutdownPlugin()
