@@ -1575,6 +1575,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 		pSpellPicker = new SpellPicker();
 	// check settings file, if logged in use character specific INI else default
 	UpdateSettingFile();
+	
 	//load settings
 	LoadSettings();
 	SaveSettings();
@@ -1601,8 +1602,6 @@ PLUGIN_API void OnUnloadPlugin(const char* Name)
 	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
 	RemoveCommand("/grimgui");
 	SaveSettings();
-	pSpellPicker = nullptr;
-	GrimGui::s_spellsInspector = nullptr;
 }
 
 PLUGIN_API void InitializePlugin()
@@ -1610,6 +1609,8 @@ PLUGIN_API void InitializePlugin()
 	DebugSpewAlways("Initializing MQ2GrimGUI");
 	AddCommand("/grimgui", GrimCommandHandler, false, true, true);
 	PrintGrimHelp();
+	GrimGui::s_spellsInspector = new GrimGui::SpellsInspector();
+	pSpellPicker = new SpellPicker();
 
 }
 
