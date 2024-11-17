@@ -42,6 +42,7 @@ Describe the commands available and how to use them.
 Command  | Option   | Description
 ---------|----------|---------------------
 /grimgui | [show]   | Toggles Main Window
+/grimgui | [lock]   | Toggles Window Locking]
 /grimgui | [player] | Toggles Player Window
 /grimgui | [target] | Toggles Target Window
 /grimgui | [pet]    | Toggles Pet Window
@@ -67,14 +68,15 @@ This will revert back after you camp to charecter select.
 [Settings]
 ShowMainGui=1
 ShowTitleBars=1
-BuffIconSize=21
-FlashBuffInterval=42
+LockWindows=0
+BuffIconSize=24
+FlashBuffInterval=40
 [PlayerTarg]
 SplitTarget=0
 ShowPlayerWindow=0
-CombatFlashInterval=137
-PlayerBarHeight=12
-TargetBarHeight=12
+CombatFlashInterval=100
+PlayerBarHeight=15
+TargetBarHeight=15
 AggroBarHeight=10
 Theme=Default
 [Pet]
@@ -96,11 +98,11 @@ Swarm=1
 Kill=1
 [Group]
 ShowGroupWindow=0
-GroupBarHeight=12
+GroupBarHeight=15
 Theme=Default
 [Spells]
-ShowSpellsWindow=1
-SpellGemHeight=40
+ShowSpellsWindow=0
+SpellGemHeight=32
 Theme=Default
 [Buffs]
 ShowBuffWindow=0

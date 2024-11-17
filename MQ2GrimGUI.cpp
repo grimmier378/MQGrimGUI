@@ -18,38 +18,40 @@ PLUGIN_VERSION(0.2);
 #pragma region Main Setting Variables
 // Declare global plugin state variables
 
-static bool s_IsCasting = false;
-static bool s_CharIniLoaded = false;
-static bool s_DefaultLoaded = false;
-static bool s_IsCaster = false;
-static int s_TestInt = 100; // Color Test Value for Config Window
-static char s_SettingsFile[MAX_PATH] = { 0 };
+static bool s_IsCasting						= false;
+static bool s_CharIniLoaded					= false;
+static bool s_DefaultLoaded					= false;
+static bool s_IsCaster						= false;
+static bool s_ShowOutOfGame					= false;	
+static int s_TestInt						= 100; // Color Test Value for Config Window
+static char s_SettingsFile[MAX_PATH]		= { 0 };
 
-static ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
-static ImGuiChildFlags s_ChildFlags = ImGuiChildFlags_None;
+static ImGuiWindowFlags s_WindowFlags		= ImGuiWindowFlags_None;
+static ImGuiWindowFlags s_WinLockFlags		= ImGuiWindowFlags_None;
+static ImGuiChildFlags s_ChildFlags			= ImGuiChildFlags_None;
 
-static const char* s_SecondAggroName = "Unknown";
-static const char* s_CurrHeading = "N";
-static int s_TarBuffLineSize = 0;
+static const char* s_SecondAggroName		= "Unknown";
+static const char* s_CurrHeading			= "N";
+static int s_TarBuffLineSize				= 0;
 
-SpellPicker* pSpellPicker = nullptr;
-GrimGui::SpellsInspector* pSpellInspector = nullptr;
+SpellPicker* pSpellPicker					= nullptr;
+GrimGui::SpellsInspector* pSpellInspector	= nullptr;
 
-static bool s_MemSpell = false;
+static bool s_MemSpell						= false;
 std::string s_MemSpellName;
-static int s_MemGemIndex = 0;
+static int s_MemGemIndex					= 0;
 
 #pragma endregion
 
 
 
 #pragma region Timers
-std::chrono::steady_clock::time_point g_LastUpdateTime	= std::chrono::steady_clock::now();
-std::chrono::steady_clock::time_point g_LastFlashTime	= std::chrono::steady_clock::now();
-std::chrono::steady_clock::time_point g_LastBuffFlashTime = std::chrono::steady_clock::now();
+std::chrono::steady_clock::time_point g_LastUpdateTime		= std::chrono::steady_clock::now();
+std::chrono::steady_clock::time_point g_LastFlashTime		= std::chrono::steady_clock::now();
+std::chrono::steady_clock::time_point g_LastBuffFlashTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_StartCastTime;
 
-const auto g_UpdateInterval		= std::chrono::milliseconds(250);
+const auto g_UpdateInterval			= std::chrono::milliseconds(500);
 
 #pragma endregion
 
@@ -60,15 +62,9 @@ static void LoadSettings()
 {
 	// Load settings from the INI file
 
-	for (const auto& setting : winVisSettings)
+	for (const auto& setting : winSettings)
 	{
-		bool defaultVal = false;
-		if (setting.key == "ShowMainGui")
-			defaultVal = true;
-		else if (setting.key == "ShowTitleBars")
-			defaultVal = true;
-
-		*setting.setting = GetPrivateProfileBool(setting.section, setting.key, defaultVal , &s_SettingsFile[0]);
+		*setting.setting = GetPrivateProfileBool(setting.section, setting.key, *setting.setting , &s_SettingsFile[0]);
 	}
 
 	for (const auto& setting : numericSettings)
@@ -94,7 +90,7 @@ static void LoadSettings()
 
 static void SaveSettings()
 {
-	for (const auto& setting : winVisSettings)
+	for (const auto& setting : winSettings)
 	{
 		WritePrivateProfileBool(setting.section, setting.key, *setting.setting, &s_SettingsFile[0]);
 	}
@@ -152,45 +148,74 @@ static void UpdateSettingFile()
 		{
 			if (PSPAWNINFO pCharInfo = pLocalPlayer)
 			{
+
 				char CharIniFile[MAX_PATH] = { 0 };
 				fmt::format_to(CharIniFile, "{}/MQ2GrimGUI_{}_{}.ini", gPathConfig, GetServerShortName(), pCharInfo->Name);
 
 				if (!std::filesystem::exists(CharIniFile))
 				{
-					// file missing load defaults and save
+					// Check for character-specific file if missing then check for the default file to copy from incase edited at char select
+					// this way we can copy their settings over. 
+					// This allows you to set up the settings once and all characters can use that for a base.
+					char DefaultIniFile[MAX_PATH] = { 0 };
+					fmt::format_to(DefaultIniFile, "{}/MQ2GrimGUI.ini", gPathConfig);
+
+					if (std::filesystem::exists(DefaultIniFile))
+					{
+						std::filesystem::copy_file(DefaultIniFile, CharIniFile, std::filesystem::copy_options::overwrite_existing);
+					}
+					else
+					{
+						// just save defaults to char config if the default is missing, the means the plugin was first loaded in game.
+						memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+						strcpy_s(s_SettingsFile, CharIniFile);
+						SaveSettings();
+						s_CharIniLoaded = true;
+					}
+
+				}
+
+				if (!s_CharIniLoaded)
+				{
 					memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
 					strcpy_s(s_SettingsFile, CharIniFile);
 
 					LoadSettings();
-					SaveSettings();
+					s_CharIniLoaded = true;
 				}
 
-				// Update the settings file to use the character-specific INI file
-				memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
-				strcpy_s(s_SettingsFile, CharIniFile);
-
-				LoadSettings();
-				s_CharIniLoaded = true;
 				if (GetMaxMana() > 0)
 					s_IsCaster = true;
-			}		
-			pSpellPicker->InitializeSpells();
+
+				if (s_IsCaster) 	// new char logged in, load their spell book
+					pSpellPicker->InitializeSpells();
+
+			}
 		}
 	}
 	else
 	{
 		if (s_CharIniLoaded || !s_DefaultLoaded)
 		{
-			memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
-			fmt::format_to(s_SettingsFile, "{}/MQ2GrimGUI.ini", gPathConfig);
 			s_CharIniLoaded = false;
-			LoadSettings();
+
+			char DefaultIniFile[MAX_PATH] = { 0 };
+			fmt::format_to(DefaultIniFile, "{}/MQ2GrimGUI.ini", gPathConfig);
+			static bool s_DefaultExists = std::filesystem::exists(DefaultIniFile);
+			memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+			strcpy_s(s_SettingsFile, DefaultIniFile);
+
+			if (!s_DefaultExists)
+				SaveSettings();
+			else
+				LoadSettings();
+			
 			s_DefaultLoaded = true;
 			s_IsCaster = false;
 		}
-		pSpellPicker->~SpellPicker();
 	}
 }
+
 
 #pragma endregion
 
@@ -204,7 +229,7 @@ static void GetHeading()
 	s_CurrHeading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
-const char* MaskName(const char* name)
+static const char* MaskName(const char* name)
 {
 	static char anonymizedName[32];
 	if (name && name[0] != '\0')
@@ -235,6 +260,8 @@ static void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 
 		if (strcmp(arg, "show") == 0)
 			command = GrimCommand::Show;
+		else if (strcmp(arg, "lock") == 0)
+			command = GrimCommand::Lock;
 		else if (strcmp(arg, "player") == 0)
 			command = GrimCommand::Player;
 		else if (strcmp(arg, "target") == 0)
@@ -262,45 +289,53 @@ static void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 			PrintGrimHelp();
 			break;
 		case GrimCommand::Show:
-			s_WinVis.showMainWindow = !s_WinVis.showMainWindow;
-			WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
+			if (GetGameState() != GAMESTATE_INGAME)
+			{
+				s_ShowOutOfGame = true;
+			}
+			s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
+			WritePrivateProfileBool("Settings", "ShowMainGui", s_WinSettings.showMainWindow, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Lock:
+			s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
+			WritePrivateProfileBool("Settings", "LockWindows", s_WinSettings.lockWindows, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Player:
-			s_WinVis.showPlayerWindow = !s_WinVis.showPlayerWindow;
-			WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinVis.showPlayerWindow, &s_SettingsFile[0]);
+			s_WinSettings.showPlayerWindow = !s_WinSettings.showPlayerWindow;
+			WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinSettings.showPlayerWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Target:
-			s_WinVis.showTargetWindow = !s_WinVis.showTargetWindow;
-			WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
+			s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
+			WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Pet:
-			s_WinVis.showPetWindow = !s_WinVis.showPetWindow;
-			WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinVis.showPetWindow, &s_SettingsFile[0]);
+			s_WinSettings.showPetWindow = !s_WinSettings.showPetWindow;
+			WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinSettings.showPetWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Group:
-			s_WinVis.showGroupWindow = !s_WinVis.showGroupWindow;
-			WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinVis.showGroupWindow, &s_SettingsFile[0]);
+			s_WinSettings.showGroupWindow = !s_WinSettings.showGroupWindow;
+			WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinSettings.showGroupWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Spells:
-			s_WinVis.showSpellsWindow = !s_WinVis.showSpellsWindow;
-			WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, & s_SettingsFile[0]);
+			s_WinSettings.showSpellsWindow = !s_WinSettings.showSpellsWindow;
+			WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinSettings.showSpellsWindow, & s_SettingsFile[0]);
 			break;
 		case GrimCommand::Buffs:
-			s_WinVis.showBuffWindow = !s_WinVis.showBuffWindow;
-			WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinVis.showBuffWindow, &s_SettingsFile[0]);
+			s_WinSettings.showBuffWindow = !s_WinSettings.showBuffWindow;
+			WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinSettings.showBuffWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Songs:
-			s_WinVis.showSongWindow = !s_WinVis.showSongWindow;
-			WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinVis.showSongWindow, &s_SettingsFile[0]);
+			s_WinSettings.showSongWindow = !s_WinSettings.showSongWindow;
+			WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinSettings.showSongWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Config:
-			s_WinVis.showConfigWindow = !s_WinVis.showConfigWindow;
+			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
 			break;
 		}
 	}
 	else
 	{
-		s_WinVis.showMainWindow = !s_WinVis.showMainWindow;
+		s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
 		PrintGrimHelp();
 	}
 }
@@ -472,7 +507,7 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 
 		if (drawCombatBorder && pEverQuestInfo->bAutoAttack)
 		{
-			ImVec4 borderColor = s_WinVis.flashCombatFlag ? ImVec4(GetMQColor(ColorName::Red).ToImColor()) : ImVec4(GetMQColor(ColorName::White).ToImColor());
+			ImVec4 borderColor = s_WinSettings.flashCombatFlag ? ImVec4(GetMQColor(ColorName::Red).ToImColor()) : ImVec4(GetMQColor(ColorName::White).ToImColor());
 			ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
 		}
 		else if (drawCombatBorder)
@@ -719,14 +754,16 @@ static void DrawTargetWindow()
 		}
 	}
 
+
 static void DrawPlayerWindow()
 	{
-		if (!s_WinVis.showPlayerWindow)
+		if (!s_WinSettings.showPlayerWindow)
 			return;
 
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.playerWinTheme);
-		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinVis.showPlayerWindow, s_WindowFlags | ImGuiWindowFlags_MenuBar))
+		ImGuiWindowFlags menuFlag = s_WinSettings.showTitleBars ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
+		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinSettings.showPlayerWindow, s_WindowFlags | s_WinLockFlags | menuFlag | ImGuiWindowFlags_NoScrollbar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
@@ -735,19 +772,25 @@ static void DrawPlayerWindow()
 			{
 				if (ImGui::BeginMenu("Main"))
 				{
-					if (ImGui::MenuItem("Split Target", NULL, s_WinVis.showTargetWindow))
+					if (ImGui::MenuItem("Lock Windows", NULL, s_WinSettings.lockWindows))
 					{
-						s_WinVis.showTargetWindow = !s_WinVis.showTargetWindow;
-						WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
+						s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
+						WritePrivateProfileBool("Settings", "LockWindows", s_WinSettings.lockWindows, &s_SettingsFile[0]);
 					}
 
-					if (ImGui::MenuItem("Show Config", NULL, s_WinVis.showConfigWindow))
-						s_WinVis.showConfigWindow = !s_WinVis.showConfigWindow;
-
-					if (ImGui::MenuItem("Show Main", NULL, s_WinVis.showMainWindow))
+					if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
 					{
-						s_WinVis.showMainWindow = !s_WinVis.showMainWindow;
-						WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
+						s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
+						WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
+					}
+
+					if (ImGui::MenuItem("Show Config", NULL, s_WinSettings.showConfigWindow))
+						s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+
+					if (ImGui::MenuItem("Show Main", NULL, s_WinSettings.showMainWindow))
+					{
+						s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
+						WritePrivateProfileBool("Settings", "ShowMainGui", s_WinSettings.showMainWindow, &s_SettingsFile[0]);
 					}
 
 					ImGui::EndMenu();
@@ -758,7 +801,7 @@ static void DrawPlayerWindow()
 
 			DrawPlayerBars(true);
 
-			if (!s_WinVis.showTargetWindow)
+			if (!s_WinSettings.showTargetWindow)
 			{
 				ImGui::Separator();
 				DrawTargetWindow();
@@ -768,15 +811,17 @@ static void DrawPlayerWindow()
 		ImGui::End();
 	}
 
+
 static void DrawGroupWindow()
 {
-	if (!s_WinVis.showGroupWindow)
+	if (!s_WinSettings.showGroupWindow)
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.groupWinTheme);
 
-	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinVis.showGroupWindow, s_WindowFlags))
+	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinSettings.showGroupWindow,
+		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
 	{
 		DrawPlayerBars(false, s_NumSettings.groupBarHeight, true);
 
@@ -822,7 +867,6 @@ static void DrawGroupWindow()
 }
 
 
-
 static void DrawPetWindow()
 {
 	if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
@@ -833,14 +877,14 @@ static void DrawPetWindow()
 
 		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.petWinTheme);
-		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinVis.showPetWindow, s_WindowFlags ))
+		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
 		{
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
 			float midX = (sizeX / 2);
 
 			if (ImGui::BeginTable("Pet", 2,
-				ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable))
+				ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable ))
 			{
 				ImGui::TableSetupColumn(petName, ImGuiTableColumnFlags_None, -1);
 				ImGui::TableSetupColumn("Buffs", ImGuiTableColumnFlags_None, -1);
@@ -853,7 +897,8 @@ static void DrawPetWindow()
 
 				// Pet Target Section
 				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 0),
-					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY,
+					ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 				{
 					if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
 					{
@@ -888,7 +933,7 @@ static void DrawPetWindow()
 				//Pet Buttons Section
 
 				if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
-					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+					ImGuiChildFlags_Border , ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 					DisplayPetButtons();
 
 				ImGui::EndChild();
@@ -897,7 +942,7 @@ static void DrawPetWindow()
 				ImGui::TableNextColumn();
 				
 				if (ImGui::BeginChild("PetBuffs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), 
-					ImGuiChildFlags_Border | ImGuiWindowFlags_NoScrollbar))
+					ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
 					pSpellInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 				
 				ImGui::EndChild();
@@ -912,9 +957,10 @@ static void DrawPetWindow()
 
 }
 
+
 static void DrawSpellWindow()
 {
-	if (!s_WinVis.showSpellsWindow)
+	if (!s_WinSettings.showSpellsWindow)
 		return;
 
 	if (s_IsCaster)
@@ -922,13 +968,15 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowSize(ImVec2(100, 350), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 	
-		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinVis.showSpellsWindow, s_WindowFlags))
+		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
+			s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			pSpellInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 		}
 		ImGui::End();
 		PopTheme(popCounts);
 	}
+
 	if (pCastingWnd && pCastingWnd->IsVisible())
 	{
 		if (!s_IsCasting)
@@ -941,7 +989,7 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 		if (ImGui::Begin("Casting##MQ2GrimGUI", &s_IsCasting,
-			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar))
+			s_WinLockFlags | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
 			EQ_Spell* pSpell = GetSpellByName(spellName);
@@ -978,13 +1026,13 @@ static void DrawSpellWindow()
 
 static void DrawBuffWindow()
 {
-	if (!s_WinVis.showBuffWindow)
+	if (!s_WinSettings.showBuffWindow)
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
-	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinVis.showBuffWindow,
-		s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
+	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow,
+		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
 		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
 
 	PopTheme(popCounts);
@@ -992,28 +1040,30 @@ static void DrawBuffWindow()
 
 }
 
+
 static void DrawSongWindow()
 {
-	if (!s_WinVis.showSongWindow)
+	if (!s_WinSettings.showSongWindow)
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.songWinTheme);
-	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinVis.showSongWindow,
-		s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
+	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinSettings.showSongWindow,
+		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
 		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
 	
 	PopTheme(popCounts);
 	ImGui::End();
 }
 
+
 static void DrawConfigWindow()
 {
-	if (!s_WinVis.showConfigWindow)
+	if (!s_WinSettings.showConfigWindow)
 		return;
 
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("Config##ConfigWindow", &s_WinVis.showConfigWindow, s_WindowFlags))
+	if (ImGui::Begin("Config##ConfigWindow", &s_WinSettings.showConfigWindow, s_WindowFlags))
 	{
 		int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 
@@ -1130,7 +1180,7 @@ static void DrawConfigWindow()
 		{
 
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
-			int col = sizeX / 200;
+			int col = sizeX / 220;
 			if (col < 1)
 				col = 1;
 			
@@ -1160,11 +1210,17 @@ static void DrawConfigWindow()
 
 		if (ImGui::CollapsingHeader("Window Settings Toggles"))
 		{
-			if (ImGui::Checkbox("Show Title Bars", &s_WinVis.showTitleBars))
-				s_WindowFlags = s_WinVis.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
+			if (ImGui::Checkbox("Show Title Bars", &s_WinSettings.showTitleBars))
+				s_WindowFlags = s_WinSettings.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
 			
 			ImGui::SameLine();
 			DrawHelpIcon("Show Title Bars");
+
+			if (ImGui::Checkbox("Lock Windows", &s_WinSettings.lockWindows))
+				s_WinLockFlags = s_WinSettings.lockWindows ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+			ImGui::SameLine();
+			DrawHelpIcon("Lock Windows");
 		}
 		ImGui::Spacing();
 
@@ -1198,7 +1254,7 @@ static void DrawConfigWindow()
 		{
 			// only Save when the user clicks the button. 
 			// If they close the window and don't click the button the settings will not be saved and only be temporary.
-			s_WinVis.showConfigWindow = false;
+			s_WinSettings.showConfigWindow = false;
 			SaveSettings();
 		}
 	}
@@ -1209,10 +1265,10 @@ static void DrawConfigWindow()
 // Main Window, toggled with /Grimgui command, contains Toggles to show other windows
 static void DrawMainWindow()
 {
-	if (s_WinVis.showMainWindow)
+	if (s_WinSettings.showMainWindow)
 	{
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("GrimGUI##MainWindow", &s_WinVis.showMainWindow, s_WindowFlags))
+		if (ImGui::Begin("GrimGUI##MainWindow", &s_WinSettings.showMainWindow))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int col = 1;
@@ -1237,7 +1293,7 @@ static void DrawMainWindow()
 			ImGui::Separator();
 
 			if (ImGui::Button("Config"))
-				s_WinVis.showConfigWindow = true;
+				s_WinSettings.showConfigWindow = true;
 
 		}
 		ImGui::End();
@@ -1254,6 +1310,12 @@ PLUGIN_API void OnPulse()
 	auto now = std::chrono::steady_clock::now();
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
+		if (s_ShowOutOfGame)
+			s_ShowOutOfGame = false; // reset incase we logged back in. =)
+
+		if (!s_CharIniLoaded)
+			UpdateSettingFile();
+
 		if (now - g_LastUpdateTime >= g_UpdateInterval)
 		{
 			if (pAggroInfo)
@@ -1267,144 +1329,153 @@ PLUGIN_API void OnPulse()
 					s_SecondAggroName = "Unknown";
 			}
 
+			GetHeading();
+
 			g_LastUpdateTime = now;
 		}
 
+		// update buff flash timers
 		if (s_NumSettings.flashBuffInterval > 0)
 		{
 			if (now - g_LastBuffFlashTime >= std::chrono::milliseconds(500 - s_NumSettings.flashBuffInterval))
 			{
-				s_WinVis.flashTintFlag = !s_WinVis.flashTintFlag;
+				s_WinSettings.flashTintFlag = !s_WinSettings.flashTintFlag;
 				g_LastBuffFlashTime = now;
 			}
 		}
 		else
 		{
-			s_WinVis.flashTintFlag = false;
+			s_WinSettings.flashTintFlag = false;
 		}
 
+		// update combat flash timers
 		if (s_NumSettings.combatFlashInterval > 0)
 		{
 			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - s_NumSettings.combatFlashInterval))
 			{
-				s_WinVis.flashCombatFlag = !s_WinVis.flashCombatFlag;
+				s_WinSettings.flashCombatFlag = !s_WinSettings.flashCombatFlag;
 				g_LastFlashTime = now;
 			}
 		}
 		else
 		{
-			s_WinVis.flashCombatFlag = false;
+			s_WinSettings.flashCombatFlag = false;
 		}
-
-		GetHeading();
 
 		if (pSpellPicker->SelectedSpell)
 		{
 			s_MemSpellName = pSpellPicker->SelectedSpell->Name;
-
 			std::string memCommand = std::to_string(s_MemGemIndex) + " \"" + s_MemSpellName + "\"";
-
-			WriteChatf("MemSpell: %s", memCommand.c_str());
 			MemSpell(pLocalPlayer, memCommand.c_str());
 			pSpellPicker->ClearSelection();
 			s_MemGemIndex = 0;
 		}
 	}
-
-	UpdateSettingFile();
+	else
+	{
+		UpdateSettingFile();
+	}
 }
+
 
 PLUGIN_API void OnUpdateImGui()
 {
-	// Draw the GUI elements
+	// Windows that can be shown out of game or in game. 
+	// Main Toggle window for other windows and Config window.
+	// This way you can at least configure coloring and sizing as well as your default set of windows. 
+	// The out of game ini file is for building new character ini's whtn they do not exist.
+	if (s_WinSettings.showMainWindow && (s_ShowOutOfGame || GetGameState() == GAMESTATE_INGAME))
+	{
+		DrawMainWindow();
 
+		if (!s_WinSettings.showMainWindow)
+		{
+			WritePrivateProfileBool("Settings", "ShowMainGui", s_WinSettings.showMainWindow, &s_SettingsFile[0]);
+			if (s_ShowOutOfGame)
+				s_ShowOutOfGame = false;
+		}
+	}
+
+	if (s_WinSettings.showConfigWindow)
+		DrawConfigWindow();
+
+	// ImGame windows only.
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
-		if (s_WinVis.showMainWindow)
-		{
-			DrawMainWindow();
-
-			if (!s_WinVis.showMainWindow)
-				WritePrivateProfileBool("Settings", "ShowMainGui", s_WinVis.showMainWindow, &s_SettingsFile[0]);
-		}
-
-		if (s_WinVis.showConfigWindow)
-			DrawConfigWindow();
-
 		// Player Window (also target if not split)
-		if (s_WinVis.showPlayerWindow)
+		if (s_WinSettings.showPlayerWindow)
 		{
 			DrawPlayerWindow();
 
-			if (!s_WinVis.showPlayerWindow)
-				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinVis.showPlayerWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showPlayerWindow)
+				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinSettings.showPlayerWindow, &s_SettingsFile[0]);
 		}
 
 		// Pet Window
-		if (s_WinVis.showPetWindow)
+		if (s_WinSettings.showPetWindow)
 		{
-
 			DrawPetWindow();
 
-			if (!s_WinVis.showPetWindow)
-				WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinVis.showPetWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showPetWindow)
+				WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinSettings.showPetWindow, &s_SettingsFile[0]);
 		}
 
 		//Buff Window
-		if (s_WinVis.showBuffWindow)
+		if (s_WinSettings.showBuffWindow)
 		{
 			DrawBuffWindow();
 
-			if (!s_WinVis.showBuffWindow)
-				WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinVis.showBuffWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showBuffWindow)
+				WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinSettings.showBuffWindow, &s_SettingsFile[0]);
 		}
 
 		// Song Window
-		if (s_WinVis.showSongWindow)
+		if (s_WinSettings.showSongWindow)
 		{
 			DrawSongWindow();
 
-			if (!s_WinVis.showSongWindow)
-				WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinVis.showSongWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showSongWindow)
+				WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinSettings.showSongWindow, &s_SettingsFile[0]);
 		}
 		
 		// Split Target Window
-		if (s_WinVis.showTargetWindow)
+		if (s_WinSettings.showTargetWindow)
 		{
 			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
 			int popCountsPlay = PushTheme(s_WinTheme.playerWinTheme);
-			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_WinVis.showTargetWindow, s_WindowFlags))
+			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_WinSettings.showTargetWindow, s_WindowFlags | s_WinLockFlags))
 				DrawTargetWindow();
 			
 			PopTheme(popCountsPlay);
 			ImGui::End();
 
-			if (!s_WinVis.showTargetWindow)
-				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinVis.showTargetWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showTargetWindow)
+				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
 		}
 
 		// Group Window
-		if (s_WinVis.showGroupWindow)
+		if (s_WinSettings.showGroupWindow)
 		{
 			DrawGroupWindow();
 
-			if (!s_WinVis.showGroupWindow)
-				WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinVis.showGroupWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showGroupWindow)
+				WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinSettings.showGroupWindow, &s_SettingsFile[0]);
 		}
 
 		// Spell Window
-		if (s_WinVis.showSpellsWindow)
+		if (s_WinSettings.showSpellsWindow)
 		{
 			DrawSpellWindow();
 
-			if (!s_WinVis.showSpellsWindow)
-				WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, &s_SettingsFile[0]);
+			if (!s_WinSettings.showSpellsWindow)
+				WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinSettings.showSpellsWindow, &s_SettingsFile[0]);
 		}
 
 		// Spell Picker
 		if (pSpellPicker)
 			pSpellPicker->DrawSpellPicker();
 	}
+	
 }
 
 /**
@@ -1424,19 +1495,17 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	if (!pSpellInspector)
 		pSpellInspector = new GrimGui::SpellsInspector();
 
-	if (pSpellPicker == nullptr)
+	if (!pSpellPicker)
 		pSpellPicker = new SpellPicker();
 
 	// check settings file, if logged in use character specific INI else default
 	UpdateSettingFile();
 
-	//load settings
-	LoadSettings();
-	SaveSettings();
-
-	if (!s_WinVis.showTitleBars)
+	if (!s_WinSettings.showTitleBars)
 		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
 
+	if (s_WinSettings.lockWindows)
+		s_WinLockFlags = ImGuiWindowFlags_NoMove;
 }
 
 /**
@@ -1453,19 +1522,18 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 */
 PLUGIN_API void OnUnloadPlugin(const char* Name)
 {
-	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
-	RemoveCommand("/grimgui");
-	SaveSettings();
+	DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
+	RemoveCommand("/grimui");
 }
 
 PLUGIN_API void InitializePlugin()
 {
 	DebugSpewAlways("Initializing MQ2GrimGUI");
-	AddCommand("/grimgui", GrimCommandHandler, false, true, true);
+	AddCommand("/grimgui", GrimCommandHandler, false, true, false);
 	PrintGrimHelp();
 	pSpellInspector = new GrimGui::SpellsInspector();
 	pSpellPicker = new SpellPicker();
-
+	UpdateSettingFile();
 }
 
 PLUGIN_API void ShutdownPlugin()

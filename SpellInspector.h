@@ -166,7 +166,7 @@ namespace GrimGui {
 						int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 						if (secondsLeft < 18 && !petBuffs)
 						{
-							if (s_WinVis.flashTintFlag)
+							if (s_WinSettings.flashTintFlag)
 								tintCol = MQColor(0, 0, 0, 255);
 
 						}
@@ -257,7 +257,7 @@ namespace GrimGui {
 					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 					if (secondsLeft < 18 && !petBuffs)
 					{
-						if (s_WinVis.flashTintFlag)
+						if (s_WinSettings.flashTintFlag)
 							tintCol = MQColor(0, 0, 0, 255);
 					}
 
@@ -295,6 +295,8 @@ namespace GrimGui {
 				}
 			}
 		}
+
+		// Spell Bar
 
 		bool IsGemReady(int ID)
 		{

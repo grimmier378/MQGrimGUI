@@ -1,7 +1,7 @@
 #pragma once
 #include "mq/base/Color.h"
 
-extern struct WinVisSettings s_WinVis;
+extern struct WinSettings s_WinSettings;
 extern struct NumericSettings s_NumSettings;
 extern class SpellPicker* pSpellPicker;
 extern std::string s_MemSpellName;
@@ -12,39 +12,41 @@ extern bool s_MemSpell;
 
 #pragma region Window Visibility Settings
 
-struct WinVisSettings
+struct WinSettings
 {
-	bool showMainWindow = true;
-	bool showConfigWindow = false;
-	bool showPetWindow = false;
-	bool showPlayerWindow = false;
-	bool showGroupWindow = false;
-	bool showSpellsWindow = false;
-	bool showTargetWindow = false;
-	bool showBuffWindow = false;
-	bool showSongWindow = false;
-	bool flashCombatFlag = false;
-	bool flashTintFlag = false;
-	bool showTitleBars = true;
-} s_WinVis;
+	bool showMainWindow			= true;
+	bool showConfigWindow		= false;
+	bool showPetWindow			= false;
+	bool showPlayerWindow		= false;
+	bool showGroupWindow		= false;
+	bool showSpellsWindow		= false;
+	bool showTargetWindow		= false;
+	bool showBuffWindow			= false;
+	bool showSongWindow			= false;
+	bool flashCombatFlag		= false;
+	bool flashTintFlag			= false;
+	bool showTitleBars			= true;
+	bool lockWindows			= false;
+} s_WinSettings;
 
-struct WinVisSetting
+struct WinSetting
 {
 	const char* section;
 	const char* key;
 	bool* setting;
 };
 
-std::vector<WinVisSetting> winVisSettings = {
-	{"Settings", "ShowMainGui", &s_WinVis.showMainWindow},
-	{"Settings", "ShowTitleBars", &s_WinVis.showTitleBars},
-	{"PlayerTarg", "SplitTarget", &s_WinVis.showTargetWindow},
-	{"PlayerTarg", "ShowPlayerWindow", &s_WinVis.showPlayerWindow},
-	{"Pet", "ShowPetWindow", &s_WinVis.showPetWindow},
-	{"Group", "ShowGroupWindow", &s_WinVis.showGroupWindow},
-	{"Spells", "ShowSpellsWindow", &s_WinVis.showSpellsWindow},
-	{"Buffs", "ShowBuffWindow", &s_WinVis.showBuffWindow},
-	{"Songs", "ShowSongWindow", &s_WinVis.showSongWindow}
+std::vector<WinSetting> winSettings = {
+	{"Settings",	"ShowMainGui",			&s_WinSettings.showMainWindow},
+	{"Settings",	"ShowTitleBars",		&s_WinSettings.showTitleBars},
+	{"Settings",	"LockWindows",			&s_WinSettings.lockWindows},
+	{"PlayerTarg",	"SplitTarget",			&s_WinSettings.showTargetWindow},
+	{"PlayerTarg",	"ShowPlayerWindow",		&s_WinSettings.showPlayerWindow},
+	{"Pet",			"ShowPetWindow",		&s_WinSettings.showPetWindow},
+	{"Group",		"ShowGroupWindow",		&s_WinSettings.showGroupWindow},
+	{"Spells",		"ShowSpellsWindow",		&s_WinSettings.showSpellsWindow},
+	{"Buffs",		"ShowBuffWindow",		&s_WinSettings.showBuffWindow},
+	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow}
 };
 
 #pragma endregion
@@ -54,17 +56,17 @@ std::vector<WinVisSetting> winVisSettings = {
 
 struct NumericSettings
 {
-	int combatFlashInterval = 100;
-	int flashBuffInterval = 40;
-	int playerBarHeight = 15;
-	int targetBarHeight = 15;
-	int aggroBarHeight = 10;
-	int groupBarHeight = 15;
-	int myAggroPct = 0;
-	int secondAggroPct = 0;
-	int buffIconSize = 24;
-	int buffTimerThreshold = 0;
-	int spellGemHeight = 32;
+	int combatFlashInterval			= 100;
+	int flashBuffInterval			= 40;
+	int playerBarHeight				= 15;
+	int targetBarHeight				= 15;
+	int aggroBarHeight				= 10;
+	int groupBarHeight				= 15;
+	int myAggroPct					= 0;
+	int secondAggroPct				= 0;
+	int buffIconSize				= 24;
+	int buffTimerThreshold			= 0;
+	int spellGemHeight				= 32;
 } s_NumSettings;
 
 struct NumericSetting
@@ -75,15 +77,15 @@ struct NumericSetting
 };
 
 std::vector<NumericSetting> numericSettings = {
-	{"PlayerTarg", "CombatFlashInterval", &s_NumSettings.combatFlashInterval},
-	{"PlayerTarg", "PlayerBarHeight", &s_NumSettings.playerBarHeight},
-	{"PlayerTarg", "TargetBarHeight", &s_NumSettings.targetBarHeight},
-	{"PlayerTarg", "AggroBarHeight", &s_NumSettings.aggroBarHeight},
-	{"Settings", "BuffIconSize", &s_NumSettings.buffIconSize},
-	{"Settings", "FlashBuffInterval", &s_NumSettings.flashBuffInterval},
-	{"Buffs", "BuffTimerThreshold", &s_NumSettings.buffTimerThreshold},
-	{"Group", "GroupBarHeight", &s_NumSettings.groupBarHeight},
-	{"Spells", "SpellGemHeight",&s_NumSettings.spellGemHeight},
+	{"PlayerTarg",		"CombatFlashInterval",		&s_NumSettings.combatFlashInterval},
+	{"PlayerTarg",		"PlayerBarHeight",			&s_NumSettings.playerBarHeight},
+	{"PlayerTarg",		"TargetBarHeight",			&s_NumSettings.targetBarHeight},
+	{"PlayerTarg",		"AggroBarHeight",			&s_NumSettings.aggroBarHeight},
+	{"Settings",		"BuffIconSize",				&s_NumSettings.buffIconSize},
+	{"Settings",		"FlashBuffInterval",		&s_NumSettings.flashBuffInterval},
+	{"Buffs",			"BuffTimerThreshold",		&s_NumSettings.buffTimerThreshold},
+	{"Group",			"GroupBarHeight",			&s_NumSettings.groupBarHeight},
+	{"Spells",			"SpellGemHeight",			&s_NumSettings.spellGemHeight},
 };
 
 #pragma endregion
@@ -93,12 +95,12 @@ std::vector<NumericSetting> numericSettings = {
 
 struct ThemeSettings
 {
-	std::string playerWinTheme = "Default";
-	std::string petWinTheme = "Default";
-	std::string groupWinTheme = "Default";
-	std::string spellsWinTheme = "Default";
-	std::string buffsWinTheme = "Default";
-	std::string songWinTheme = "Default";
+	std::string playerWinTheme			= "Default";
+	std::string petWinTheme				= "Default";
+	std::string groupWinTheme			= "Default";
+	std::string spellsWinTheme			= "Default";
+	std::string buffsWinTheme			= "Default";
+	std::string songWinTheme			= "Default";
 } s_WinTheme;
 
 struct ThemeSetting
@@ -109,25 +111,25 @@ struct ThemeSetting
 };
 
 std::vector<ThemeSetting> themeSettings = {
-	{"PlayerTarg", "Theme", &s_WinTheme.playerWinTheme},
-	{"Pet", "Theme", &s_WinTheme.petWinTheme},
-	{"Group", "Theme", &s_WinTheme.groupWinTheme},
-	{"Spells", "Theme", &s_WinTheme.spellsWinTheme},
-	{"Buffs", "Theme", &s_WinTheme.buffsWinTheme},
-	{"Songs", "Theme", &s_WinTheme.songWinTheme}
+	{"PlayerTarg",	"Theme",	&s_WinTheme.playerWinTheme},
+	{"Pet",			"Theme",	&s_WinTheme.petWinTheme},
+	{"Group",		"Theme",	&s_WinTheme.groupWinTheme},
+	{"Spells",		"Theme",	&s_WinTheme.spellsWinTheme},
+	{"Buffs",		"Theme",	&s_WinTheme.buffsWinTheme},
+	{"Songs",		"Theme",	&s_WinTheme.songWinTheme}
 };
 
 
 struct ColorSettings
 {
-	mq::MQColor minColorHP = mq::MQColor(223, 87, 255, 255);
-	mq::MQColor maxColorHP = mq::MQColor(216, 39, 39, 255);
-	mq::MQColor minColorMP = mq::MQColor(66, 29, 131, 255);
-	mq::MQColor maxColorMP = mq::MQColor(20, 119, 216, 255);
-	mq::MQColor minColorEnd = mq::MQColor(255, 111, 5, 255);
-	mq::MQColor maxColorEnd = mq::MQColor(178, 153, 26, 178);
-	mq::MQColor minColorCast = mq::MQColor(216, 39, 39, 255);
-	mq::MQColor maxColorCast = mq::MQColor(20, 119, 216, 255);
+	mq::MQColor minColorHP		= mq::MQColor(223, 87, 255, 255);
+	mq::MQColor maxColorHP		= mq::MQColor(216, 39, 39, 255);
+	mq::MQColor minColorMP		= mq::MQColor(66, 29, 131, 255);
+	mq::MQColor maxColorMP		= mq::MQColor(20, 119, 216, 255);
+	mq::MQColor minColorEnd		= mq::MQColor(255, 111, 5, 255);
+	mq::MQColor maxColorEnd		= mq::MQColor(178, 153, 26, 178);
+	mq::MQColor minColorCast	= mq::MQColor(216, 39, 39, 255);
+	mq::MQColor maxColorCast	= mq::MQColor(20, 119, 216, 255);
 } s_BarColors;
 
 struct ColorSetting
@@ -138,14 +140,14 @@ struct ColorSetting
 };
 
 std::vector<ColorSetting> colorSettings = {
-	{"Colors", "MinColorHP", &s_BarColors.minColorHP},
-	{"Colors", "MaxColorHP", &s_BarColors.maxColorHP},
-	{"Colors", "MinColorMP", &s_BarColors.minColorMP},
-	{"Colors", "MaxColorMP", &s_BarColors.maxColorMP},
-	{"Colors", "MinColorEnd", &s_BarColors.minColorEnd},
-	{"Colors", "MaxColorEnd", &s_BarColors.maxColorEnd},
-	{"Colors", "MinColorCast", &s_BarColors.minColorCast},
-	{"Colors", "MaxColorCast", &s_BarColors.maxColorCast}
+	{"Colors",	 "MinColorHP",		&s_BarColors.minColorHP},
+	{"Colors",	 "MaxColorHP",		&s_BarColors.maxColorHP},
+	{"Colors",	 "MinColorMP",		&s_BarColors.minColorMP},
+	{"Colors",	 "MaxColorMP",		&s_BarColors.maxColorMP},
+	{"Colors",	 "MinColorEnd",		&s_BarColors.minColorEnd},
+	{"Colors",	 "MaxColorEnd",		&s_BarColors.maxColorEnd},
+	{"Colors",	 "MinColorCast",	&s_BarColors.minColorCast},
+	{"Colors",	 "MaxColorCast",	&s_BarColors.maxColorCast}
 };
 
 #pragma region Color utility functions
@@ -177,17 +179,17 @@ ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColo
 		if (value > midValue)
 		{
 			float proportion = static_cast<float>(value - midValue) / (100 - midValue);
-			r = toFloat(midColor->Red) + proportion * (toFloat(maxColor.Red) - toFloat(midColor->Red));
+			r = toFloat(midColor->Red)   + proportion * (toFloat(maxColor.Red)   - toFloat(midColor->Red));
 			g = toFloat(midColor->Green) + proportion * (toFloat(maxColor.Green) - toFloat(midColor->Green));
-			b = toFloat(midColor->Blue) + proportion * (toFloat(maxColor.Blue) - toFloat(midColor->Blue));
+			b = toFloat(midColor->Blue)  + proportion * (toFloat(maxColor.Blue)  - toFloat(midColor->Blue));
 			a = toFloat(midColor->Alpha) + proportion * (toFloat(maxColor.Alpha) - toFloat(midColor->Alpha));
 		}
 		else
 		{
 			float proportion = static_cast<float>(value) / midValue;
-			r = toFloat(minColor.Red) + proportion * (toFloat(midColor->Red) - toFloat(minColor.Red));
+			r = toFloat(minColor.Red)   + proportion * (toFloat(midColor->Red)   - toFloat(minColor.Red));
 			g = toFloat(minColor.Green) + proportion * (toFloat(midColor->Green) - toFloat(minColor.Green));
-			b = toFloat(minColor.Blue) + proportion * (toFloat(midColor->Blue) - toFloat(minColor.Blue));
+			b = toFloat(minColor.Blue)  + proportion * (toFloat(midColor->Blue)  - toFloat(minColor.Blue));
 			a = toFloat(minColor.Alpha) + proportion * (toFloat(midColor->Alpha) - toFloat(minColor.Alpha));
 		}
 	}
@@ -195,9 +197,9 @@ ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColo
 	{
 		// Calculate between minColor and maxColor
 		float proportion = static_cast<float>(value) / 100;
-		r = toFloat(minColor.Red) + proportion * (toFloat(maxColor.Red) - toFloat(minColor.Red));
+		r = toFloat(minColor.Red)   + proportion * (toFloat(maxColor.Red)   - toFloat(minColor.Red));
 		g = toFloat(minColor.Green) + proportion * (toFloat(maxColor.Green) - toFloat(minColor.Green));
-		b = toFloat(minColor.Blue) + proportion * (toFloat(maxColor.Blue) - toFloat(minColor.Blue));
+		b = toFloat(minColor.Blue)  + proportion * (toFloat(maxColor.Blue)  - toFloat(minColor.Blue));
 		a = toFloat(minColor.Alpha) + proportion * (toFloat(maxColor.Alpha) - toFloat(minColor.Alpha));
 	}
 
@@ -289,6 +291,7 @@ MQColor GetConColor(int color_code)
 enum class GrimCommand
 {
 	Show,
+	Lock,
 	Player,
 	Target,
 	Pet,
@@ -307,18 +310,19 @@ struct CommandInfo
 	const char* description;
 };
 
-const std::array<CommandInfo, 10> commandList = {
+const std::array<CommandInfo, 11> commandList = {
 	{
-		{GrimCommand::Show, "show", "Toggles Main Window"},
-		{GrimCommand::Player, "player", "Toggles Player Window"},
-		{GrimCommand::Target, "target", "Toggles Target Window"},
-		{GrimCommand::Pet, "pet", "Toggles Pet Window"},
-		{GrimCommand::Group, "group", "Toggles Group Window"},
-		{GrimCommand::Spells, "spells", "Toggles Spells Window"},
-		{GrimCommand::Buffs, "buffs", "Toggles Buffs Window"},
-		{GrimCommand::Songs, "songs", "Toggles Songs Window"},
-		{GrimCommand::Config, "config", "Opens Configuration Window"},
-		{GrimCommand::Help, "help", "Displays this help message"}
+		{GrimCommand::Show,		"show",		"Toggles Main Window"},
+		{GrimCommand::Lock,		"lock",		"Toggles Window Lock"},
+		{GrimCommand::Player,	"player",	"Toggles Player Window"},
+		{GrimCommand::Target,	"target",	"Toggles Target Window"},
+		{GrimCommand::Pet,		"pet",		"Toggles Pet Window"},
+		{GrimCommand::Group,	"group",	"Toggles Group Window"},
+		{GrimCommand::Spells,	"spells",	"Toggles Spells Window"},
+		{GrimCommand::Buffs,	"buffs",	"Toggles Buffs Window"},
+		{GrimCommand::Songs,	"songs",	"Toggles Songs Window"},
+		{GrimCommand::Config,	"config",	"Opens Configuration Window"},
+		{GrimCommand::Help,		"help",		"Displays this help message"}
 	}
 };
 
@@ -335,20 +339,20 @@ struct PetButtonData
 };
 
 static std::vector<PetButtonData> petButtons = {
-	{"Attack", "/pet attack", true},
-	{"Sit", "/pet sit", true},
-	{"Follow", "/pet follow", true},
-	{"Hold", "/pet hold", true},
-	{"Taunt", "/pet taunt", true},
-	{"Guard", "/pet guard", true},
-	{"Back", "/pet back off", true},
-	{"Focus", "/pet focus", true},
-	{"Stop", "/pet stop", true},
-	{"Leave", "/pet get lost", true},
-	{"Regroup", "/pet regroup", true},
-	{"Report", "/pet report health", true},
-	{"Swarm", "/pet swarm", true},
-	{"Kill", "/pet kill", true},
+	{"Attack",		"/pet attack",			true},
+	{"Sit",			"/pet sit",				true},
+	{"Follow",		"/pet follow",			true},
+	{"Hold",		"/pet hold",			true},
+	{"Taunt",		"/pet taunt",			true},
+	{"Guard",		"/pet guard",			true},
+	{"Back",		"/pet back off",		true},
+	{"Focus",		"/pet focus",			true},
+	{"Stop",		"/pet stop",			true},
+	{"Leave",		"/pet get lost",		true},
+	{"Regroup",		"/pet regroup",			true},
+	{"Report",		"/pet report health",	true},
+	{"Swarm",		"/pet swarm",			true},
+	{"Kill",		"/pet kill",			true},
 };
 
 static void DisplayPetButtons()
@@ -401,13 +405,13 @@ struct WindowOption
 };
 
 WindowOption options[] = {
-	{"Player Win", &s_WinVis.showPlayerWindow, "PlayerTarg", "ShowPlayerWindow"},
-	{"Target Win", &s_WinVis.showTargetWindow, "PlayerTarg", "SplitTarget"},
-	{"Pet Win", &s_WinVis.showPetWindow, "Pet", "ShowPetWindow"},
-	{"Spells Win", &s_WinVis.showSpellsWindow, "Spells", "ShowSpellsWindow"},
-	{"Buff Win", &s_WinVis.showBuffWindow, "Buffs", "ShowBuffWindow"},
-	{"Song Win", &s_WinVis.showSongWindow, "Songs", "ShowSongWindow"},
-	{"Group Win", &s_WinVis.showGroupWindow, "Group", "ShowGroupWindow"},
+	{"Player Win",	&s_WinSettings.showPlayerWindow,	"PlayerTarg",	"ShowPlayerWindow"},
+	{"Target Win",	&s_WinSettings.showTargetWindow,	"PlayerTarg",	"SplitTarget"},
+	{"Pet Win",		&s_WinSettings.showPetWindow,		"Pet",			"ShowPetWindow"},
+	{"Spells Win",	&s_WinSettings.showSpellsWindow,	"Spells",		"ShowSpellsWindow"},
+	{"Buff Win",	&s_WinSettings.showBuffWindow,		"Buffs",		"ShowBuffWindow"},
+	{"Song Win",	&s_WinSettings.showSongWindow,		"Songs",		"ShowSongWindow"},
+	{"Group Win",	&s_WinSettings.showGroupWindow,		"Group",		"ShowGroupWindow"},
 
 };
 
@@ -422,15 +426,15 @@ struct SliderOption
 };
 
 SliderOption sliderOptions[] = {
-	{"Flash Speed", &s_NumSettings.combatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Flash Speed", &s_NumSettings.flashBuffInterval, 0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Icon Size", &s_NumSettings.buffIconSize, 10, 40, "Buff Icon Size"},
-	{"Buff Timer Threshold", &s_NumSettings.buffTimerThreshold, 0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
-	{"Player Bar Height", &s_NumSettings.playerBarHeight, 10, 40, "Player Bar Height"},
-	{"Target Bar Height", &s_NumSettings.targetBarHeight, 10, 40, "Target Bar Height"},
-	{"Aggro Bar Height", &s_NumSettings.aggroBarHeight, 10, 40, "Aggro Bar Height"},
-	{"Group Bar Height", &s_NumSettings.groupBarHeight, 10, 40, "Group Bar Height"},
-	{"Spell Gem Height", &s_NumSettings.spellGemHeight, 10, 100, "Spell Gem Height"}
+	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		10, 40, "Buff Icon Size"},
+	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		10, 40, "Player Bar Height"},
+	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		10, 40, "Target Bar Height"},
+	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		10, 40, "Aggro Bar Height"},
+	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		10, 40, "Group Bar Height"},
+	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		10, 100, "Spell Gem Height"}
 };
 
 
@@ -441,12 +445,12 @@ struct ThemeOption
 };
 
 ThemeOption themeOptions[] = {
-	{"PlayerWin", &s_WinTheme.playerWinTheme},
-	{"PetWin", &s_WinTheme.petWinTheme},
-	{"GroupWin", &s_WinTheme.groupWinTheme},
-	{"SpellsWin", &s_WinTheme.spellsWinTheme},
-	{"BuffsWin", &s_WinTheme.buffsWinTheme},
-	{"SongWin", &s_WinTheme.songWinTheme}
+	{"PlayerWin",	&s_WinTheme.playerWinTheme},
+	{"PetWin",		&s_WinTheme.petWinTheme},
+	{"GroupWin",	&s_WinTheme.groupWinTheme},
+	{"SpellsWin",	&s_WinTheme.spellsWinTheme},
+	{"BuffsWin",	&s_WinTheme.buffsWinTheme},
+	{"SongWin",		&s_WinTheme.songWinTheme}
 };
 
 #pragma endregion
