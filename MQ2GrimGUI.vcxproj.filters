@@ -15,7 +15,7 @@
     <ClCompile Include="MQ2GrimGUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AbilityPicker.cpp">
+    <ClCompile Include="SpellPicker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,7 +29,7 @@
     <ClInclude Include="Theme.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbilityPicker.h">
+    <ClInclude Include="SpellPicker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

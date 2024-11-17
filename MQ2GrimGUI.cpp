@@ -1,12 +1,13 @@
 #include <mq/Plugin.h>
 #include <imgui.h>
-#include "main/MQ2Main.h"
+#include "main/MQ2Globals.h"
+#include "main/MQ2Inlines.h"
 #include "imgui/fonts/IconsMaterialDesign.h"
 #include "imgui/fonts/IconsFontAwesome.h"
-#include <mq/imgui/Widgets.h>
 #include <chrono>
 #include <string>
 #include <filesystem>
+#include "SpellPicker.h"
 #include "MQ2GrimGUI.h"
 #include "Theme.h"
 
@@ -190,6 +191,12 @@ static ImGuiChildFlags s_ChildFlags = ImGuiChildFlags_None;
 static const char* s_SecondAggroName = "Unknown";
 static const char* s_CurrHeading = "N";
 static int s_TarBuffLineSize = 0;
+
+SpellPicker* pSpellPicker = new SpellPicker;
+
+static bool s_MemSpell = false;
+std::string s_MemSpellName;
+static int s_MemGemIndex = 0;
 
 #pragma endregion
 
@@ -450,7 +457,8 @@ static void UpdateSettingFile()
 				s_CharIniLoaded = true;
 				if (GetMaxMana() > 0)
 					s_IsCaster = true;
-			}			
+			}		
+			pSpellPicker->InitializeSpells();
 		}
 	}
 	else
@@ -464,6 +472,7 @@ static void UpdateSettingFile()
 			s_DefaultLoaded = true;
 			s_IsCaster = false;
 		}
+		pSpellPicker->~SpellPicker();
 	}
 }
 
@@ -1433,6 +1442,21 @@ PLUGIN_API void OnPulse()
 
 		GetHeading();
 
+
+		if (pSpellPicker->SelectedSpell)
+		{
+			s_MemSpellName = pSpellPicker->SelectedSpell->Name;
+		
+		//std::string memCommand = "/memspell " + std::to_string(s_MemGemIndex + 1) + " \"" + s_MemSpellName + "\"";
+			std::string memCommand = std::to_string(s_MemGemIndex) + " \"" + s_MemSpellName + "\"";
+			WriteChatf("MemSpell: %s", memCommand.c_str());
+			MemSpell(pLocalPlayer, memCommand.c_str());
+			pSpellPicker->ClearSelection();
+			s_MemGemIndex = 0;
+		}
+			
+
+
 	}
 
 	UpdateSettingFile();
@@ -1524,6 +1548,10 @@ PLUGIN_API void OnUpdateImGui()
 			if (!s_WinVis.showSpellsWindow)
 				WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinVis.showSpellsWindow, &s_SettingsFile[0]);
 		}
+
+		// Spell Picker
+		if (pSpellPicker)
+			pSpellPicker->DrawSpellPicker();
 	}
 }
 
@@ -1582,6 +1610,9 @@ PLUGIN_API void ShutdownPlugin()
 {
 	DebugSpewAlways("Shutting down MQ2GrimGUI");
 	RemoveCommand("/grimui");
+	pSpellPicker = nullptr;
+	delete GrimGui::s_spellsInspector;
+	GrimGui::s_spellsInspector = nullptr;
 }
 
 #pragma endregion

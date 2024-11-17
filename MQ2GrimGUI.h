@@ -1,11 +1,14 @@
 #pragma once
 // MQ2GrimGUI.h
-#include <string>
-#include <imgui.h>
+#include <mq/imgui/Widgets.h>
 #include "mq/base/Color.h"
 
 extern struct WinVisSettings s_WinVis;
 extern struct NumericSettings s_NumSettings;
+extern class SpellPicker* pSpellPicker;
+extern std::string s_MemSpellName;
+extern int s_MemGemIndex;
+extern bool s_MemSpell;
 
 #pragma region Color utility functions
 
@@ -238,6 +241,7 @@ namespace GrimGui {
 		void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 		{
+
 			if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
 			{
 				int slotNum = 0;
@@ -311,9 +315,6 @@ namespace GrimGui {
 									pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
 #else
 								char buffer[512] = { 0 };
-								if (Index[0])
-									FormatSpellLink(buffer, 512, spell, Index);
-								else
 									FormatSpellLink(buffer, 512, spell);
 								TextTagInfo info = ExtractLink(buffer);
 								ExecuteTextLink(info);
@@ -360,12 +361,14 @@ namespace GrimGui {
 		void DrawBuffsIcons(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 		{
+			int Index = -1;
 			for (const auto& buffInfo : Buffs)
 			{
 				EQ_Spell* spell = buffInfo.GetSpell();
 				if (!spell)
 					continue;
 
+				Index++;
 				ImGui::PushID(buffInfo.GetIndex());
 
 				if (!m_pTASpellIcon)
@@ -418,9 +421,13 @@ namespace GrimGui {
 							pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
 #else
 						char buffer[512] = { 0 };
-						if (Index[0])
-							FormatSpellLink(buffer, 512, spell, Index);
-						else
+						//if (Index > -1)
+						//{
+						//	const char* Slot = std::to_string(Index);
+						//	FormatSpellLink(buffer, 512, spell, Slot);
+						//	Index = -1;
+						//}
+						//else
 							FormatSpellLink(buffer, 512, spell);
 						TextTagInfo info = ExtractLink(buffer);
 						ExecuteTextLink(info);
@@ -515,6 +522,21 @@ namespace GrimGui {
 						if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
 						{
 							pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
+						}
+						else if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
+						{
+							if (!pSpellPicker)
+							{
+								SpellPicker* pSpellPicker = new SpellPicker();
+								pSpellPicker->InitializeSpells();
+							}
+							pSpellPicker->SetOpen(true);
+							//if (pSpellPicker->SelectedSpell)
+							//{
+								s_MemGemIndex = i + 1;
+								//s_MemSpellName = pSpellPicker->SelectedSpell->Name.c_str();
+
+							//}
 						}
 					}
 				}

@@ -4,8 +4,8 @@
 #include <string>
 #include <filesystem>
 
-// Spell data structure
-struct SpellData {
+struct SpellData
+{
 	int ID;
 	std::string Name;
 	std::string RankName;
@@ -14,32 +14,29 @@ struct SpellData {
 	std::string TargetType;
 };
 
-// AbilityPicker class
-class AbilityPicker {
+class SpellPicker
+{
 	CTextureAnimation* m_pSpellIcon = nullptr;
 
 public:
-	AbilityPicker();
-	~AbilityPicker();
+	SpellPicker();
+	~SpellPicker();
 
-	// Main methods
 	void InitializeSpells();
-	void DrawAbilityPicker();
+	void DrawSpellPicker();
 	void SetOpen(bool open);
 	void ClearSelection();
+	void DrawSpellTree();
 
 	// Selected spell
 	std::shared_ptr<SpellData> SelectedSpell;
 
 private:
 	void PopulateSpellData();
-	void DrawSpellTree();
 	void CleanupIcons();
 
-	// Data
 	std::vector<SpellData> Spells;
 
-	// State
 	bool Open = false;
 	std::string Filter;
 };
