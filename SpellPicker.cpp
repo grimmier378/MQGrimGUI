@@ -35,100 +35,65 @@ void SpellPicker::DrawSpellTree()
 
 	if (ImGui::TreeNode("Spells"))
 	{
-		std::string lastCategory;
-		std::string lastSubCategory;
-		bool categoryNodeOpen = false;
-		bool subCategoryNodeOpen = false;
+		// since this is conversion from the lua lets follow the example
+		// make the table layout the same first
+		std::unordered_map<std::string, std::unordered_map<std::string, std::vector<SpellData>>> categorizedSpells;
 
 		for (const auto& spell : Spells)
 		{
 			if (!Filter.empty() && mq::ci_find_substr(spell.Name, Filter) == -1)
 				continue;
 
-			// Handle Category TreeNode
-			if (spell.Category != lastCategory)
-			{
-				if (subCategoryNodeOpen)
-				{
-					ImGui::TreePop();
-					subCategoryNodeOpen = false;
-				}
-				if (categoryNodeOpen)
-				{
-					ImGui::TreePop();
-					categoryNodeOpen = false;
-				}
-
-				lastCategory = spell.Category;
-				if (ImGui::TreeNode(lastCategory.c_str()))
-				{
-					categoryNodeOpen = true;
-					lastSubCategory.clear();
-				}
-				else
-				{
-					// Skip this category if collapsed
-					lastCategory.clear();
-					continue;
-				}
-			}
-
-			// Handle SubCategory TreeNode
-			if (spell.SubCategory != lastSubCategory)
-			{
-				if (subCategoryNodeOpen)
-				{
-					ImGui::TreePop();
-					subCategoryNodeOpen = false;
-				}
-
-				lastSubCategory = spell.SubCategory;
-				if (ImGui::TreeNode(lastSubCategory.c_str()))
-				{
-					subCategoryNodeOpen = true;
-				}
-				else
-				{
-					lastSubCategory.clear();
-					continue;
-				}
-			}
-
-			// Draw spell entry
-			ImGui::PushID(spell.ID);
-			ImGui::BeginGroup();
-
-			m_pSpellIcon->SetCurCell(spell.Icon);
-			imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
-
-			ImGui::SameLine();
-
-			if (ImGui::Selectable(spell.Name.c_str()))
-			{
-				SelectedSpell = std::make_shared<SpellData>(spell);
-				Open = false;
-			}
-
-			ImGui::SameLine();
-			ImGui::Text("Level: %d", spell.Level);
-
-			ImGui::EndGroup();
-			ImGui::PopID();
-
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::BeginTooltip();
-				ImGui::Text("Name: %s", spell.Name.c_str());
-				ImGui::Text("Level: %d", spell.Level);
-				ImGui::Text("Rank: %s", spell.RankName.c_str());
-				ImGui::EndTooltip();
-			}
+			categorizedSpells[spell.Category][spell.SubCategory].push_back(spell);
 		}
 
-		if (subCategoryNodeOpen)
-			ImGui::TreePop();
-		if (categoryNodeOpen)
-			ImGui::TreePop();
+		for (const auto& [categoryName, subCategories] : categorizedSpells)
+		{
+			if (ImGui::TreeNode(categoryName.c_str())) 
+			{
+				for (const auto& [subCategoryName, spells] : subCategories)
+				{
+					if (ImGui::TreeNode(subCategoryName.c_str()))
+					{
+						for (const auto& spell : spells)
+						{
+							ImGui::PushID(spell.ID);
+							ImGui::BeginGroup();
+
+							m_pSpellIcon->SetCurCell(spell.Icon);
+							imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
+
+							ImGui::SameLine();
+
+							if (ImGui::Selectable(spell.Name.c_str()))
+							{
+								SelectedSpell = std::make_shared<SpellData>(spell);
+								Open = false;
+							}
+
+							ImGui::SameLine();
+							ImGui::Text("Level: %d", spell.Level);
+
+							ImGui::EndGroup();
+							ImGui::PopID();
+
+							if (ImGui::IsItemHovered())
+							{
+								ImGui::BeginTooltip();
+								ImGui::Text("Name: %s", spell.Name.c_str());
+								ImGui::Text("Level: %d", spell.Level);
+								ImGui::Text("Rank: %s", spell.RankName.c_str());
+								ImGui::EndTooltip();
+							}
+						}
+
+						ImGui::TreePop(); 
+					}
+				}
+
+				ImGui::TreePop(); 
+			}
+		}
 
 		ImGui::TreePop();
 	}
