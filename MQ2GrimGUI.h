@@ -156,19 +156,19 @@ namespace GrimGui {
 
 		~SpellsInspector()
 		{
-			if (m_pTASpellIcon)
+			if (m_pTASpellIcon = nullptr)
 			{
 				delete m_pTASpellIcon;
 				m_pTASpellIcon = nullptr;
 			}
 
-			if (m_pGemBackground)
+			if (m_pGemBackground != nullptr)
 			{
 				delete m_pGemBackground;
 				m_pGemBackground = nullptr;
 			}
 
-			if (m_pGemHolder)
+			if (m_pGemHolder = nullptr)
 			{
 				delete m_pGemHolder;
 				m_pGemHolder = nullptr;
@@ -525,18 +525,11 @@ namespace GrimGui {
 						}
 						else if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
 						{
-							if (!pSpellPicker)
+							if (pSpellPicker)
 							{
-								SpellPicker* pSpellPicker = new SpellPicker();
-								pSpellPicker->InitializeSpells();
-							}
-							pSpellPicker->SetOpen(true);
-							//if (pSpellPicker->SelectedSpell)
-							//{
+								pSpellPicker->SetOpen(true);
 								s_MemGemIndex = i + 1;
-								//s_MemSpellName = pSpellPicker->SelectedSpell->Name.c_str();
-
-							//}
+							}
 						}
 					}
 				}

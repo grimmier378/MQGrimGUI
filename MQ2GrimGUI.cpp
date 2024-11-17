@@ -192,7 +192,7 @@ static const char* s_SecondAggroName = "Unknown";
 static const char* s_CurrHeading = "N";
 static int s_TarBuffLineSize = 0;
 
-SpellPicker* pSpellPicker = new SpellPicker;
+SpellPicker* pSpellPicker = nullptr;
 
 static bool s_MemSpell = false;
 std::string s_MemSpellName;
@@ -1569,6 +1569,10 @@ PLUGIN_API void OnUpdateImGui()
 */
 PLUGIN_API void OnLoadPlugin(const char* Name)
 {
+	if (!GrimGui::s_spellsInspector)
+		GrimGui::s_spellsInspector = new GrimGui::SpellsInspector();
+	if (pSpellPicker == nullptr)
+		pSpellPicker = new SpellPicker();
 	// check settings file, if logged in use character specific INI else default
 	UpdateSettingFile();
 	//load settings
@@ -1577,6 +1581,7 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 
 	if (!s_WinVis.showTitleBars)
 		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
+
 }
 
 /**
@@ -1597,7 +1602,6 @@ PLUGIN_API void OnUnloadPlugin(const char* Name)
 	RemoveCommand("/grimgui");
 	SaveSettings();
 	pSpellPicker = nullptr;
-	delete GrimGui::s_spellsInspector;
 	GrimGui::s_spellsInspector = nullptr;
 }
 
@@ -1606,9 +1610,7 @@ PLUGIN_API void InitializePlugin()
 	DebugSpewAlways("Initializing MQ2GrimGUI");
 	AddCommand("/grimgui", GrimCommandHandler, false, true, true);
 	PrintGrimHelp();
-	GrimGui::s_spellsInspector = new GrimGui::SpellsInspector();
-	if (pSpellPicker == nullptr)
-		pSpellPicker = new SpellPicker();
+
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -1616,7 +1618,6 @@ PLUGIN_API void ShutdownPlugin()
 	DebugSpewAlways("Shutting down MQ2GrimGUI");
 	RemoveCommand("/grimui");
 	pSpellPicker = nullptr;
-	delete GrimGui::s_spellsInspector;
 	GrimGui::s_spellsInspector = nullptr;
 }
 

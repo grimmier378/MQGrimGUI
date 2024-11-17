@@ -1,3 +1,11 @@
+/** Spell Picker GUI
+* Original Author: Aquietone
+* Converted to C++ by: Grimmier
+* 
+* This is a conversion from Aquietone's Ability Picker lua to C++ for displaying and selecing spells in  your spell book
+* 
+* Displays your spell book information in a searchable tree, sorted by Category, Subcategory and Level (highest at top) 
+*/
 #include <mq/Plugin.h>
 #include <imgui.h>
 #include <mq/imgui/Widgets.h>
@@ -7,22 +15,6 @@
 #include "eqlib/Spells.h"
 #include <map>
 
-
-SpellPicker::SpellPicker()
-{
-	InitializeSpells();
-}
-
-SpellPicker::~SpellPicker()
-{
-	CleanupIcons();
-}
-
-void SpellPicker::InitializeSpells()
-{
-	Spells.clear();
-	PopulateSpellData();
-}
 
 void SpellPicker::DrawSpellTree()
 {
@@ -98,8 +90,6 @@ void SpellPicker::DrawSpellTree()
 		ImGui::TreePop();
 	}
 }
-
-
 
 void SpellPicker::DrawSpellPicker()
 {
@@ -366,21 +356,3 @@ void SpellPicker::PopulateSpellData()
 }
 
 
-void SpellPicker::SetOpen(bool open)
-{
-	Open = open;
-}
-
-void SpellPicker::ClearSelection()
-{
-	SelectedSpell.reset();
-}
-
-void SpellPicker::CleanupIcons()
-{
-	if (m_pSpellIcon)
-	{
-		delete m_pSpellIcon;
-		m_pSpellIcon = nullptr;
-	}
-}

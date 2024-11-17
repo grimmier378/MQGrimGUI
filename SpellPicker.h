@@ -20,21 +20,50 @@ class SpellPicker
 	CTextureAnimation* m_pSpellIcon = nullptr;
 
 public:
-	SpellPicker();
-	~SpellPicker();
 
-	void InitializeSpells();
 	void DrawSpellPicker();
-	void SetOpen(bool open);
-	void ClearSelection();
 	void DrawSpellTree();
+
+	SpellPicker()
+	{
+		InitializeSpells();
+	}
+
+	~SpellPicker()
+	{
+		CleanupIcons();
+	}
+
+	void InitializeSpells()
+	{
+		Spells.clear();
+		PopulateSpellData();
+	}
+
+	void SetOpen(bool open)
+	{
+		Open = open;
+	}
+
+	void ClearSelection()
+	{
+		SelectedSpell.reset();
+	}
+
 
 	// Selected spell
 	std::shared_ptr<SpellData> SelectedSpell;
 
 private:
 	void PopulateSpellData();
-	void CleanupIcons();
+	void CleanupIcons()
+	{
+		if (m_pSpellIcon)
+		{
+			delete m_pSpellIcon;
+			m_pSpellIcon = nullptr;
+		}
+	}
 
 	std::vector<SpellData> Spells;
 
