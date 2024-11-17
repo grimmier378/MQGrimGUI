@@ -204,6 +204,16 @@ static void GetHeading()
 	s_CurrHeading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
+const char* MaskName(const char* name)
+{
+	static char anonymizedName[32];
+	if (name && name[0] != '\0')
+		snprintf(anonymizedName, sizeof(anonymizedName), "%c****", name[0]);
+	else
+		snprintf(anonymizedName, sizeof(anonymizedName), "****");
+	
+	return anonymizedName;
+}
 
 static void PrintGrimHelp()
 {
@@ -383,6 +393,9 @@ static void DrawBar(const char* label, int current, int max, int height, mq::MQC
 static void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 {
 	const char* petName = petInfo->DisplayedName;
+	if(mq::IsAnonymized())
+		petName = "Pet";
+
 	float sizeX = ImGui::GetWindowWidth();
 	float yPos = ImGui::GetCursorPosY();
 	float midX = (sizeX / 2);
@@ -476,6 +489,10 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
 
+			const char* nameLabel = pLocalPC->Name;
+			if (mq::IsAnonymized())
+				nameLabel = MaskName(nameLabel);
+
 			if (ImGui::BeginTable("##Player", 3))
 			{
 				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x * .5f);
@@ -483,7 +500,7 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_WidthStretch, 60);
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				ImGui::Text(pLocalPC->Name);
+				ImGui::Text(nameLabel);
 				ImGui::TableNextColumn();
 				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_CurrHeading);
 				ImGui::TableNextColumn();
@@ -532,11 +549,15 @@ static void DrawMemberInfo(CGroupMember* pMember)
 
 	if (ImGui::BeginTable("Group", 2))
 	{
+		const char* nameLabel = pMember->GetName();
+		if (mq::IsAnonymized())
+			nameLabel = MaskName(nameLabel);
+
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, -1);
 		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 80);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
-		ImGui::Text("%s", pMember->GetName());
+		ImGui::Text(nameLabel);
 		ImGui::TableNextColumn();
 		ImGui::Text("%d", pMember->Level);
 		ImGui::EndTable();
@@ -618,8 +639,15 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 
 static void DrawTargetWindow()
 	{
-		if (PSPAWNINFO CurTarget = pTarget)
+	if (PSPAWNINFO CurTarget = pTarget)
+	{
+		const char* tarName = CurTarget->DisplayedName;
+		if (mq::IsAnonymized())
 		{
+			if (CurTarget->Type == SPAWN_PLAYER)
+				tarName = MaskName(tarName);
+		}
+
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
 			float midX = (sizeX / 2);
@@ -636,7 +664,7 @@ static void DrawTargetWindow()
 			}
 			DrawLineOfSight(pLocalPlayer, pTarget);
 			ImGui::SameLine();
-			ImGui::Text(CurTarget->DisplayedName);
+			ImGui::Text(tarName);
 
 			ImGui::SameLine(sizeX * .75f);
 			ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.1f m", GetDistance(pLocalPlayer, pTarget));
@@ -784,6 +812,7 @@ static void DrawGroupWindow()
 					EzCommand(fmt::format("/invite {}", pTarget->Name).c_str());
 			}
 		}
+
 		ImGui::SameLine();
 		if (ImGui::Button("Disband", ImVec2(60, 20)))
 			EzCommand("/disband");
@@ -799,6 +828,8 @@ static void DrawPetWindow()
 	if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
 	{
 		const char* petName = MyPet->DisplayedName;
+		if (mq::IsAnonymized())
+			petName = "Pet";
 
 		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.petWinTheme);
@@ -820,16 +851,21 @@ static void DrawPetWindow()
 				
 				DrawPetInfo(MyPet);
 
+				// Pet Target Section
 				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 0),
 					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 				{
 					if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
 					{
+						const char* petTargetName = pPetTarget->DisplayedName;
+						if (mq::IsAnonymized())
+							petTargetName = "Pet Target";
+
 						ImGui::Text("Lvl");
 						ImGui::SameLine();
 						ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", pPetTarget->Level);
 						ImGui::SameLine();
-						ImGui::Text(pPetTarget->DisplayedName);
+						ImGui::Text(petTargetName);
 						float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
 						int petTargetLabel = pPetTarget->HPCurrent;
 						ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, pPetTarget->HPCurrent);
@@ -849,6 +885,8 @@ static void DrawPetWindow()
 				}
 				ImGui::EndChild();
 				
+				//Pet Buttons Section
+
 				if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
 					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 					DisplayPetButtons();
@@ -891,7 +929,6 @@ static void DrawSpellWindow()
 		ImGui::End();
 		PopTheme(popCounts);
 	}
-
 	if (pCastingWnd && pCastingWnd->IsVisible())
 	{
 		if (!s_IsCasting)
