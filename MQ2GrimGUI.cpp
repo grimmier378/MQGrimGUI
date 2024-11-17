@@ -1596,6 +1596,9 @@ PLUGIN_API void OnUnloadPlugin(const char* Name)
 	// DebugSpewAlways("MQ2GrimGUI::OnUnloadPlugin(%s)", Name);
 	RemoveCommand("/grimgui");
 	SaveSettings();
+	pSpellPicker = nullptr;
+	delete GrimGui::s_spellsInspector;
+	GrimGui::s_spellsInspector = nullptr;
 }
 
 PLUGIN_API void InitializePlugin()
@@ -1604,6 +1607,8 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/grimgui", GrimCommandHandler, false, true, true);
 	PrintGrimHelp();
 	GrimGui::s_spellsInspector = new GrimGui::SpellsInspector();
+	if (pSpellPicker == nullptr)
+		pSpellPicker = new SpellPicker();
 }
 
 PLUGIN_API void ShutdownPlugin()

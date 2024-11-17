@@ -2,7 +2,6 @@
 
 #include <imgui.h>
 #include <string>
-#include <filesystem>
 
 struct SpellData
 {
@@ -12,6 +11,8 @@ struct SpellData
 	int Level;
 	int Icon;
 	std::string TargetType;
+	std::string Category;
+	std::string SubCategory;
 };
 
 class SpellPicker
