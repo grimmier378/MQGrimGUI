@@ -6,9 +6,22 @@ This will give you a Main Window with toggles for enable/disabling other windows
 
 Current Windows include: 
 
+* Main Window (This containes toggles to all of the other windows as a button to get to config)
 * Player Window (Target window is included if not split out)
 * Target Window (You can split this out from the Player Window and either use both or as a standalone)
-* Config Window For Setting your Color Selections and More Settings to Come.
+* Group Window (Shows party members and allows you drop items onto their bars to trade)
+* Buff Window (Shows Buffs and Debuffs)
+* Song Window (Shows Bard Songs, and Short Duration Buffs)
+* Spell Window (Shows your spells and allows you to click to cast, right click to forget and Alt Click to Inspect, Right clicking an empty spell gem will bring up a spell picker)
+* Pet Window (Shows your pet You can customize which buttons you want on the window. Drop an item onto the pet health bar to trade.)
+* Config Window For Setting your Color Selections Bar/Gem scaling and flash settings for pusling icons or combat indicator.
+
+Theme Support built in:
+ 
+* Each window can be themed and these will persist between sessions.
+* Currently there are 6 themes included beyond Default.
+* Custom themes may be added at a future date.
+
 
 ## Getting Started
 
@@ -16,6 +29,9 @@ Quick start instructions to get users up and going
 
 ```txt
 /plugin MQ2GrimGUI
+The first time you load this you should get a Main Window with all the toggles on it on the screen.
+If this does not show up try `/grimgui show` to toggle it.
+From this windos you can toggle the other windows on or off and set up your settings and colors.
 ```
 
 ### Commands
@@ -23,7 +39,18 @@ Quick start instructions to get users up and going
 Describe the commands available and how to use them.
 
 ```txt
-/grimgui -- Toggles the MainWindow (with the window toggles on it)
+Command  | Option   | Description
+---------|----------|---------------------
+/grimgui | [show]   | Toggles Main Window
+/grimgui | [player] | Toggles Player Window
+/grimgui | [target] | Toggles Target Window
+/grimgui | [pet]    | Toggles Pet Window
+/grimgui | [group]  | Toggles Group Window
+/grimgui | [spells] | Toggles Spells Window
+/grimgui | [buffs]  | Toggles Buffs Window
+/grimgui | [songs]  | Toggles Songs Window
+/grimgui | [config] | Opens Configuration Window
+/grimgui | [help]   | Displays this help message
 ```
 
 ### Configuration File
@@ -38,18 +65,59 @@ This will revert back after you camp to charecter select.
 
 ```yaml
 [Settings]
-ShowMainGui=1 -- Show the Main Window
+ShowMainGui=1
+ShowTitleBars=1
+BuffIconSize=21
+FlashBuffInterval=42
 [PlayerTarg]
-SplitTarget=1  -- Split Target window out of the PlayerWindow (Or only target window if ShowPlayerWindow is set to 0)
-ShowPlayerWindow=1  -- Show the Player Window
+SplitTarget=0
+ShowPlayerWindow=0
+CombatFlashInterval=137
+PlayerBarHeight=12
+TargetBarHeight=12
+AggroBarHeight=10
+Theme=Default
+[Pet]
+ShowPetWindow=0
+Theme=Default
+Attack=1
+Sit=1
+Follow=1
+Hold=1
+Taunt=1
+Guard=1
+Back=1
+Focus=1
+Stop=1
+Leave=1
+Regroup=1
+Report=1
+Swarm=1
+Kill=1
+[Group]
+ShowGroupWindow=0
+GroupBarHeight=12
+Theme=Default
+[Spells]
+ShowSpellsWindow=1
+SpellGemHeight=40
+Theme=Default
+[Buffs]
+ShowBuffWindow=0
+BuffTimerThreshold=0
+Theme=Default
+[Songs]
+ShowSongWindow=0
+Theme=Default
 [Colors]
--- Min and Max Color's for progress bars. the bar will transition from One to the other as they fill/empty
-MinColorHP=0.876,0.341,1,1
-MaxColorHP=0.845,0.151,0.151,1
-MinColorEnd=0.56962,0.322716,0.139401,1
-MaxColorEnd=1,0.900141,0.400844,0.966825
-MinColorMP=0.259,0.114,0.514,1
-MaxColorMP=0.079,0.468,0.848,1
+MinColorHP=4292827135
+MaxColorHP=4292355879
+MinColorMP=4282523011
+MaxColorMP=4279531480
+MinColorEnd=4294930181
+MaxColorEnd=2998049050
+MinColorCast=4292355879
+MaxColorCast=4279531480
 ```
 
 ## Other Notes

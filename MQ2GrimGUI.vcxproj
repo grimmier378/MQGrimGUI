@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpellPicker.h" />
+    <ClInclude Include="SpellInspector.h" />
     <ClInclude Include="Theme.h" />
     <ClInclude Include="MQ2GrimGUI.h" />
     <ClInclude Include="resource.h" />

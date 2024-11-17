@@ -15,99 +15,6 @@
 #include "eqlib/Spells.h"
 #include <map>
 
-
-void SpellPicker::DrawSpellTree()
-{
-	if (!m_pSpellIcon)
-	{
-		m_pSpellIcon = new CTextureAnimation();
-		if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
-			*m_pSpellIcon = *temp;
-	}
-
-	if (ImGui::TreeNode("Spells"))
-	{
-		// since this is conversion from the lua lets follow the example
-		// make the table layout the same first
-		std::unordered_map<std::string, std::unordered_map<std::string, std::vector<SpellData>>> categorizedSpells;
-
-		for (const auto& spell : Spells)
-		{
-			if (!Filter.empty() && mq::ci_find_substr(spell.Name, Filter) == -1)
-				continue;
-
-			categorizedSpells[spell.Category][spell.SubCategory].push_back(spell);
-		}
-
-		for (const auto& [categoryName, subCategories] : categorizedSpells)
-		{
-			if (ImGui::TreeNode(categoryName.c_str())) 
-			{
-				for (const auto& [subCategoryName, spells] : subCategories)
-				{
-					if (ImGui::TreeNode(subCategoryName.c_str()))
-					{
-						for (const auto& spell : spells)
-						{
-							ImGui::PushID(spell.ID);
-							ImGui::BeginGroup();
-
-							m_pSpellIcon->SetCurCell(spell.Icon);
-							imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
-
-							ImGui::SameLine();
-
-							if (ImGui::Selectable(spell.Name.c_str()))
-							{
-								SelectedSpell = std::make_shared<SpellData>(spell);
-								Open = false;
-							}
-
-							ImGui::SameLine();
-							ImGui::Text("Level: %d", spell.Level);
-
-							ImGui::EndGroup();
-							ImGui::PopID();
-
-							if (ImGui::IsItemHovered())
-							{
-								ImGui::BeginTooltip();
-								ImGui::Text("Name: %s", spell.Name.c_str());
-								ImGui::Text("Level: %d", spell.Level);
-								ImGui::Text("Rank: %s", spell.RankName.c_str());
-								ImGui::EndTooltip();
-							}
-						}
-
-						ImGui::TreePop(); 
-					}
-				}
-
-				ImGui::TreePop(); 
-			}
-		}
-
-		ImGui::TreePop();
-	}
-}
-
-void SpellPicker::DrawSpellPicker()
-{
-	if (!Open) return;
-
-	ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("Spell Picker", &Open, ImGuiWindowFlags_NoDocking))
-	{
-		char buffer[256] = {};
-		std::strncpy(buffer, Filter.c_str(), sizeof(buffer));
-		if (ImGui::InputText("Search##SpellPicker", buffer, sizeof(buffer)))
-			Filter = buffer;
-
-		DrawSpellTree();
-	}
-	ImGui::End();
-}
-
 const std::map<int, std::string> SpellCategoryMap = {
 	{1, "SPELLCAT_AEGOLISM"},
 	{2, "SPELLCAT_AGILITY"},
@@ -287,20 +194,33 @@ const std::map<int, std::string> SpellCategoryMap = {
 	{176, "SPELLCAT_MELEE_DAMAGE"}
 };
 
-std::string ProperCase(const std::string& input) {
+/**
+* @fn ProperCase
+* 
+* @brief Converts a string from any case to Proper Case (First letter of each word capitalized)
+* 
+* @param input - The string to convert
+* 
+* @return std::string - The converted string
+*/
+static std::string ProperCase(const std::string& input) {
 	std::string result;
 	bool capitalize = true;
 
-	for (char ch : input) {
-		if (ch == '_') {
+	for (char ch : input)
+	{
+		if (ch == '_')
+		{
 			result += ' ';
 			capitalize = true;
 		}
-		else if (capitalize) {
+		else if (capitalize)
+		{
 			result += std::toupper(ch);
 			capitalize = false;
 		}
-		else {
+		else
+		{
 			result += std::tolower(ch);
 		}
 	}
@@ -308,6 +228,116 @@ std::string ProperCase(const std::string& input) {
 	return result;
 }
 
+/**
+* @fn DrawSpellTree
+* 
+* @brief Displays the spells from your Spellbook in a tree format, sorted by Category, Subcategory and Level
+* 
+*/
+void SpellPicker::DrawSpellTree()
+{
+	if (!m_pSpellIcon)
+	{
+		m_pSpellIcon = new CTextureAnimation();
+		if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+			*m_pSpellIcon = *temp;
+	}
+
+	if (ImGui::TreeNode("Spells"))
+	{
+		// since this is conversion from the lua lets follow the example
+		// make the table layout the same first
+		std::unordered_map<std::string, std::unordered_map<std::string, std::vector<SpellData>>> categorizedSpells;
+
+		for (const auto& spell : Spells)
+		{
+			if (!Filter.empty() && mq::ci_find_substr(spell.Name, Filter) == -1)
+				continue;
+
+			categorizedSpells[spell.Category][spell.SubCategory].push_back(spell);
+		}
+
+		for (const auto& [categoryName, subCategories] : categorizedSpells)
+		{
+			if (ImGui::TreeNode(categoryName.c_str())) 
+			{
+				for (const auto& [subCategoryName, spells] : subCategories)
+				{
+					if (ImGui::TreeNode(subCategoryName.c_str()))
+					{
+						for (const auto& spell : spells)
+						{
+							ImGui::PushID(spell.ID);
+							ImGui::BeginGroup();
+
+							m_pSpellIcon->SetCurCell(spell.Icon);
+							imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
+
+							ImGui::SameLine();
+
+							if (ImGui::Selectable(spell.Name.c_str()))
+							{
+								SelectedSpell = std::make_shared<SpellData>(spell);
+								Open = false;
+							}
+
+							ImGui::SameLine();
+							ImGui::Text("Level: %d", spell.Level);
+
+							ImGui::EndGroup();
+							ImGui::PopID();
+
+							if (ImGui::IsItemHovered())
+							{
+								ImGui::BeginTooltip();
+								ImGui::Text("Name: %s", spell.Name.c_str());
+								ImGui::Text("Level: %d", spell.Level);
+								ImGui::Text("Rank: %s", spell.RankName.c_str());
+								ImGui::EndTooltip();
+							}
+						}
+
+						ImGui::TreePop(); 
+					}
+				}
+
+				ImGui::TreePop(); 
+			}
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+
+void SpellPicker::DrawSpellPicker()
+{
+	if (!Open) return;
+
+	ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Spell Picker", &Open, ImGuiWindowFlags_NoDocking))
+	{
+		char buffer[256] = {};
+		std::strncpy(buffer, Filter.c_str(), sizeof(buffer));
+		if (ImGui::InputText("Search##SpellPicker", buffer, sizeof(buffer)))
+			Filter = buffer;
+
+		ImGui::SameLine();
+		if (ImGui::Button("Refresh##SpellPicker"))
+			SpellPicker::InitializeSpells();
+
+		DrawSpellTree();
+	}
+	ImGui::End();
+}
+
+/**
+* @fn PopulateSpellData
+*
+* @brief Populates the Spells vector with the spells from your spell book, this should only run on initialize,
+* if you want to update the spells you should call InitializeSpells(). Useful for after you learned new spells into your book.
+* 
+*/
 void SpellPicker::PopulateSpellData()
 {
 	if (!pCharData)
@@ -317,7 +347,7 @@ void SpellPicker::PopulateSpellData()
 	{
 		int spellId = pCharData->GetSpellBook(i);
 		if (spellId == -1)
-			continue; // Skip empty slots
+			continue; // Empty Slot
 
 		EQ_Spell* pSpell = mq::GetSpellByID(spellId);
 		if (pSpell)
@@ -332,14 +362,10 @@ void SpellPicker::PopulateSpellData()
 
 			// Use Map to get the Names of the Category and SubCategory not SPELLCAT_SOMETHING
 			auto categoryIt = SpellCategoryMap.find(pSpell->Category);
-			spellData.Category = (categoryIt != SpellCategoryMap.end())
-				? ProperCase(categoryIt->second.substr(9)) // Remove "SPELLCAT_" prefix
-				: "Unknown";
+			spellData.Category = (categoryIt != SpellCategoryMap.end()) ? ProperCase(categoryIt->second.substr(9)) : "Unknown";
 
 			auto subCategoryIt = SpellCategoryMap.find(pSpell->Subcategory);
-			spellData.SubCategory = (subCategoryIt != SpellCategoryMap.end())
-				? ProperCase(subCategoryIt->second.substr(9))
-				: "Unknown";
+			spellData.SubCategory = (subCategoryIt != SpellCategoryMap.end()) ? ProperCase(subCategoryIt->second.substr(9)) : "Unknown";
 
 			Spells.push_back(spellData);
 		}
@@ -354,5 +380,3 @@ void SpellPicker::PopulateSpellData()
 		return a.Level > b.Level;
 	});
 }
-
-

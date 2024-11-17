@@ -1,6 +1,4 @@
 #pragma once
-// MQ2GrimGUI.h
-#include <mq/imgui/Widgets.h>
 #include "mq/base/Color.h"
 
 extern struct WinVisSettings s_WinVis;
@@ -9,6 +7,146 @@ extern class SpellPicker* pSpellPicker;
 extern std::string s_MemSpellName;
 extern int s_MemGemIndex;
 extern bool s_MemSpell;
+
+#pragma region Settings Structures
+
+#pragma region Window Visibility Settings
+
+struct WinVisSettings
+{
+	bool showMainWindow = true;
+	bool showConfigWindow = false;
+	bool showPetWindow = false;
+	bool showPlayerWindow = false;
+	bool showGroupWindow = false;
+	bool showSpellsWindow = false;
+	bool showTargetWindow = false;
+	bool showBuffWindow = false;
+	bool showSongWindow = false;
+	bool flashCombatFlag = false;
+	bool flashTintFlag = false;
+	bool showTitleBars = true;
+} s_WinVis;
+
+struct WinVisSetting
+{
+	const char* section;
+	const char* key;
+	bool* setting;
+};
+
+std::vector<WinVisSetting> winVisSettings = {
+	{"Settings", "ShowMainGui", &s_WinVis.showMainWindow},
+	{"Settings", "ShowTitleBars", &s_WinVis.showTitleBars},
+	{"PlayerTarg", "SplitTarget", &s_WinVis.showTargetWindow},
+	{"PlayerTarg", "ShowPlayerWindow", &s_WinVis.showPlayerWindow},
+	{"Pet", "ShowPetWindow", &s_WinVis.showPetWindow},
+	{"Group", "ShowGroupWindow", &s_WinVis.showGroupWindow},
+	{"Spells", "ShowSpellsWindow", &s_WinVis.showSpellsWindow},
+	{"Buffs", "ShowBuffWindow", &s_WinVis.showBuffWindow},
+	{"Songs", "ShowSongWindow", &s_WinVis.showSongWindow}
+};
+
+#pragma endregion
+
+
+#pragma region Numeric Settings
+
+struct NumericSettings
+{
+	int combatFlashInterval = 100;
+	int flashBuffInterval = 40;
+	int playerBarHeight = 15;
+	int targetBarHeight = 15;
+	int aggroBarHeight = 10;
+	int groupBarHeight = 15;
+	int myAggroPct = 0;
+	int secondAggroPct = 0;
+	int buffIconSize = 24;
+	int buffTimerThreshold = 0;
+	int spellGemHeight = 32;
+} s_NumSettings;
+
+struct NumericSetting
+{
+	const char* section;
+	const char* key;
+	int* value;
+};
+
+std::vector<NumericSetting> numericSettings = {
+	{"PlayerTarg", "CombatFlashInterval", &s_NumSettings.combatFlashInterval},
+	{"PlayerTarg", "PlayerBarHeight", &s_NumSettings.playerBarHeight},
+	{"PlayerTarg", "TargetBarHeight", &s_NumSettings.targetBarHeight},
+	{"PlayerTarg", "AggroBarHeight", &s_NumSettings.aggroBarHeight},
+	{"Settings", "BuffIconSize", &s_NumSettings.buffIconSize},
+	{"Settings", "FlashBuffInterval", &s_NumSettings.flashBuffInterval},
+	{"Buffs", "BuffTimerThreshold", &s_NumSettings.buffTimerThreshold},
+	{"Group", "GroupBarHeight", &s_NumSettings.groupBarHeight},
+	{"Spells", "SpellGemHeight",&s_NumSettings.spellGemHeight},
+};
+
+#pragma endregion
+
+
+#pragma region Theme and Color Settings
+
+struct ThemeSettings
+{
+	std::string playerWinTheme = "Default";
+	std::string petWinTheme = "Default";
+	std::string groupWinTheme = "Default";
+	std::string spellsWinTheme = "Default";
+	std::string buffsWinTheme = "Default";
+	std::string songWinTheme = "Default";
+} s_WinTheme;
+
+struct ThemeSetting
+{
+	const char* section;
+	const char* key;
+	std::string* theme;
+};
+
+std::vector<ThemeSetting> themeSettings = {
+	{"PlayerTarg", "Theme", &s_WinTheme.playerWinTheme},
+	{"Pet", "Theme", &s_WinTheme.petWinTheme},
+	{"Group", "Theme", &s_WinTheme.groupWinTheme},
+	{"Spells", "Theme", &s_WinTheme.spellsWinTheme},
+	{"Buffs", "Theme", &s_WinTheme.buffsWinTheme},
+	{"Songs", "Theme", &s_WinTheme.songWinTheme}
+};
+
+
+struct ColorSettings
+{
+	mq::MQColor minColorHP = mq::MQColor(223, 87, 255, 255);
+	mq::MQColor maxColorHP = mq::MQColor(216, 39, 39, 255);
+	mq::MQColor minColorMP = mq::MQColor(66, 29, 131, 255);
+	mq::MQColor maxColorMP = mq::MQColor(20, 119, 216, 255);
+	mq::MQColor minColorEnd = mq::MQColor(255, 111, 5, 255);
+	mq::MQColor maxColorEnd = mq::MQColor(178, 153, 26, 178);
+	mq::MQColor minColorCast = mq::MQColor(216, 39, 39, 255);
+	mq::MQColor maxColorCast = mq::MQColor(20, 119, 216, 255);
+} s_BarColors;
+
+struct ColorSetting
+{
+	const char* section;
+	const char* key;
+	mq::MQColor* value;
+};
+
+std::vector<ColorSetting> colorSettings = {
+	{"Colors", "MinColorHP", &s_BarColors.minColorHP},
+	{"Colors", "MaxColorHP", &s_BarColors.maxColorHP},
+	{"Colors", "MinColorMP", &s_BarColors.minColorMP},
+	{"Colors", "MaxColorMP", &s_BarColors.maxColorMP},
+	{"Colors", "MinColorEnd", &s_BarColors.minColorEnd},
+	{"Colors", "MaxColorEnd", &s_BarColors.maxColorEnd},
+	{"Colors", "MinColorCast", &s_BarColors.minColorCast},
+	{"Colors", "MaxColorCast", &s_BarColors.maxColorCast}
+};
 
 #pragma region Color utility functions
 
@@ -143,486 +281,175 @@ MQColor GetConColor(int color_code)
 #pragma endregion
 
 
-#pragma region Spells Inspector
-namespace GrimGui {
-	// lifted from developer tools to inspect spells
-
-	class SpellsInspector
-	{
-		CTextureAnimation* m_pTASpellIcon = nullptr;
-		CTextureAnimation* m_pGemHolder = nullptr;
-		CTextureAnimation* m_pGemBackground = nullptr;
-	public:
-
-		~SpellsInspector()
-		{
-			if (m_pTASpellIcon = nullptr)
-			{
-				delete m_pTASpellIcon;
-				m_pTASpellIcon = nullptr;
-			}
-
-			if (m_pGemBackground != nullptr)
-			{
-				delete m_pGemBackground;
-				m_pGemBackground = nullptr;
-			}
-
-			if (m_pGemHolder = nullptr)
-			{
-				delete m_pGemHolder;
-				m_pGemHolder = nullptr;
-			}
-		}
-
-		static void DoInspectSpell(int spellId)
-		{
-			EQ_Spell* spell = GetSpellByID(spellId);
-			if (spell)
-			{
-#if defined(CSpellDisplayManager__ShowSpell_x)
-				if (pSpellDisplayManager)
-					pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
-#else
-				char buffer[512] = { 0 };
-				FormatSpellLink(buffer, 512, spell);
-				TextTagInfo info = ExtractLink(buffer);
-				ExecuteTextLink(info);
-#endif
-			}
-		}
-
-		static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
-		{
-			if (buffTimer < 0)
-			{
-				strcpy_s(timeLabel, size, "Permanent");
-			}
-			else if (buffTimer > 0)
-			{
-				int hours = 0;
-				int minutes = 0;
-				int seconds = 0;
-
-				int totalSeconds = buffTimer / 1000;
-
-				if (totalSeconds > 0)
-				{
-					hours = totalSeconds / 3600;
-					minutes = (totalSeconds % 3600) / 60;
-					seconds = totalSeconds % 60;
-				}
-
-				if (hours > 0)
-				{
-					if (minutes > 0 && seconds > 0)
-					{
-						sprintf_s(timeLabel, size, "%dh %dm %ds", hours, minutes, seconds);
-					}
-					else if (minutes > 0)
-					{
-						sprintf_s(timeLabel, size, "%dh %dm", hours, minutes);
-					}
-					else if (seconds > 0)
-					{
-						sprintf_s(timeLabel, size, "%dh %ds", hours, seconds);
-					}
-					else
-					{
-						sprintf_s(timeLabel, size, "%dh", hours);
-					}
-				}
-				else if (minutes > 0)
-				{
-					if (seconds > 0)
-					{
-						sprintf_s(timeLabel, size, "%dm %ds", minutes, seconds);
-					}
-					else
-					{
-						sprintf_s(timeLabel, size, "%dm", minutes);
-					}
-				}
-				else
-				{
-					sprintf_s(timeLabel, size, "%ds", seconds);
-				}
-			}
-			else
-			{
-				strcpy_s(timeLabel, size, "0s");
-			}
-		}
-
-		template <typename T>
-		void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
-			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
-		{
-
-			if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
-			{
-				int slotNum = 0;
-				ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_NumSettings.buffIconSize));
-				ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 65);
-				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-				ImGui::TableSetupScrollFreeze(0, 1);
-				ImGui::TableHeadersRow();
-				for (const auto& buffInfo : Buffs)
-				{
-					ImGui::TableNextRow();
-					ImGui::TableSetColumnIndex(0);
-
-					EQ_Spell* spell = buffInfo.GetSpell();
-					if (!spell)
-					{
-						slotNum++;
-						continue;
-					}
-
-					if (!m_pTASpellIcon)
-					{
-						m_pTASpellIcon = new CTextureAnimation();
-						if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
-							*m_pTASpellIcon = *temp;
-					}
-
-					if (spell)
-					{
-
-						m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-						MQColor borderCol = MQColor(0, 0, 250, 255); // Default color blue (beneficial)
-						MQColor tintCol = MQColor(255, 255, 255, 255);
-						if (!spell->IsBeneficialSpell())
-							borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
-
-						if (!playerBuffs)
-						{
-							std::string caster = buffInfo.GetCaster();
-							if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
-								borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
-						}
-
-						int secondsLeft = buffInfo.GetBuffTimer() / 1000;
-						if (secondsLeft < 18 && !petBuffs)
-						{
-							if (s_WinVis.flashTintFlag)
-								tintCol = MQColor(0, 0, 0, 255);
-
-						}
-						ImGui::PushID(buffInfo.GetIndex());
-						imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
-						ImGui::PopID();
-
-						if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
-						{
-							if (ImGui::MenuItem(("Remove##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
-							{
-								RemoveBuffByName(spell->Name);
-							}
-
-							if (ImGui::MenuItem(("Block##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
-							{
-								EzCommand(("/blockspell add me " + std::to_string(spell->ID)).c_str());
-							}
-
-							if (ImGui::MenuItem("Inspect##", nullptr, false, true))
-							{
-								DoInspectSpell(spell->ID);
-							}
-
-							ImGui::EndPopup();
-						}
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::BeginTooltip();
-							if (spell)
-							{
-								char timeLabel[64];
-								FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-								ImGui::Text("%s (%s)", spell->Name, timeLabel);
-								if (!petBuffs)
-									ImGui::Text("Caster: %s", buffInfo.GetCaster());
-
-							}
-							ImGui::EndTooltip();
-						}
-
-						ImGui::TableNextColumn();
-						if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
-						{
-							char timeLabel[64];
-							FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-							ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%s", timeLabel);
-						}
-						ImGui::TableNextColumn();
-
-						ImGui::Text("%s", spell->Name);
-
-					}
-					slotNum++;
-
-				}
-				ImGui::EndTable();
-			}
-		}
-
-		template <typename T>
-		void DrawBuffsIcons(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
-			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
-		{
-			int Index = -1;
-			for (const auto& buffInfo : Buffs)
-			{
-				EQ_Spell* spell = buffInfo.GetSpell();
-				if (!spell)
-					continue;
-
-				Index++;
-				ImGui::PushID(buffInfo.GetIndex());
-
-				if (!m_pTASpellIcon)
-				{
-					m_pTASpellIcon = new CTextureAnimation();
-					if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
-						*m_pTASpellIcon = *temp;
-				}
-
-				int sizeX = static_cast<int>(ImGui::GetContentRegionAvail().x);
-				s_TarBuffLineSize = 0;
-				if (spell)
-				{
-					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-					MQColor borderCol = MQColor(0, 0, 250, 255); // Default color blue (beneficial)
-					MQColor tintCol = MQColor(255, 255, 255, 255);
-					if (!spell->IsBeneficialSpell())
-						borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
-
-					std::string caster = buffInfo.GetCaster();
-					if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
-						borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
-
-					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
-					if (secondsLeft < 18 && !petBuffs)
-					{
-						if (s_WinVis.flashTintFlag)
-							tintCol = MQColor(0, 0, 0, 255);
-					}
-
-					imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
-					s_TarBuffLineSize += s_NumSettings.buffIconSize + 2;
-					if (s_TarBuffLineSize < sizeX - 20)
-					{
-						ImGui::SameLine(0.0f, 2);
-					}
-					else
-					{
-						s_TarBuffLineSize = 0;
-					}
-				}
-				ImGui::PopID();
-				if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
-				{
-
-					if (ImGui::MenuItem("Inspect##", nullptr, false, true))
-					{
-						DoInspectSpell(spell->ID);
-					}
-
-					ImGui::EndPopup();
-				}
-
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					if (spell)
-					{
-						char timeLabel[64];
-						FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-						ImGui::Text("%s (%s)", spell->Name, timeLabel);
-						if (!petBuffs)
-							ImGui::Text("Caster: %s", buffInfo.GetCaster());
-
-					}
-					ImGui::EndTooltip();
-				}
-			}
-		}
-
-		bool IsGemReady(int ID)
-		{
-			if (GetSpellByID(GetMemorizedSpell(ID)))
-			{
-				if (pDisplay->TimeStamp > pLocalPlayer->SpellGemETA[ID] && pDisplay->TimeStamp > pLocalPlayer->GetSpellCooldownETA())
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-
-		void DrawSpellBarIcons(int gemHeight)
-		{
-			if (!pLocalPC)
-				return;
-
-			if (!m_pTASpellIcon)
-			{
-				m_pTASpellIcon = new CTextureAnimation();
-				if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
-					*m_pTASpellIcon = *temp;
-			}
-
-			if (!m_pGemBackground)
-			{
-				m_pGemBackground = pSidlMgr->FindAnimation("A_SpellGemBackground");
-			}
-
-			if (!m_pGemHolder)
-			{
-				m_pGemHolder = pSidlMgr->FindAnimation("A_SpellGemHolder");
-			}
-
-			// calculate max pSpellGem count
-			int spellGemCount = 8;
-			int aaIndex = GetAAIndexByName("Mnemonic Retention");
-			if (CAltAbilityData* pAbility = GetAAById(aaIndex))
-			{
-				if (PlayerHasAAAbility(aaIndex))
-				{
-					spellGemCount += pAbility->CurrentRank;
-				}
-			}
-
-			int spellIconSize = static_cast<int>(gemHeight * 0.75);
-			CXSize gemSize = { static_cast<int>(gemHeight * 1.25), gemHeight };
-
-			for (int i = 0; i < spellGemCount; ++i)
-			{
-				ImGui::PushID(i);
-
-				int spellId = pLocalPC->GetMemorizedSpell(i);
-				if (!spellId)
-					continue;
-
-				CSpellGemWnd* pSpellGem = pCastSpellWnd->SpellSlots[i];
-				MQColor gemTint;
-
-				if (spellId == -1)
-				{
-					if (m_pGemHolder)
-					{
-						imgui::DrawTextureAnimation(m_pGemHolder, gemSize);
-
-						if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
-						{
-							pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
-						}
-						else if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
-						{
-							if (pSpellPicker)
-							{
-								pSpellPicker->SetOpen(true);
-								s_MemGemIndex = i + 1;
-							}
-						}
-					}
-				}
-				else
-				{
-					// draw spell icon
-					EQ_Spell* spell = GetSpellByID(spellId);
-					if (spell)
-					{
-						m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-
-						MQColor tintCol = MQColor(255, 255, 255, 255);
-
-						gemTint = pSpellGem->SpellGemTintArray[pSpellGem->TintIndex];
-
-						if (!IsGemReady(i))
-							tintCol = MQColor(50, 50, 50, 255);
-
-						ImGui::BeginGroup();
-						float posX = ImGui::GetCursorPosX();
-						float posY = ImGui::GetCursorPosY();
-
-						ImGui::SetCursorPos(ImVec2(posX + ((gemSize.cx - spellIconSize) / 2), posY + ((gemSize.cy - spellIconSize) / 2)));
-
-						imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(spellIconSize, spellIconSize), tintCol);
-
-						ImGui::SetCursorPos(ImVec2(posX, posY));
-
-						imgui::DrawTextureAnimation(m_pGemBackground, gemSize, gemTint);
-
-						posX = ImGui::GetCursorPosX();
-						posY = ImGui::GetCursorPosY();
-
-						if (!IsGemReady(i))
-						{
-							float coolDown = (pLocalPlayer->SpellGemETA[i] - pDisplay->TimeStamp) / 1000;
-							if (coolDown < 1801)
-							{
-								std::string label = std::to_string(static_cast<int>(std::ceil(coolDown)));
-								ImVec2 textSize = ImGui::CalcTextSize(label.c_str());
-								float centeredX = posX + (gemSize.cx - textSize.x) / 2.0f;
-								float centeredY = posY - (gemSize.cy * 0.75);
-								ImGui::SetCursorPos(ImVec2(centeredX, centeredY));
-								ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "%s", label.c_str());
-								ImGui::SetCursorPos(ImVec2(posX, posY));
-							}
-						}
-						ImGui::EndGroup();
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::BeginTooltip();
-							if (spellId != -1)
-							{
-								EQ_Spell* spell = GetSpellByID(spellId);
-								if (spell)
-								{
-									ImGui::Text(spell->Name);
-									ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "Mana: %d", spell->ManaCost);
-									ImGui::Text("Range: %d", spell->Range);
-									ImGui::Text("Recast: %d", spell->RecastTime / 1000);
-								}
-							}
-							ImGui::EndTooltip();
-
-							if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModAlt))
-							{
-								DoInspectSpell(spellId);
-							}
-							else if (ImGui::IsMouseClicked(0))
-							{
-								if (spellId != -1)
-								{
-									Cast(pLocalPlayer, spell->Name);
-								}
-
-							}
-							else if (ImGui::IsMouseClicked(1))
-							{
-								if (spellId != -1)
-								{
-									pSpellGem->ParentWndNotification(pSpellGem, XWM_RCLICK, nullptr);
-								}
-							}
-							else if (ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left] > 0.750f)
-							{
-								pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
-								pSpellGem->ParentWndNotification(pSpellGem, XWM_LBUTTONUPAFTERHELD, nullptr);
-							}
-						}
-					}
-				}
-
-				ImGui::PopID();
-			}
-		}
-	};
-
-	static SpellsInspector* s_spellsInspector = nullptr;
-}
 #pragma endregion
 
 
+#pragma region Command Definitions
+
+enum class GrimCommand
+{
+	Show,
+	Player,
+	Target,
+	Pet,
+	Group,
+	Spells,
+	Buffs,
+	Songs,
+	Config,
+	Help
+};
+
+struct CommandInfo
+{
+	GrimCommand command;
+	const char* commandText;
+	const char* description;
+};
+
+const std::array<CommandInfo, 10> commandList = {
+	{
+		{GrimCommand::Show, "show", "Toggles Main Window"},
+		{GrimCommand::Player, "player", "Toggles Player Window"},
+		{GrimCommand::Target, "target", "Toggles Target Window"},
+		{GrimCommand::Pet, "pet", "Toggles Pet Window"},
+		{GrimCommand::Group, "group", "Toggles Group Window"},
+		{GrimCommand::Spells, "spells", "Toggles Spells Window"},
+		{GrimCommand::Buffs, "buffs", "Toggles Buffs Window"},
+		{GrimCommand::Songs, "songs", "Toggles Songs Window"},
+		{GrimCommand::Config, "config", "Opens Configuration Window"},
+		{GrimCommand::Help, "help", "Displays this help message"}
+	}
+};
+
+#pragma endregion
+
+
+#pragma region Pet Buttons
+
+struct PetButtonData
+{
+	std::string name;
+	std::string command;
+	bool visible;
+};
+
+static std::vector<PetButtonData> petButtons = {
+	{"Attack", "/pet attack", true},
+	{"Sit", "/pet sit", true},
+	{"Follow", "/pet follow", true},
+	{"Hold", "/pet hold", true},
+	{"Taunt", "/pet taunt", true},
+	{"Guard", "/pet guard", true},
+	{"Back", "/pet back off", true},
+	{"Focus", "/pet focus", true},
+	{"Stop", "/pet stop", true},
+	{"Leave", "/pet get lost", true},
+	{"Regroup", "/pet regroup", true},
+	{"Report", "/pet report health", true},
+	{"Swarm", "/pet swarm", true},
+	{"Kill", "/pet kill", true},
+};
+
+static void DisplayPetButtons()
+{
+	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / 60);
+
+	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp)) {
+		for (auto& button : petButtons) {
+			if (button.visible) {
+				ImGui::TableNextColumn();
+				std::string btnLabel = button.name;
+
+				bool isAttacking = false;
+				bool isSitting = false;
+				if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
+				{
+					isAttacking = MyPet->WhoFollowing;
+					isSitting = MyPet->StandState != 100;
+				}
+
+				if ((btnLabel == "Attack" && isAttacking) || (btnLabel == "Sit" && isSitting))
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(GetMQColor(ColorName::Teal).ToImColor()));
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
+						EzCommand(button.command.c_str());
+
+					ImGui::PopStyleColor();
+				}
+				else
+				{
+					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
+						EzCommand(button.command.c_str());
+				}
+			}
+		}
+		ImGui::EndTable();
+	}
+}
+
+#pragma endregion
+
+
+#pragma region Config Structs
+struct WindowOption
+{
+	const char* label;
+	bool* setting;
+	const char* section;
+	const char* key;
+};
+
+WindowOption options[] = {
+	{"Player Win", &s_WinVis.showPlayerWindow, "PlayerTarg", "ShowPlayerWindow"},
+	{"Target Win", &s_WinVis.showTargetWindow, "PlayerTarg", "SplitTarget"},
+	{"Pet Win", &s_WinVis.showPetWindow, "Pet", "ShowPetWindow"},
+	{"Spells Win", &s_WinVis.showSpellsWindow, "Spells", "ShowSpellsWindow"},
+	{"Buff Win", &s_WinVis.showBuffWindow, "Buffs", "ShowBuffWindow"},
+	{"Song Win", &s_WinVis.showSongWindow, "Songs", "ShowSongWindow"},
+	{"Group Win", &s_WinVis.showGroupWindow, "Group", "ShowGroupWindow"},
+
+};
+
+
+struct SliderOption
+{
+	const char* label;
+	int* value;
+	int min;
+	int max;
+	const char* helpText;
+};
+
+SliderOption sliderOptions[] = {
+	{"Flash Speed", &s_NumSettings.combatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Flash Speed", &s_NumSettings.flashBuffInterval, 0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Icon Size", &s_NumSettings.buffIconSize, 10, 40, "Buff Icon Size"},
+	{"Buff Timer Threshold", &s_NumSettings.buffTimerThreshold, 0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+	{"Player Bar Height", &s_NumSettings.playerBarHeight, 10, 40, "Player Bar Height"},
+	{"Target Bar Height", &s_NumSettings.targetBarHeight, 10, 40, "Target Bar Height"},
+	{"Aggro Bar Height", &s_NumSettings.aggroBarHeight, 10, 40, "Aggro Bar Height"},
+	{"Group Bar Height", &s_NumSettings.groupBarHeight, 10, 40, "Group Bar Height"},
+	{"Spell Gem Height", &s_NumSettings.spellGemHeight, 10, 100, "Spell Gem Height"}
+};
+
+
+struct ThemeOption
+{
+	const char* label;
+	std::string* theme;
+};
+
+ThemeOption themeOptions[] = {
+	{"PlayerWin", &s_WinTheme.playerWinTheme},
+	{"PetWin", &s_WinTheme.petWinTheme},
+	{"GroupWin", &s_WinTheme.groupWinTheme},
+	{"SpellsWin", &s_WinTheme.spellsWinTheme},
+	{"BuffsWin", &s_WinTheme.buffsWinTheme},
+	{"SongWin", &s_WinTheme.songWinTheme}
+};
+
+#pragma endregion
+
+
+#pragma endregion

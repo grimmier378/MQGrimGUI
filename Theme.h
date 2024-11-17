@@ -397,6 +397,7 @@ std::unordered_map<std::string, Theme> themeSet = {
 
 #pragma endregion
 
+
 #pragma region Theme Functions
 
 /**
@@ -434,7 +435,7 @@ int PushTheme(const std::string& themeName) {
 }
 
 /**
-* @brief Pop a theme from the ImGui context
+* @brief Pop a value from the ImGui context
 * @param int popCounts The number of colors pushed + (the number of styles pushed << 16)
 */
 void PopTheme(int popCounts)
@@ -447,10 +448,10 @@ void PopTheme(int popCounts)
 
 
 /**
-* @brief Draw a combo box to select a theme
-* @param const std::string& currentTheme The current theme name
+* @brief Draw a combo box to select a value
+* @param const std::string& currentTheme The current value name
 * @param const char* winName The name of the window
-* @return std::string The name of the selected theme
+* @return std::string The name of the selected value
 */
 std::string DrawThemePicker(const std::string& currentTheme, const char* winName) {
 	std::vector<std::string> themeNames;
