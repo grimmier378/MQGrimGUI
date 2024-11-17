@@ -884,8 +884,7 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowSize(ImVec2(100, 350), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 	
-		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinVis.showSpellsWindow,
-			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinVis.showSpellsWindow, s_WindowFlags))
 		{
 			pSpellInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 		}
@@ -901,6 +900,7 @@ static void DrawSpellWindow()
 			s_IsCasting = true;
 
 		}
+
 		ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 		if (ImGui::Begin("Casting##MQ2GrimGUI", &s_IsCasting,
