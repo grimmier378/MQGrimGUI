@@ -805,6 +805,24 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 	ImGui::EndChild();
 }
 
+static void DrawMemberInfo(CGroupMember* pMember)
+{
+	if (!pMember)
+	return;
+
+	if (ImGui::BeginTable("Group", 2))
+	{
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, -1);
+		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 80);
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text("%s", pMember->GetName());
+		ImGui::TableNextColumn();
+		ImGui::Text("%d", pMember->Level);
+		ImGui::EndTable();
+	}
+
+}
 
 /**
 * @fn DrawGroupMemberBars
@@ -813,12 +831,25 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 * 
 * @param pMember CGroupMember* Pointer to the group member to draw the bars for
 */
-static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true)
+static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int groupSlot = 1)
 {
-	if (!pMember || !pMember->GetPlayer()) return;
-	SPAWNINFO* pSpawn = pMember->GetPlayer();
+	if (!pMember)
+		return;
 
-	float sizeX = s_NumSettings.groupBarHeight * 4 + 50;
+	float sizeY = s_NumSettings.groupBarHeight * 4 + 50;
+
+	if (!pMember->GetPlayer())
+	{
+		if (ImGui::BeginChild(("##Empty%d", groupSlot), ImVec2(ImGui::GetContentRegionAvail().x, sizeY), ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
+		{
+			DrawMemberInfo(pMember);
+		}
+		ImGui::EndChild();
+
+		return;
+	}
+
+	SPAWNINFO* pSpawn = pMember->GetPlayer();
 
 	if (ImGui::BeginChild(pSpawn->Name, ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 	{
@@ -826,18 +857,8 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true)
 		ImGui::PushID(pSpawn->Name);
 		ImGui::BeginGroup();
 		{
-			// Name and Level
-			if (ImGui::BeginTable("Group", 2))
-			{
-				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, -1);
-				ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 80);
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-				ImGui::Text("%s", pMember->GetName());
-				ImGui::TableNextColumn();
-				ImGui::Text("%d", pSpawn->Level);
-				ImGui::EndTable();
-			}
+
+			DrawMemberInfo(pMember);
 
 			// Health bar
 			if (pSpawn->HPCurrent && pSpawn->HPMax)
@@ -1017,7 +1038,7 @@ static void DrawGroupWindow()
 			for (int i = 1; i < MAX_GROUP_SIZE; i++)
 			{
 				if (CGroupMember* pMember = pChar->pGroupInfo->GetGroupMember(i))
-					DrawGroupMemberBars(pMember, true);
+					DrawGroupMemberBars(pMember, true, i);
 			}
 		}
 

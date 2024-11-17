@@ -175,6 +175,23 @@ namespace GrimGui {
 			}
 		}
 
+		static void DoInspectSpell(int spellId)
+		{
+			EQ_Spell* spell = GetSpellByID(spellId);
+			if (spell)
+			{
+#if defined(CSpellDisplayManager__ShowSpell_x)
+				if (pSpellDisplayManager)
+					pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
+#else
+				char buffer[512] = { 0 };
+				FormatSpellLink(buffer, 512, spell);
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
+#endif
+			}
+		}
+
 		static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
 		{
 			if (buffTimer < 0)
@@ -310,15 +327,7 @@ namespace GrimGui {
 
 							if (ImGui::MenuItem("Inspect##", nullptr, false, true))
 							{
-#if defined(CSpellDisplayManager__ShowSpell_x)
-								if (pSpellDisplayManager)
-									pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
-#else
-								char buffer[512] = { 0 };
-									FormatSpellLink(buffer, 512, spell);
-								TextTagInfo info = ExtractLink(buffer);
-								ExecuteTextLink(info);
-#endif
+								DoInspectSpell(spell->ID);
 							}
 
 							ImGui::EndPopup();
@@ -416,22 +425,7 @@ namespace GrimGui {
 
 					if (ImGui::MenuItem("Inspect##", nullptr, false, true))
 					{
-#if defined(CSpellDisplayManager__ShowSpell_x)
-						if (pSpellDisplayManager)
-							pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
-#else
-						char buffer[512] = { 0 };
-						//if (Index > -1)
-						//{
-						//	const char* Slot = std::to_string(Index);
-						//	FormatSpellLink(buffer, 512, spell, Slot);
-						//	Index = -1;
-						//}
-						//else
-							FormatSpellLink(buffer, 512, spell);
-						TextTagInfo info = ExtractLink(buffer);
-						ExecuteTextLink(info);
-#endif
+						DoInspectSpell(spell->ID);
 					}
 
 					ImGui::EndPopup();
@@ -594,7 +588,11 @@ namespace GrimGui {
 							}
 							ImGui::EndTooltip();
 
-							if (ImGui::IsMouseClicked(0))
+							if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModAlt))
+							{
+								DoInspectSpell(spellId);
+							}
+							else if (ImGui::IsMouseClicked(0))
 							{
 								if (spellId != -1)
 								{
