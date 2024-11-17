@@ -568,13 +568,13 @@ namespace GrimGui {
 							float coolDown = (pLocalPlayer->SpellGemETA[i] - pDisplay->TimeStamp) / 1000;
 							if (coolDown < 1801)
 							{
-								ImGui::SetCursorPosX(posX + gemSize.cx * 0.5);
-								ImGui::SetCursorPosY(posY - gemSize.cy * 0.75);
-
-								ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "%0.0f", coolDown);
-
-								ImGui::SetCursorPosX(posX);
-								ImGui::SetCursorPosY(posY);
+								std::string label = std::to_string(static_cast<int>(std::ceil(coolDown)));
+								ImVec2 textSize = ImGui::CalcTextSize(label.c_str());
+								float centeredX = posX + (gemSize.cx - textSize.x) / 2.0f;
+								float centeredY = posY - (gemSize.cy * 0.75);
+								ImGui::SetCursorPos(ImVec2(centeredX, centeredY));
+								ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "%s", label.c_str());
+								ImGui::SetCursorPos(ImVec2(posX, posY));
 							}
 						}
 						ImGui::EndGroup();

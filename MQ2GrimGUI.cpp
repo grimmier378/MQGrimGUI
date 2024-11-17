@@ -124,6 +124,8 @@ struct ColorSettings
 	mq::MQColor maxColorMP = mq::MQColor(20, 119, 216, 255);
 	mq::MQColor minColorEnd = mq::MQColor(255, 111, 5, 255);
 	mq::MQColor maxColorEnd = mq::MQColor(178, 153, 26, 178);
+	mq::MQColor minColorCast = mq::MQColor(216, 39, 39, 255);
+	mq::MQColor maxColorCast = mq::MQColor(20, 119, 216, 255);
 } s_BarColors;
 
 struct ColorSetting
@@ -139,7 +141,9 @@ std::vector<ColorSetting> colorSettings = {
 	{"Colors", "MinColorMP", &s_BarColors.minColorMP},
 	{"Colors", "MaxColorMP", &s_BarColors.maxColorMP},
 	{"Colors", "MinColorEnd", &s_BarColors.minColorEnd},
-	{"Colors", "MaxColorEnd", &s_BarColors.maxColorEnd}
+	{"Colors", "MaxColorEnd", &s_BarColors.maxColorEnd},
+	{"Colors", "MinColorCast", &s_BarColors.minColorCast},
+	{"Colors", "MaxColorCast", &s_BarColors.maxColorCast}
 };
 
 
@@ -179,6 +183,7 @@ const std::array<CommandInfo, 10> commandList = {
 	}
 };
 
+static bool s_IsCasting = false;
 static bool s_CharIniLoaded = false;
 static bool s_DefaultLoaded = false;
 static bool s_IsCaster = false;
@@ -206,6 +211,7 @@ static int s_MemGemIndex = 0;
 std::chrono::steady_clock::time_point g_LastUpdateTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastFlashTime	= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastBuffFlashTime = std::chrono::steady_clock::now();
+std::chrono::steady_clock::time_point g_StartCastTime;
 
 const auto g_UpdateInterval		= std::chrono::milliseconds(250);
 
@@ -1138,6 +1144,49 @@ static void DrawSpellWindow()
 		ImGui::End();
 		PopTheme(popCounts);
 	}
+
+	if (pCastingWnd && pCastingWnd->IsVisible())
+	{
+		if (!s_IsCasting)
+		{
+			g_StartCastTime = std::chrono::steady_clock::now();
+			s_IsCasting = true;
+
+		}
+		ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_FirstUseEver);
+		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
+		if (ImGui::Begin("Casting##MQ2GrimGUI", &s_IsCasting, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar))
+		{
+			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
+			EQ_Spell* pSpell = GetSpellByName(spellName);
+			if (pSpell)
+			{
+				auto now = std::chrono::steady_clock::now();
+				if (now - g_StartCastTime > std::chrono::milliseconds(pSpell->CastTime))
+				{
+					s_IsCasting = false;
+				}
+				else
+				{
+					float spellTimer = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_StartCastTime).count();
+					float castingTime = static_cast<float>(pSpell->CastTime);
+					float spellProgress = 1.0f - (spellTimer / castingTime);
+					ImVec4 colorCastBar = CalculateProgressiveColor(s_BarColors.minColorCast, s_BarColors.maxColorCast, spellProgress * 100);
+
+					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorCastBar);
+					ImGui::ProgressBar(spellProgress, ImVec2(ImGui::GetContentRegionAvail().x, 12 ), "##CastingProgress");
+					ImGui::PopStyleColor();
+					ImGui::Text("%s %0.1fs",spellName, (castingTime - spellTimer) /1000);
+					pCastingWnd->GetChildItem("Casting_Gauge")->GetSidlPiece("Casting_Gauge");
+				}
+			}
+
+		}
+		ImGui::End();
+		PopTheme(popCounts);
+	}
+	else
+		s_IsCasting = false;
 }
 
 
@@ -1150,7 +1199,7 @@ static void DrawBuffWindow()
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
 	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinVis.showBuffWindow, s_WindowFlags | ImGuiWindowFlags_NoScrollbar))
 		GrimGui::s_spellsInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
-	
+
 	PopTheme(popCounts);
 	ImGui::End();
 
@@ -1239,6 +1288,28 @@ static void DrawConfigWindow()
 				ImGui::SameLine();
 				DrawHelpIcon("Maximum Endurance Color");
 
+				ImGui::TableNextColumn();
+
+				ImVec4 minCastColor = s_BarColors.minColorCast.ToImColor();
+
+				if (ImGui::ColorEdit4("Min Cast Color", (float*)&minCastColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.minColorCast = MQColor(minCastColor);
+
+				ImGui::SameLine();
+
+				DrawHelpIcon("Minimum Cast Color");
+
+				ImGui::TableNextColumn();
+
+				ImVec4 maxCastColor = s_BarColors.maxColorCast.ToImColor();
+
+				if (ImGui::ColorEdit4("Max Cast Color", (float*)&maxCastColor, ImGuiColorEditFlags_NoInputs))
+					s_BarColors.maxColorCast = MQColor(maxCastColor);
+
+				ImGui::SameLine();
+
+				DrawHelpIcon("Maximum Cast Color");
+
 				ImGui::EndTable();
 			}
 
@@ -1256,6 +1327,10 @@ static void DrawConfigWindow()
 
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorEnd, s_BarColors.maxColorEnd, s_TestInt));
 			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "End##Test");
+			ImGui::PopStyleColor();
+
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, CalculateProgressiveColor(s_BarColors.minColorCast, s_BarColors.maxColorCast, s_TestInt));
+			ImGui::ProgressBar(testVal, ImVec2(0.0f, 15.0f), "Cast##Test");
 			ImGui::PopStyleColor();
 		}
 		ImGui::Spacing();
