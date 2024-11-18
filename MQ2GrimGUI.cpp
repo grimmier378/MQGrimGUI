@@ -893,27 +893,26 @@ static void DrawGroupWindow()
 			int myID = pLocalPlayer->GetId();
 			const char* followLabel = "Follow Me";
 			if (s_FollowClicked)
-				followLabel = "Stop Follow";
+				followLabel = "Stop Follow##";
 
-			//"/multiline ; /dgge /nav stop; /dgge /afollow spawn %d"
 			if (ImGui::Button(followLabel, ImVec2(75, 20)))
 			{
-				std::string cmd = "/squelch /multiline ; /dgge /nav stop log=off";
-
-				if (!s_FollowClicked)
-					cmd += "; /timed 5, /dgge /afollow spawn " + std::to_string(myID);
-
-				EzCommand(cmd.c_str());
+				if (s_FollowClicked)
+				{
+					EzCommand(fmt::format("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /dgge /afollow spawn {}", myID).c_str());
+				}
+				else
+				{
+					EzCommand("/dgge /multiline ; /afollow off; /nav stop");
+				}
 				s_FollowClicked = !s_FollowClicked;
 			}
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Come Here", ImVec2(75, 20)))
+			if (ImGui::Button("Come Here##", ImVec2(75, 20)))
 			{
-				std::string myName = pLocalPC->Name;
-				std::string cmd = "/squelch /multiline ; /dgge /nav stop log=off; /dgge /nav spawn " + myName + " log=off";
-				EzCommand(cmd.c_str());
+				EzCommand(fmt::format("/dgge /multiline ; /afollow off; /nav stop ;  /timed 5, /nav id {}", myID).c_str());
 			}
 		}
 	}
