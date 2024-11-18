@@ -124,11 +124,11 @@ MaxColorCast=4279531480
 
 ## Other Notes
 
-Add additional notes
+https://www.youtube.com/watch?v=2xn2amsY28A
 
 ## Authors
 
-* **Grimmier** - *Initial work*
+* **Grimmier aka GrimGUI** - *Initial work*
 
 See also the list of [contributors](https://github.com/grimmier378/MQ2GrimGUI/contributors) who participated in this project.
 
