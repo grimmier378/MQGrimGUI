@@ -737,8 +737,8 @@ static void DrawTargetWindow()
 			ImGui::SameLine();
 			const char* classCode = CurTarget->GetClassThreeLetterCode();
 			
-			std::string tClass = (classCode && std::string(classCode) != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
-			ImGui::Text(tClass.c_str());
+			const char* tClass = (classCode && classCode != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
+			ImGui::Text(tClass);
 
 			ImGui::SameLine();
 			ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
@@ -1419,8 +1419,7 @@ PLUGIN_API void OnPulse()
 		if (pSpellPicker->SelectedSpell)
 		{
 			s_MemSpellName = pSpellPicker->SelectedSpell->Name;
-			std::string memCommand = std::to_string(s_MemGemIndex) + " \"" + s_MemSpellName + "\"";
-			MemSpell(pLocalPlayer, memCommand.c_str());
+			MemSpell(pLocalPlayer, fmt::format("{} \"{}\"", s_MemGemIndex, s_MemSpellName).c_str());
 			pSpellPicker->ClearSelection();
 			s_MemGemIndex = 0;
 		}
