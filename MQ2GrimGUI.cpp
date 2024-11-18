@@ -22,7 +22,8 @@ static bool s_IsCasting						= false;
 static bool s_CharIniLoaded					= false;
 static bool s_DefaultLoaded					= false;
 static bool s_IsCaster						= false;
-static bool s_ShowOutOfGame					= false;	
+static bool s_ShowOutOfGame					= false;
+static bool s_FollowClicked					= false;
 static int s_TestInt						= 100; // Color Test Value for Config Window
 static char s_SettingsFile[MAX_PATH]		= { 0 };
 
@@ -582,17 +583,35 @@ static void DrawMemberInfo(CGroupMember* pMember)
 	if (!pMember)
 	return;
 
-	if (ImGui::BeginTable("Group", 2))
+	if (ImGui::BeginTable("Group", 4))
 	{
+		float distToMember = 0.0f;
 		const char* nameLabel = pMember->GetName();
+
 		if (mq::IsAnonymized())
 			nameLabel = MaskName(nameLabel);
 
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, -1);
-		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 80);
+		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
+			distToMember = GetDistance(pLocalPlayer, pSpawn);
+
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
+		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize, 10);
+		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_WidthStretch, 90);
+		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize, 30);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 		ImGui::Text(nameLabel);
+		ImGui::TableNextColumn();
+		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
+		{
+			DrawLineOfSight(pLocalPlayer, pSpawn);
+		}
+		else
+		{
+			ImGui::TextColored(GetMQColor(ColorName::Red).ToImColor(), ICON_MD_VISIBILITY_OFF);
+		}
+		ImGui::TableNextColumn();
+		ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.1f m", distToMember);
 		ImGui::TableNextColumn();
 		ImGui::Text("%d", pMember->Level);
 		ImGui::EndTable();
@@ -861,6 +880,42 @@ static void DrawGroupWindow()
 		ImGui::SameLine();
 		if (ImGui::Button("Disband", ImVec2(60, 20)))
 			EzCommand("/disband");
+
+
+		if (mq::IsPluginLoaded("MQ2DanNet"))
+		{
+			posX = ImGui::GetWindowWidth() * 0.5f - 80;
+			if (posX < 0)
+				posX = 0;
+
+			ImGui::SetCursorPosX(posX);
+
+			int myID = pLocalPlayer->GetId();
+			const char* followLabel = "Follow Me";
+			if (s_FollowClicked)
+				followLabel = "Stop Follow";
+
+			//"/multiline ; /dgge /nav stop; /dgge /afollow spawn %d"
+			if (ImGui::Button(followLabel, ImVec2(75, 20)))
+			{
+				std::string cmd = "/squelch /multiline ; /dgge /nav stop log=off";
+
+				if (!s_FollowClicked)
+					cmd += "; /timed 5, /dgge /afollow spawn " + std::to_string(myID);
+
+				EzCommand(cmd.c_str());
+				s_FollowClicked = !s_FollowClicked;
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Come Here", ImVec2(75, 20)))
+			{
+				std::string myName = pLocalPC->Name;
+				std::string cmd = "/squelch /multiline ; /dgge /nav stop log=off; /dgge /nav spawn " + myName + " log=off";
+				EzCommand(cmd.c_str());
+			}
+		}
 	}
 	PopTheme(popCounts);
 	ImGui::End();
@@ -1003,7 +1058,7 @@ static void DrawSpellWindow()
 				else
 				{
 					int spellTimer = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(now - g_StartCastTime).count());
-					float castingTime = static_cast<float>(pSpell->CastTime);
+					float castingTime = static_cast<float>(pSpell->CastTime - GetCastingTimeModifier(pSpell));
 					float spellProgress = 1.0f - static_cast<float>(spellTimer / castingTime);
 					ImVec4 colorCastBar = CalculateProgressiveColor(s_BarColors.minColorCast, s_BarColors.maxColorCast, static_cast<int>(spellProgress * 100));
 
