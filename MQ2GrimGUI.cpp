@@ -10,6 +10,7 @@
 #include "SpellPicker.h"
 #include "SpellInspector.h"
 #include "MQ2GrimGUI.h"
+#include "main/MQ2SpellSearch.h"
 #include "Theme.h"
 
 PreSetup("MQ2GrimGUI");
@@ -24,6 +25,7 @@ static bool s_DefaultLoaded					= false;
 static bool s_IsCaster						= false;
 static bool s_ShowOutOfGame					= false;
 static bool s_FollowClicked					= false;
+static bool s_RezEFX						= false;
 static int s_TestInt						= 100; // Color Test Value for Config Window
 static char s_SettingsFile[MAX_PATH]		= { 0 };
 
@@ -41,6 +43,17 @@ GrimGui::SpellsInspector* pSpellInspector	= nullptr;
 static bool s_MemSpell						= false;
 std::string s_MemSpellName;
 static int s_MemGemIndex					= 0;
+
+CTextureAnimation* m_pMainTankIcon		= nullptr;
+CTextureAnimation* m_pPullerIcon		= nullptr;
+CTextureAnimation* m_pMainAssistIcon	= nullptr;
+CTextureAnimation* m_pCombatIcon		= nullptr;
+CTextureAnimation* m_pDebuffIcon		= nullptr;
+CTextureAnimation* m_pRegenIcon			= nullptr;
+CTextureAnimation* m_pStandingIcon		= nullptr;
+CTextureAnimation* m_pTimerIcon			= nullptr;
+CTextureAnimation* m_StatusIcon			= nullptr;
+
 
 #pragma endregion
 
@@ -359,6 +372,152 @@ static void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 }
 
 
+static void DrawStatusEffects()
+{
+	if (!m_StatusIcon)
+	{
+		m_StatusIcon = new CTextureAnimation();
+		if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellIcons"))
+			*m_StatusIcon = *temp;
+	}
+
+	bool efxflag = false;
+	CXSize iconSize(30, 30);
+
+	for (const auto& debuff : statusFXData)
+	{
+		int check = GetSelfBuff(SpellAffect(debuff.spaValue, debuff.positveFX));
+		if (check >= 0)
+		{
+			efxflag = true;
+			m_StatusIcon->SetCurCell(debuff.iconID);
+			imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+			ImGui::SetItemTooltip(debuff.tooltip.c_str());
+			ImGui::SameLine();
+		}
+	}
+
+	if (GetSelfBuff([](EQ_Spell* spell) { return SpellAffect(SPA_HP, false)(spell) && spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(140);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SameLine();
+		ImGui::SetItemTooltip("Dotted");
+	}
+
+	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(55);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SameLine();
+		ImGui::SetItemTooltip("Malo");
+	}
+
+	if(GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(72);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SameLine();
+		ImGui::SetItemTooltip("Tash");
+	}
+
+	if (!efxflag)
+		ImGui::Dummy(iconSize);
+
+}
+
+
+static void DrawPlayerIcons(CGroupMember* pMember)
+{
+	if (!pMember)
+		return;
+
+	if (pMember->IsMainTank())
+	{
+		m_pMainTankIcon = pSidlMgr->FindAnimation("A_Tank");
+		imgui::DrawTextureAnimation(m_pMainTankIcon, ImVec2(20.0f, 20.0f));
+		ImGui::SameLine(0.0f,1.0f);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Main Tank");
+			ImGui::EndTooltip();
+		}
+	}
+	if (pMember->IsMainAssist())
+	{
+		m_pMainAssistIcon = pSidlMgr->FindAnimation("A_Assist");
+		imgui::DrawTextureAnimation(m_pMainAssistIcon, ImVec2(20.0f, 20.0f));
+		ImGui::SameLine(0.0f, 1.0f);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Main Assist");
+			ImGui::EndTooltip();
+		}
+	}
+	if (pMember->IsPuller())
+	{
+		m_pPullerIcon = pSidlMgr->FindAnimation("A_Puller");
+		imgui::DrawTextureAnimation(m_pPullerIcon, ImVec2(20.0f, 20.0f));
+		ImGui::SameLine(0.0f, 1.0f);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Puller");
+			ImGui::EndTooltip();
+		}
+	}
+	if (pMember == GetCharInfo()->pGroupInfo->GetGroupLeader())
+	{
+		ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), ICON_MD_STAR);
+		ImGui::SameLine(0.0f, 1.0f);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Group Leader");
+			ImGui::EndTooltip();
+		}
+	}
+	
+	ImGui::Dummy(ImVec2(1.0f, 1.0f));
+}
+
+
+static void DrawCombatStateIcon()
+{
+	int comState = GetCombatState();
+
+	switch (comState)
+	{
+	case eCombatState_Combat:
+		m_pCombatIcon = pSidlMgr->FindAnimation("A_PWCSInCombat");
+		imgui::DrawTextureAnimation(m_pCombatIcon, ImVec2(20.0f, 20.0f));
+		break;
+	case eCombatState_Debuff:
+		m_pDebuffIcon = pSidlMgr->FindAnimation("A_PWCSDebuff");
+		imgui::DrawTextureAnimation(m_pDebuffIcon,ImVec2(20.0f, 20.0f));
+		break;
+	case eCombatState_Timer:
+		m_pTimerIcon = pSidlMgr->FindAnimation("A_PWCSTimer");
+		imgui::DrawTextureAnimation(m_pTimerIcon, ImVec2(20.0f, 20.0f));
+		break;
+	case eCombatState_Standing:
+		m_pStandingIcon = pSidlMgr->FindAnimation("A_PWCSStanding");
+		imgui::DrawTextureAnimation(m_pStandingIcon, ImVec2(20.0f, 20.0f));
+		break;
+	case eCombatState_Regen:
+		m_pRegenIcon = pSidlMgr->FindAnimation("A_PWCSRegen");
+		imgui::DrawTextureAnimation(m_pRegenIcon, ImVec2(20.0f, 20.0f));
+		break;
+	default:
+		break;
+	}
+}
+
 /**
 * @fn DrawHelpIcon
 *
@@ -384,13 +543,11 @@ static void GiveItem(PSPAWNINFO pSpawn)
 	if (!pSpawn)
 		return;
 
-	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-	{
-		pTarget = pSpawn;
+	pTarget = pSpawn;
 
-		if (ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor))
-			EzCommand("/click left target");
-	}
+	if (ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor))
+		EzCommand("/click left target");
+	
 }
 
 
@@ -407,7 +564,7 @@ static void GiveItem(PSPAWNINFO pSpawn)
 *  @param maxColor MQColor Maximum color of the progress bar
 *  @param tooltip const char* Tooltip text to display when hovering over the progress bar
 */
-static void DrawBar(const char* label, int current, int max, int height, mq::MQColor minColor, mq::MQColor maxColor, const char* tooltip)
+static void DrawBar(const char* label, int current, int max, int height, const mq::MQColor minColor, const mq::MQColor maxColor, const char* tooltip)
 {
 	float percentage = static_cast<float>(current) / max;
 	int percentageInt = static_cast<int>(percentage * 100);
@@ -452,7 +609,7 @@ static void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 			ImGui::SameLine();
 			ImGui::Text("Dist:");
 			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.1f m", GetDistance(pLocalPlayer, petInfo));
+			ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.0f m", GetDistance(pLocalPlayer, petInfo));
 			
 			// health bar
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
@@ -529,14 +686,23 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 			if (mq::IsAnonymized())
 				nameLabel = MaskName(nameLabel);
 
-			if (ImGui::BeginTable("##Player", 3))
+			if (ImGui::BeginTable("##Player", 4))
 			{
-				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x * .5f);
-				ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_WidthFixed, 30);
-				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_WidthStretch, 60);
+				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
+				ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_NoResize, 100);
+				ImGui::TableSetupColumn("##Heading");
+				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_NoResize, 60);
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				ImGui::Text(nameLabel);
+				ImGui::TableNextColumn();
+				DrawCombatStateIcon();
+				if (GetCharInfo() && GetCharInfo()->pGroupInfo)
+				{
+					CGroupMember* pMember = GetCharInfo()->pGroupInfo->GetGroupMember(pLocalPlayer);
+					ImGui::SameLine(0.0f, 10.0f);
+					DrawPlayerIcons(pMember);
+				}
 				ImGui::TableNextColumn();
 				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_CurrHeading);
 				ImGui::TableNextColumn();
@@ -583,7 +749,7 @@ static void DrawMemberInfo(CGroupMember* pMember)
 	if (!pMember)
 	return;
 
-	if (ImGui::BeginTable("Group", 4))
+	if (ImGui::BeginTable("GroupMember", 5))
 	{
 		float distToMember = 0.0f;
 		const char* nameLabel = pMember->GetName();
@@ -596,6 +762,7 @@ static void DrawMemberInfo(CGroupMember* pMember)
 
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize, 10);
+		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, 80);
 		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_WidthStretch, 90);
 		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize, 30);
 		ImGui::TableNextRow();
@@ -611,9 +778,14 @@ static void DrawMemberInfo(CGroupMember* pMember)
 			ImGui::TextColored(GetMQColor(ColorName::Red).ToImColor(), ICON_MD_VISIBILITY_OFF);
 		}
 		ImGui::TableNextColumn();
-		ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.1f m", distToMember);
+		DrawPlayerIcons(pMember);
 		ImGui::TableNextColumn();
-		ImGui::Text("%d", pMember->Level);
+		ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.0f m", distToMember);
+		ImGui::TableNextColumn();
+		int lvl = 999;
+		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
+			lvl = pSpawn->Level;
+		ImGui::Text("%d", lvl);
 		ImGui::EndTable();
 	}
 
@@ -639,6 +811,17 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 			ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
 		{
 			DrawMemberInfo(pMember);
+			if (mq::IsPluginLoaded("MQ2DanNet"))
+			{
+				if (ImGui::BeginPopupContextItem((fmt::format("##", pMember->Name).c_str())))
+				{
+					if (ImGui::MenuItem("Switch To"))
+					{
+						EzCommand(fmt::format("/dex {} /foreground", pMember->Name).c_str());
+					}
+					ImGui::EndPopup();
+				}
+			}
 		}
 		ImGui::EndChild();
 
@@ -672,8 +855,31 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 			ImGui::EndGroup();
 		}
 		ImGui::PopID();
-		if (ImGui::IsItemHovered())
+		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 			GiveItem(pSpawn);
+
+		if (mq::IsPluginLoaded("MQ2DanNet"))
+		{
+			if (ImGui::BeginPopupContextItem(("##%s", pSpawn->Name)))
+			{
+				if (ImGui::MenuItem("Come To Me"))
+				{
+					EzCommand(fmt::format("/dex {} /multiline ; /afollow off; /nav stop ;  /timed 5, /nav id {}",pSpawn->Name, pLocalPlayer->GetId()).c_str());
+				}
+
+				if (ImGui::MenuItem("Go To"))
+				{
+					EzCommand(fmt::format("/nav spawn {}", pSpawn->Name).c_str());
+				}
+
+				if (ImGui::MenuItem("Switch To"))
+				{
+					EzCommand(fmt::format("/dex {} /foreground", pSpawn->Name).c_str());
+				}
+
+				ImGui::EndPopup();
+			}
+		}
 
 		if (drawPet)
 		{
@@ -1026,6 +1232,8 @@ static void DrawSpellWindow()
 			s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			pSpellInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
+			ImGui::Spacing();
+			ImGui::Dummy(ImVec2(0, 15));
 		}
 		ImGui::End();
 		PopTheme(popCounts);
@@ -1109,6 +1317,35 @@ static void DrawSongWindow()
 	PopTheme(popCounts);
 	ImGui::End();
 }
+
+
+static void DrawHudWindow()
+{
+	// pulled from ImGui Demo Example Simple Overlay
+	ImGuiIO& io = ImGui::GetIO();
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	if (s_WinSettings.hudClickThrough)
+		window_flags |= ImGuiWindowFlags_NoInputs;
+
+	float alpha = (s_NumSettings.hudAlpha / 255.0f);
+	ImGui::SetNextWindowBgAlpha(alpha); // Transparent background
+	if (ImGui::Begin("Status Efx##GrimGui", &s_WinSettings.showHud, s_WinLockFlags | window_flags))
+	{
+
+		DrawStatusEffects();
+
+		if (ImGui::BeginPopupContextWindow())
+		{
+			if (ImGui::MenuItem("Toggle Lock"))
+			{
+				s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
+			}
+			ImGui::EndPopup();
+		}
+	}
+	ImGui::End();
+}
+
 
 
 static void DrawConfigWindow()
@@ -1357,13 +1594,15 @@ static void DrawMainWindow()
 #pragma endregion
 
 
-
 #pragma region Plugin API
 PLUGIN_API void OnPulse()
 {
 	auto now = std::chrono::steady_clock::now();
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
+		s_WinLockFlags = s_WinSettings.lockWindows ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+		s_WindowFlags = s_WinSettings.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
+
 		if (s_ShowOutOfGame)
 			s_ShowOutOfGame = false; // reset incase we logged back in. =)
 
@@ -1527,6 +1766,9 @@ PLUGIN_API void OnUpdateImGui()
 		// Spell Picker
 		if (pSpellPicker)
 			pSpellPicker->DrawSpellPicker();
+
+		// Status Effects Window
+		DrawHudWindow();
 	}
 	
 }

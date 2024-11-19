@@ -149,7 +149,6 @@ namespace GrimGui {
 
 					if (spell)
 					{
-
 						m_pTASpellIcon->SetCurCell(spell->SpellIcon);
 						MQColor borderCol = MQColor(0, 0, 250, 255); // Default color blue (beneficial)
 						MQColor tintCol = MQColor(255, 255, 255, 255);
@@ -355,16 +354,24 @@ namespace GrimGui {
 					{
 						imgui::DrawTextureAnimation(m_pGemHolder, gemSize);
 
-						if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))
+						if (ImGui::IsItemHovered())
 						{
-							pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
-						}
-						else if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
-						{
-							if (pSpellPicker)
+							ImGui::BeginTooltip();
+							ImGui::Text("Right Click to Open Spell Picker, to memorize a spell");
+							ImGui::Text("You can also drop a spell from your spell book here to memorize it.");
+							ImGui::EndTooltip();
+
+							if (ImGui::IsMouseClicked(0))
 							{
-								pSpellPicker->SetOpen(true);
-								s_MemGemIndex = i + 1;
+								pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
+							}
+							else if (ImGui::IsMouseClicked(1))
+							{
+								if (pSpellPicker)
+								{
+									pSpellPicker->SetOpen(true);
+									s_MemGemIndex = i + 1;
+								}
 							}
 						}
 					}
@@ -419,31 +426,32 @@ namespace GrimGui {
 								{
 									ImGui::Text(spell->Name);
 									ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "Mana: %d", spell->ManaCost);
-									ImGui::Text("Range: %d", spell->Range);
 									ImGui::Text("Recast: %d", spell->RecastTime / 1000);
+									ImGui::Spacing();
+									ImGui::Text("Ctrl + Click to pick up gem");
+									ImGui::Text("Alt + Click to inspect spell");
 								}
 							}
 							ImGui::EndTooltip();
 
-							if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModAlt))
+							if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModAlt))
 							{
 								DoInspectSpell(spellId);
+							}
+							else if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+							{
+								pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
+								pSpellGem->ParentWndNotification(pSpellGem, XWM_LBUTTONUPAFTERHELD, nullptr);
 							}
 							else if (ImGui::IsMouseClicked(0))
 							{
 								if (spellId != -1)
 									Cast(pLocalPlayer, spell->Name);
-
 							}
 							else if (ImGui::IsMouseClicked(1))
 							{
 								if (spellId != -1)
 									pSpellGem->ParentWndNotification(pSpellGem, XWM_RCLICK, nullptr);
-							}
-							else if (ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left] > 0.750f)
-							{
-								pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
-								pSpellGem->ParentWndNotification(pSpellGem, XWM_LBUTTONUPAFTERHELD, nullptr);
 							}
 						}
 					}

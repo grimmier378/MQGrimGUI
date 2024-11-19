@@ -1,6 +1,7 @@
 #pragma once
 #include "mq/base/Color.h"
 
+
 extern struct WinSettings s_WinSettings;
 extern struct NumericSettings s_NumSettings;
 extern class SpellPicker* pSpellPicker;
@@ -8,7 +9,6 @@ extern std::string s_MemSpellName;
 extern int s_MemGemIndex;
 extern bool s_MemSpell;
 
-#pragma region Settings Structures
 
 #pragma region Window Visibility Settings
 
@@ -21,12 +21,14 @@ struct WinSettings
 	bool showGroupWindow		= false;
 	bool showSpellsWindow		= false;
 	bool showTargetWindow		= false;
+	bool showHud				= false;
 	bool showBuffWindow			= false;
 	bool showSongWindow			= false;
 	bool flashCombatFlag		= false;
 	bool flashTintFlag			= false;
 	bool showTitleBars			= true;
 	bool lockWindows			= false;
+	bool hudClickThrough		= false;
 } s_WinSettings;
 
 struct WinSetting
@@ -46,7 +48,9 @@ std::vector<WinSetting> winSettings = {
 	{"Group",		"ShowGroupWindow",		&s_WinSettings.showGroupWindow},
 	{"Spells",		"ShowSpellsWindow",		&s_WinSettings.showSpellsWindow},
 	{"Buffs",		"ShowBuffWindow",		&s_WinSettings.showBuffWindow},
-	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow}
+	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow},
+	{"Hud",			"ShowHud",				&s_WinSettings.showHud},
+	{"Hud",			"HudClickThrough",		&s_WinSettings.hudClickThrough},
 };
 
 #pragma endregion
@@ -67,6 +71,7 @@ struct NumericSettings
 	int buffIconSize				= 24;
 	int buffTimerThreshold			= 0;
 	int spellGemHeight				= 32;
+	int hudAlpha					= 120;
 } s_NumSettings;
 
 struct NumericSetting
@@ -86,6 +91,7 @@ std::vector<NumericSetting> numericSettings = {
 	{"Buffs",			"BuffTimerThreshold",		&s_NumSettings.buffTimerThreshold},
 	{"Group",			"GroupBarHeight",			&s_NumSettings.groupBarHeight},
 	{"Spells",			"SpellGemHeight",			&s_NumSettings.spellGemHeight},
+	{"Hud",				"HudAlpha",					&s_NumSettings.hudAlpha}
 };
 
 #pragma endregion
@@ -404,7 +410,7 @@ struct WindowOption
 	const char* key;
 };
 
-WindowOption options[] = {
+std::vector<WindowOption> options = {
 	{"Player Win",	&s_WinSettings.showPlayerWindow,	"PlayerTarg",	"ShowPlayerWindow"},
 	{"Target Win",	&s_WinSettings.showTargetWindow,	"PlayerTarg",	"SplitTarget"},
 	{"Pet Win",		&s_WinSettings.showPetWindow,		"Pet",			"ShowPetWindow"},
@@ -412,7 +418,7 @@ WindowOption options[] = {
 	{"Buff Win",	&s_WinSettings.showBuffWindow,		"Buffs",		"ShowBuffWindow"},
 	{"Song Win",	&s_WinSettings.showSongWindow,		"Songs",		"ShowSongWindow"},
 	{"Group Win",	&s_WinSettings.showGroupWindow,		"Group",		"ShowGroupWindow"},
-
+	{"Hud Win",		&s_WinSettings.showHud,				"Hud",			"ShowHud"}
 };
 
 
@@ -425,16 +431,17 @@ struct SliderOption
 	const char* helpText;
 };
 
-SliderOption sliderOptions[] = {
-	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 500, "Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 500, "Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		10, 40, "Buff Icon Size"},
-	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3600, "Buff Show Timer Threshold in Seconds (0 = Always Show)"},
-	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		10, 40, "Player Bar Height"},
-	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		10, 40, "Target Bar Height"},
-	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		10, 40, "Aggro Bar Height"},
-	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		10, 40, "Group Bar Height"},
-	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		10, 100, "Spell Gem Height"}
+std::vector <SliderOption> sliderOptions = {
+	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 500,		"Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 500,		"Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		10, 40,		"Buff Icon Size"},
+	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3600,	"Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		10, 40,		"Player Bar Height"},
+	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		10, 40,		"Target Bar Height"},
+	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		10, 40,		"Aggro Bar Height"},
+	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		10, 40,		"Group Bar Height"},
+	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		10, 100,	"Spell Gem Height"},
+	{"Hud Alpha",				&s_NumSettings.hudAlpha,			0, 255,		"Hud Alpha Level (Transparency)" },
 };
 
 
@@ -444,7 +451,7 @@ struct ThemeOption
 	std::string* theme;
 };
 
-ThemeOption themeOptions[] = {
+std::vector<ThemeOption> themeOptions = {
 	{"PlayerWin",	&s_WinTheme.playerWinTheme},
 	{"PetWin",		&s_WinTheme.petWinTheme},
 	{"GroupWin",	&s_WinTheme.groupWinTheme},
@@ -455,5 +462,107 @@ ThemeOption themeOptions[] = {
 
 #pragma endregion
 
+struct StatusFXData
+{
+	eEQSPA spaValue;
+	int iconID;
+	bool positveFX;
+	std::string tooltip;
+};
 
-#pragma endregion
+/**
+if (GetSelfBuff(SpellAffect(SPA_POISON, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(42);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Poisoned");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_DISEASE, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(41);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Diseased");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_BLINDNESS, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(200);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Blind");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_ROOT, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(117);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Rooted");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_MOVEMENT_RATE, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(5);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Movement Rate Buff");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_INVISIBILITY, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(18);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Invisible");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_INVIS_VS_UNDEAD, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(33);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Invis vs Undead");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_INVIS_VS_ANIMALS, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(34);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Invis vs Animals");
+		ImGui::SameLine();
+	}
+
+	if (GetSelfBuff(SpellAffect(SPA_FEAR, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(164);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Feared");
+		ImGui::SameLine();
+	}
+	if (GetSelfBuff(SpellAffect(SPA_STUN, false)) >= 0)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(165);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Stunned");
+		ImGui::SameLine();
+	}
+	*/
+std::vector<StatusFXData> statusFXData = {
+	{SPA_POISON,			42,		false,	"Poisoned"},
+	{SPA_DISEASE,			41,		false,	"Diseased"},
+	{SPA_BLINDNESS,			200,	false,	"Blind"},
+	{SPA_ROOT,				117,	false,	"Rooted"},
+	{SPA_MOVEMENT_RATE,		5,		false,	"Movement Rate Buff"},
+	{SPA_FEAR,				164,	false,	"Feared"},
+	{SPA_STUN,				165,	false,	"Stunned"},
+	// invis effects
+	{SPA_INVISIBILITY,		18,		true,	"Invisible"},
+	{SPA_INVIS_VS_UNDEAD,	33,		true,	"Invis vs Undead"},
+	{SPA_INVIS_VS_ANIMALS,	34,		true,	"Invis vs Animals"}
+};
