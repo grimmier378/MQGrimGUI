@@ -38,7 +38,7 @@ static const char* s_CurrHeading			= "N";
 static int s_TarBuffLineSize				= 0;
 
 SpellPicker* pSpellPicker					= nullptr;
-GrimGui::SpellsInspector* pSpellInspector	= nullptr;
+grimgui::SpellsInspector* pSpellInspector	= nullptr;
 
 static bool s_MemSpell						= false;
 std::string s_MemSpellName;
@@ -144,7 +144,7 @@ static void TogglePetButtonVisibilityMenu()
 			ImGui::SetNextItemWidth(70);
 			if (ImGui::Checkbox(button.name.c_str(), &button.visible))
 			{
-				WritePrivateProfileBool("Pet", button.name.c_str(), button.visible, &s_SettingsFile[0]);
+				SaveSetting(&button.visible, &s_SettingsFile[0]);
 			}
 		}
 		ImGui::EndTable();
@@ -290,8 +290,12 @@ static void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 			command = GrimCommand::Buffs;
 		else if (strcmp(arg, "songs") == 0)
 			command = GrimCommand::Songs;
+		else if (strcmp(arg, "hud") == 0)
+			command = GrimCommand::Hud;
 		else if (strcmp(arg, "config") == 0)
 			command = GrimCommand::Config;
+		else if (strcmp(arg, "clickthrough") == 0)
+			command = GrimCommand::ClickThrough;
 		else if (strcmp(arg, "help") == 0)
 			command = GrimCommand::Help;
 		else
@@ -308,42 +312,50 @@ static void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 				s_ShowOutOfGame = true;
 			}
 			s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
-			WritePrivateProfileBool("Settings", "ShowMainGui", s_WinSettings.showMainWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Lock:
 			s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
-			WritePrivateProfileBool("Settings", "LockWindows", s_WinSettings.lockWindows, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.lockWindows, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Player:
 			s_WinSettings.showPlayerWindow = !s_WinSettings.showPlayerWindow;
-			WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinSettings.showPlayerWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showPlayerWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Target:
 			s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
-			WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Pet:
 			s_WinSettings.showPetWindow = !s_WinSettings.showPetWindow;
-			WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinSettings.showPetWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showPetWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Group:
 			s_WinSettings.showGroupWindow = !s_WinSettings.showGroupWindow;
-			WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinSettings.showGroupWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showGroupWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Spells:
 			s_WinSettings.showSpellsWindow = !s_WinSettings.showSpellsWindow;
-			WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinSettings.showSpellsWindow, & s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showSpellsWindow, & s_SettingsFile[0]);
 			break;
 		case GrimCommand::Buffs:
 			s_WinSettings.showBuffWindow = !s_WinSettings.showBuffWindow;
-			WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinSettings.showBuffWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showBuffWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Songs:
 			s_WinSettings.showSongWindow = !s_WinSettings.showSongWindow;
-			WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinSettings.showSongWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showSongWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Config:
 			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+			break;
+		case GrimCommand::ClickThrough:
+			s_WinSettings.hudClickThrough = !s_WinSettings.hudClickThrough;
+			SaveSetting(&s_WinSettings.hudClickThrough, &s_SettingsFile[0]);
+			break;
+		case GrimCommand::Hud:
+			s_WinSettings.showHud = !s_WinSettings.showHud;
+			SaveSetting(&s_WinSettings.showHud, &s_SettingsFile[0]);
 			break;
 		}
 	}
@@ -428,7 +440,6 @@ static void DrawStatusEffects()
 		ImGui::Dummy(iconSize);
 
 }
-
 
 static void DrawPlayerIcons(CGroupMember* pMember)
 {
@@ -1000,13 +1011,13 @@ static void DrawPlayerWindow()
 					if (ImGui::MenuItem("Lock Windows", NULL, s_WinSettings.lockWindows))
 					{
 						s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
-						WritePrivateProfileBool("Settings", "LockWindows", s_WinSettings.lockWindows, &s_SettingsFile[0]);
+						SaveSetting(&s_WinSettings.lockWindows, &s_SettingsFile[0]);
 					}
 
 					if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
 					{
 						s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
-						WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
+						SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
 					}
 
 					if (ImGui::MenuItem("Show Config", NULL, s_WinSettings.showConfigWindow))
@@ -1015,7 +1026,7 @@ static void DrawPlayerWindow()
 					if (ImGui::MenuItem("Show Main", NULL, s_WinSettings.showMainWindow))
 					{
 						s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
-						WritePrivateProfileBool("Settings", "ShowMainGui", s_WinSettings.showMainWindow, &s_SettingsFile[0]);
+						SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
 					}
 
 					ImGui::EndMenu();
@@ -1321,7 +1332,6 @@ static void DrawSongWindow()
 
 static void DrawHudWindow()
 {
-	// pulled from ImGui Demo Example Simple Overlay
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 	if (s_WinSettings.hudClickThrough)
@@ -1329,17 +1339,24 @@ static void DrawHudWindow()
 
 	float alpha = (s_NumSettings.hudAlpha / 255.0f);
 	ImGui::SetNextWindowBgAlpha(alpha); // Transparent background
-	if (ImGui::Begin("Status Efx##GrimGui", &s_WinSettings.showHud, s_WinLockFlags | window_flags))
+	if (ImGui::Begin("Hud##GrimGui", &s_WinSettings.showHud, s_WinLockFlags | window_flags))
 	{
 
 		DrawStatusEffects();
 
-		if (ImGui::BeginPopupContextWindow())
+		if (ImGui::BeginPopupContextWindow("HudContext##GrimGui",ImGuiPopupFlags_MouseButtonRight))
 		{
-			if (ImGui::MenuItem("Toggle Lock"))
+			if (ImGui::MenuItem("Toggle Click Through"))
 			{
-				s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
+				s_WinSettings.hudClickThrough = !s_WinSettings.hudClickThrough;
+				SaveSetting(&s_WinSettings.hudClickThrough, s_SettingsFile);
 			}
+
+			if (ImGui::MenuItem("Close Hud"))
+			{
+				s_WinSettings.showHud = false;
+			}
+
 			ImGui::EndPopup();
 		}
 	}
@@ -1512,6 +1529,11 @@ static void DrawConfigWindow()
 
 			ImGui::SameLine();
 			DrawHelpIcon("Lock Windows");
+
+			if (ImGui::Checkbox("Hud Click Through", &s_WinSettings.hudClickThrough))
+
+			ImGui::SameLine();
+			DrawHelpIcon("Toggles Mouse Click through on Hud Window");
 		}
 		ImGui::Spacing();
 
@@ -1574,7 +1596,7 @@ static void DrawMainWindow()
 				for (const auto& option : options)
 				{
 					if (ImGui::Checkbox(option.label, option.setting))
-						WritePrivateProfileBool(option.section, option.key, *option.setting, &s_SettingsFile[0]);
+						SaveSetting(option.setting, &s_SettingsFile[0]);
 					
 					ImGui::TableNextColumn();
 				}
@@ -1669,7 +1691,6 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-
 PLUGIN_API void OnUpdateImGui()
 {
 	// Windows that can be shown out of game or in game. 
@@ -1682,7 +1703,7 @@ PLUGIN_API void OnUpdateImGui()
 
 		if (!s_WinSettings.showMainWindow)
 		{
-			WritePrivateProfileBool("Settings", "ShowMainGui", s_WinSettings.showMainWindow, &s_SettingsFile[0]);
+			SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
 			if (s_ShowOutOfGame)
 				s_ShowOutOfGame = false;
 		}
@@ -1700,7 +1721,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawPlayerWindow();
 
 			if (!s_WinSettings.showPlayerWindow)
-				WritePrivateProfileBool("PlayerTarg", "ShowPlayerWindow", s_WinSettings.showPlayerWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showPlayerWindow, &s_SettingsFile[0]);
 		}
 
 		// Pet Window
@@ -1709,7 +1730,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawPetWindow();
 
 			if (!s_WinSettings.showPetWindow)
-				WritePrivateProfileBool("Pet", "ShowPetWindow", s_WinSettings.showPetWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showPetWindow, &s_SettingsFile[0]);
 		}
 
 		//Buff Window
@@ -1718,7 +1739,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawBuffWindow();
 
 			if (!s_WinSettings.showBuffWindow)
-				WritePrivateProfileBool("Buffs", "ShowBuffWindow", s_WinSettings.showBuffWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showBuffWindow, &s_SettingsFile[0]);
 		}
 
 		// Song Window
@@ -1727,7 +1748,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawSongWindow();
 
 			if (!s_WinSettings.showSongWindow)
-				WritePrivateProfileBool("Songs", "ShowSongWindow", s_WinSettings.showSongWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showSongWindow, &s_SettingsFile[0]);
 		}
 		
 		// Split Target Window
@@ -1742,7 +1763,7 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::End();
 
 			if (!s_WinSettings.showTargetWindow)
-				WritePrivateProfileBool("PlayerTarg", "SplitTarget", s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
 		}
 
 		// Group Window
@@ -1751,7 +1772,7 @@ PLUGIN_API void OnUpdateImGui()
 			DrawGroupWindow();
 
 			if (!s_WinSettings.showGroupWindow)
-				WritePrivateProfileBool("Group", "ShowGroupWindow", s_WinSettings.showGroupWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showGroupWindow, &s_SettingsFile[0]);
 		}
 
 		// Spell Window
@@ -1760,15 +1781,16 @@ PLUGIN_API void OnUpdateImGui()
 			DrawSpellWindow();
 
 			if (!s_WinSettings.showSpellsWindow)
-				WritePrivateProfileBool("Spells", "ShowSpellsWindow", s_WinSettings.showSpellsWindow, &s_SettingsFile[0]);
+				SaveSetting(&s_WinSettings.showSpellsWindow, &s_SettingsFile[0]);
 		}
 
 		// Spell Picker
 		if (pSpellPicker)
 			pSpellPicker->DrawSpellPicker();
 
-		// Status Effects Window
-		DrawHudWindow();
+		// Status Effects HUD Window
+		if (s_WinSettings.showHud)
+			DrawHudWindow();
 	}
 	
 }
@@ -1788,7 +1810,7 @@ PLUGIN_API void OnUpdateImGui()
 PLUGIN_API void OnLoadPlugin(const char* Name)
 {
 	if (!pSpellInspector)
-		pSpellInspector = new GrimGui::SpellsInspector();
+		pSpellInspector = new grimgui::SpellsInspector();
 
 	if (!pSpellPicker)
 		pSpellPicker = new SpellPicker();
@@ -1826,7 +1848,7 @@ PLUGIN_API void InitializePlugin()
 	DebugSpewAlways("Initializing MQ2GrimGUI");
 	AddCommand("/grimgui", GrimCommandHandler, false, true, false);
 	PrintGrimHelp();
-	pSpellInspector = new GrimGui::SpellsInspector();
+	pSpellInspector = new grimgui::SpellsInspector();
 	pSpellPicker = new SpellPicker();
 	UpdateSettingFile();
 }

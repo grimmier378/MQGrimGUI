@@ -305,6 +305,8 @@ enum class GrimCommand
 	Spells,
 	Buffs,
 	Songs,
+	Hud,
+	ClickThrough,
 	Config,
 	Help
 };
@@ -316,19 +318,21 @@ struct CommandInfo
 	const char* description;
 };
 
-const std::array<CommandInfo, 11> commandList = {
+const std::array<CommandInfo, 13> commandList = {
 	{
-		{GrimCommand::Show,		"show",		"Toggles Main Window"},
-		{GrimCommand::Lock,		"lock",		"Toggles Window Lock"},
-		{GrimCommand::Player,	"player",	"Toggles Player Window"},
-		{GrimCommand::Target,	"target",	"Toggles Target Window"},
-		{GrimCommand::Pet,		"pet",		"Toggles Pet Window"},
-		{GrimCommand::Group,	"group",	"Toggles Group Window"},
-		{GrimCommand::Spells,	"spells",	"Toggles Spells Window"},
-		{GrimCommand::Buffs,	"buffs",	"Toggles Buffs Window"},
-		{GrimCommand::Songs,	"songs",	"Toggles Songs Window"},
-		{GrimCommand::Config,	"config",	"Opens Configuration Window"},
-		{GrimCommand::Help,		"help",		"Displays this help message"}
+		{GrimCommand::Show,			"show",			"Toggles Main Window"},
+		{GrimCommand::Lock,			"lock",			"Toggles Window Lock"},
+		{GrimCommand::Player,		"player",		"Toggles Player Window"},
+		{GrimCommand::Target,		"target",		"Toggles Target Window"},
+		{GrimCommand::Pet,			"pet",			"Toggles Pet Window"},
+		{GrimCommand::Group,		"group",		"Toggles Group Window"},
+		{GrimCommand::Spells,		"spells",		"Toggles Spells Window"},
+		{GrimCommand::Buffs,		"buffs",		"Toggles Buffs Window"},
+		{GrimCommand::Songs,		"songs",		"Toggles Songs Window"},
+		{GrimCommand::Hud,			"hud",			"Toggles Hud Window"},
+		{GrimCommand::Config,		"config",		"Opens Configuration Window"},
+		{GrimCommand::ClickThrough, "clickthrough", "Toggles Hud Click Through"},
+		{GrimCommand::Help,			"help",			"Displays this help message"}
 	}
 };
 
@@ -566,3 +570,41 @@ std::vector<StatusFXData> statusFXData = {
 	{SPA_INVIS_VS_UNDEAD,	33,		true,	"Invis vs Undead"},
 	{SPA_INVIS_VS_ANIMALS,	34,		true,	"Invis vs Animals"}
 };
+
+#pragma region Utility Functions
+// Rut Roh Raggy!
+// Grimmier watched a "The Cherno" video on overloading functions. 
+
+void SaveSetting(bool* setting, const char* settingsFile) {
+	auto it = std::find_if(winSettings.begin(), winSettings.end(),
+		[setting](const WinSetting& ws) { return ws.setting == setting; });
+	if (it != winSettings.end()) {
+		WritePrivateProfileBool(it->section, it->key, *setting, settingsFile);
+	}
+}
+
+void SaveSetting(int* value, const char* settingsFile) {
+	auto it = std::find_if(numericSettings.begin(), numericSettings.end(),
+		[value](const NumericSetting& ns) { return ns.value == value; });
+	if (it != numericSettings.end()) {
+		WritePrivateProfileInt(it->section, it->key, *value, settingsFile);
+	}
+}
+
+void SaveSetting(std::string* theme, const char* settingsFile) {
+	auto it = std::find_if(themeSettings.begin(), themeSettings.end(),
+		[theme](const ThemeSetting& ts) { return ts.theme == theme; });
+	if (it != themeSettings.end()) {
+		WritePrivateProfileString(it->section, it->key, *theme, settingsFile);
+	}
+}
+
+void SaveSetting(mq::MQColor* color, const char* settingsFile) {
+	auto it = std::find_if(colorSettings.begin(), colorSettings.end(),
+		[color](const ColorSetting& cs) { return cs.value == color; });
+	if (it != colorSettings.end()) {
+		WritePrivateProfileColor(it->section, it->key, *color, settingsFile);
+	}
+}
+
+#pragma endregion

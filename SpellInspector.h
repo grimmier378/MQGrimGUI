@@ -5,7 +5,7 @@
 
 #pragma region Spells Inspector
 
-namespace GrimGui {
+namespace grimgui {
 	// lifted from developer tools to inspect spells
 
 	class SpellsInspector
