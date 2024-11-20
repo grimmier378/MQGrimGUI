@@ -58,7 +58,6 @@ CTextureAnimation* m_StatusIcon			= nullptr;
 #pragma endregion
 
 
-
 #pragma region Timers
 std::chrono::steady_clock::time_point g_LastUpdateTime		= std::chrono::steady_clock::now();
 std::chrono::steady_clock::time_point g_LastFlashTime		= std::chrono::steady_clock::now();
@@ -69,7 +68,6 @@ const auto g_UpdateInterval			= std::chrono::milliseconds(500);
 
 #pragma endregion
 
-
 #pragma region Settings Functions
 
 static void LoadSettings()
@@ -78,7 +76,7 @@ static void LoadSettings()
 
 	for (const auto& setting : winSettings)
 	{
-		*setting.setting = GetPrivateProfileBool(setting.section, setting.key, *setting.setting , &s_SettingsFile[0]);
+		*setting.setting = GetPrivateProfileBool(setting.section, setting.key, *setting.setting, &s_SettingsFile[0]);
 	}
 
 	for (const auto& setting : numericSettings)
@@ -153,6 +151,7 @@ static void TogglePetButtonVisibilityMenu()
 
 /**
 * @brief Updates the settings file based on the current game state
+*		 between the character specific and default settings file
 */
 static void UpdateSettingFile()
 {
@@ -223,7 +222,7 @@ static void UpdateSettingFile()
 				SaveSettings();
 			else
 				LoadSettings();
-			
+
 			s_DefaultLoaded = true;
 			s_IsCaster = false;
 		}
@@ -635,7 +634,7 @@ static void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 	}
 	else
 	{
-		// just draw a green pet health bar at size 8 for group window.
+		// just draw a green pet health bar at 3/4 size of the player bars for group window.
 		if (ImGui::BeginChild("PetBar", ImVec2(ImGui::GetColumnWidth(), 0),
 			ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize ))
 		{
@@ -905,7 +904,6 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 #pragma endregion
 
 
-
 #pragma region GUI Windows 
 
 static void DrawTargetWindow()
@@ -990,13 +988,13 @@ static void DrawTargetWindow()
 		}
 	}
 
-
 static void DrawPlayerWindow()
 	{
 		if (!s_WinSettings.showPlayerWindow)
 			return;
-
-		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+		float displayX = ImGui::GetIO().DisplaySize.x;
+		ImGui::SetNextWindowPos(ImVec2(displayX - 310, 0), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(300, 290), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.playerWinTheme);
 		ImGuiWindowFlags menuFlag = s_WinSettings.showTitleBars ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
 		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinSettings.showPlayerWindow, s_WindowFlags | s_WinLockFlags | menuFlag | ImGuiWindowFlags_NoScrollbar))
@@ -1047,12 +1045,12 @@ static void DrawPlayerWindow()
 		ImGui::End();
 	}
 
-
 static void DrawGroupWindow()
 {
 	if (!s_WinSettings.showGroupWindow)
 		return;
-
+	float displayX = ImGui::GetIO().DisplaySize.x;
+	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 300), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.groupWinTheme);
 
@@ -1137,7 +1135,6 @@ static void DrawGroupWindow()
 	ImGui::End();
 }
 
-
 static void DrawPetWindow()
 {
 	if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
@@ -1145,8 +1142,10 @@ static void DrawPetWindow()
 		const char* petName = MyPet->DisplayedName;
 		if (mq::IsAnonymized())
 			petName = "Pet";
-
-		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+		float displayX = ImGui::GetIO().DisplaySize.x;
+		float displayY = ImGui::GetIO().DisplaySize.y;
+		ImGui::SetNextWindowPos(ImVec2(displayX * 0.75f, displayY * 0.5f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(300, 283), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.petWinTheme);
 		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
 		{
@@ -1228,28 +1227,8 @@ static void DrawPetWindow()
 
 }
 
-
-static void DrawSpellWindow()
+static void DrawCastingBarWindow()
 {
-	if (!s_WinSettings.showSpellsWindow)
-		return;
-
-	if (s_IsCaster)
-	{
-		ImGui::SetNextWindowSize(ImVec2(100, 350), ImGuiCond_FirstUseEver);
-		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
-	
-		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
-			s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			pSpellInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
-			ImGui::Spacing();
-			ImGui::Dummy(ImVec2(0, 15));
-		}
-		ImGui::End();
-		PopTheme(popCounts);
-	}
-
 	if (pCastingWnd && pCastingWnd->IsVisible())
 	{
 		if (!s_IsCasting)
@@ -1258,10 +1237,12 @@ static void DrawSpellWindow()
 			s_IsCasting = true;
 
 		}
-
-		ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_FirstUseEver);
+		float displayX = ImGui::GetIO().DisplaySize.x;
+		float displayY = ImGui::GetIO().DisplaySize.y;
+		ImGui::SetNextWindowPos(ImVec2((displayX / 2.0f)-150, displayY * 0.3f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
-		if (ImGui::Begin("Casting##MQ2GrimGUI", &s_IsCasting,
+		if (ImGui::Begin("Casting##MQ2GrimGUI1", &s_IsCasting,
 			s_WinLockFlags | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
@@ -1281,9 +1262,9 @@ static void DrawSpellWindow()
 					ImVec4 colorCastBar = CalculateProgressiveColor(s_BarColors.minColorCast, s_BarColors.maxColorCast, static_cast<int>(spellProgress * 100));
 
 					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorCastBar);
-					ImGui::ProgressBar(spellProgress, ImVec2(ImGui::GetContentRegionAvail().x, 12 ), "##CastingProgress");
+					ImGui::ProgressBar(spellProgress, ImVec2(ImGui::GetContentRegionAvail().x, 12), "##CastingProgress");
 					ImGui::PopStyleColor();
-					ImGui::Text("%s %0.1fs",spellName, (castingTime - spellTimer) /1000);
+					ImGui::Text("%s %0.1fs", spellName, (castingTime - spellTimer) / 1000);
 					pCastingWnd->GetChildItem("Casting_Gauge")->GetSidlPiece("Casting_Gauge");
 				}
 			}
@@ -1296,13 +1277,38 @@ static void DrawSpellWindow()
 		s_IsCasting = false;
 }
 
+static void DrawSpellWindow()
+{
+	if (!s_WinSettings.showSpellsWindow)
+		return;
+
+	if (s_IsCaster)
+	{
+		float displayX = ImGui::GetIO().DisplaySize.x;
+		float displayY = ImGui::GetIO().DisplaySize.y;
+		ImGui::SetNextWindowPos(ImVec2(230,80), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(79, 662), ImGuiCond_FirstUseEver);
+		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
+	
+		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
+			s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			pSpellInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
+			ImGui::Spacing();
+			ImGui::Dummy(ImVec2(0, 15));
+		}
+		ImGui::End();
+		PopTheme(popCounts);
+	}
+}
 
 static void DrawBuffWindow()
 {
 	if (!s_WinSettings.showBuffWindow)
 		return;
 
-	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(15,10), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
 	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow,
 		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
@@ -1313,13 +1319,13 @@ static void DrawBuffWindow()
 
 }
 
-
 static void DrawSongWindow()
 {
 	if (!s_WinSettings.showSongWindow)
 		return;
 
-	ImGui::SetNextWindowSize(ImVec2(100, 300), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(15, 310), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.songWinTheme);
 	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinSettings.showSongWindow,
 		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
@@ -1329,7 +1335,6 @@ static void DrawSongWindow()
 	ImGui::End();
 }
 
-
 static void DrawHudWindow()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -1337,6 +1342,8 @@ static void DrawHudWindow()
 	if (s_WinSettings.hudClickThrough)
 		window_flags |= ImGuiWindowFlags_NoInputs;
 
+	float displayX = ImGui::GetIO().DisplaySize.x;
+	ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 15, 0), ImGuiCond_FirstUseEver);
 	float alpha = (s_NumSettings.hudAlpha / 255.0f);
 	ImGui::SetNextWindowBgAlpha(alpha); // Transparent background
 	if (ImGui::Begin("Hud##GrimGui", &s_WinSettings.showHud, s_WinLockFlags | window_flags))
@@ -1363,13 +1370,13 @@ static void DrawHudWindow()
 	ImGui::End();
 }
 
-
-
 static void DrawConfigWindow()
 {
 	if (!s_WinSettings.showConfigWindow)
 		return;
-
+	float displayX = ImGui::GetIO().DisplaySize.x;
+	float displayY = ImGui::GetIO().DisplaySize.y;
+	ImGui::SetNextWindowPos(ImVec2((displayX* 0.5f) -150, displayY * 0.3f), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 	if (ImGui::Begin("Config##ConfigWindow", &s_WinSettings.showConfigWindow, s_WindowFlags))
 	{
@@ -1574,12 +1581,14 @@ static void DrawConfigWindow()
 	ImGui::End();
 }
 
-
 // Main Window, toggled with /Grimgui command, contains Toggles to show other windows
 static void DrawMainWindow()
 {
 	if (s_WinSettings.showMainWindow)
 	{
+		float displayX = ImGui::GetIO().DisplaySize.x;
+		float displayY = ImGui::GetIO().DisplaySize.y;
+		ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 150, displayY * 0.5f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 		if (ImGui::Begin("GrimGUI##MainWindow", &s_WinSettings.showMainWindow))
 		{
@@ -1652,7 +1661,7 @@ PLUGIN_API void OnPulse()
 		// update buff flash timers
 		if (s_NumSettings.flashBuffInterval > 0)
 		{
-			if (now - g_LastBuffFlashTime >= std::chrono::milliseconds(500 - s_NumSettings.flashBuffInterval))
+			if (now - g_LastBuffFlashTime >= std::chrono::milliseconds(500 - (s_NumSettings.flashBuffInterval * 10)))
 			{
 				s_WinSettings.flashTintFlag = !s_WinSettings.flashTintFlag;
 				g_LastBuffFlashTime = now;
@@ -1666,7 +1675,7 @@ PLUGIN_API void OnPulse()
 		// update combat flash timers
 		if (s_NumSettings.combatFlashInterval > 0)
 		{
-			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - s_NumSettings.combatFlashInterval))
+			if (now - g_LastFlashTime >= std::chrono::milliseconds(500 - (s_NumSettings.combatFlashInterval * 10)))
 			{
 				s_WinSettings.flashCombatFlag = !s_WinSettings.flashCombatFlag;
 				g_LastFlashTime = now;
@@ -1754,7 +1763,9 @@ PLUGIN_API void OnUpdateImGui()
 		// Split Target Window
 		if (s_WinSettings.showTargetWindow)
 		{
-			ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_FirstUseEver);
+			float displayX = ImGui::GetIO().DisplaySize.x;
+			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
 			int popCountsPlay = PushTheme(s_WinTheme.playerWinTheme);
 			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_WinSettings.showTargetWindow, s_WindowFlags | s_WinLockFlags))
 				DrawTargetWindow();
@@ -1783,6 +1794,10 @@ PLUGIN_API void OnUpdateImGui()
 			if (!s_WinSettings.showSpellsWindow)
 				SaveSetting(&s_WinSettings.showSpellsWindow, &s_SettingsFile[0]);
 		}
+
+		// Casting Bar Window
+		// This applies to all characters not just spell casters.
+		DrawCastingBarWindow();
 
 		// Spell Picker
 		if (pSpellPicker)

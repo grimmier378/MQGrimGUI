@@ -1,14 +1,12 @@
 #pragma once
 #include "mq/base/Color.h"
 
-
 extern struct WinSettings s_WinSettings;
 extern struct NumericSettings s_NumSettings;
 extern class SpellPicker* pSpellPicker;
 extern std::string s_MemSpellName;
 extern int s_MemGemIndex;
 extern bool s_MemSpell;
-
 
 #pragma region Window Visibility Settings
 
@@ -60,15 +58,15 @@ std::vector<WinSetting> winSettings = {
 
 struct NumericSettings
 {
-	int combatFlashInterval			= 100;
-	int flashBuffInterval			= 40;
-	int playerBarHeight				= 15;
-	int targetBarHeight				= 15;
-	int aggroBarHeight				= 10;
-	int groupBarHeight				= 15;
+	int combatFlashInterval			= 15;
+	int flashBuffInterval			= 4;
+	int playerBarHeight				= 12;
+	int targetBarHeight				= 12;
+	int aggroBarHeight				= 12;
+	int groupBarHeight				= 12;
 	int myAggroPct					= 0;
 	int secondAggroPct				= 0;
-	int buffIconSize				= 24;
+	int buffIconSize				= 20;
 	int buffTimerThreshold			= 0;
 	int spellGemHeight				= 32;
 	int hudAlpha					= 120;
@@ -436,16 +434,16 @@ struct SliderOption
 };
 
 std::vector <SliderOption> sliderOptions = {
-	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 500,		"Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 500,		"Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		10, 40,		"Buff Icon Size"},
-	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3600,	"Buff Show Timer Threshold in Seconds (0 = Always Show)"},
-	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		10, 40,		"Player Bar Height"},
-	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		10, 40,		"Target Bar Height"},
-	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		10, 40,		"Aggro Bar Height"},
-	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		10, 40,		"Group Bar Height"},
-	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		10, 100,	"Spell Gem Height"},
-	{"Hud Alpha",				&s_NumSettings.hudAlpha,			0, 255,		"Hud Alpha Level (Transparency)" },
+	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 50,		"Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 30,		"Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		15, 40,		"Buff Icon Size"},
+	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3601,	"Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		8, 40,		"Player Bar Height"},
+	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		8, 40,		"Target Bar Height"},
+	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		8, 40,		"Aggro Bar Height"},
+	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		8, 40,		"Group Bar Height"},
+	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		15, 100,	"Spell Gem Height"},
+	{"Hud Alpha",				&s_NumSettings.hudAlpha,			0, 255,		"Hud Transparency (Alpha Level)" },
 };
 
 
@@ -465,6 +463,9 @@ std::vector<ThemeOption> themeOptions = {
 };
 
 #pragma endregion
+
+
+#pragma region Hud Stuff
 
 struct StatusFXData
 {
@@ -570,6 +571,9 @@ std::vector<StatusFXData> statusFXData = {
 	{SPA_INVIS_VS_UNDEAD,	33,		true,	"Invis vs Undead"},
 	{SPA_INVIS_VS_ANIMALS,	34,		true,	"Invis vs Animals"}
 };
+
+#pragma endregion
+
 
 #pragma region Utility Functions
 // Rut Roh Raggy!
