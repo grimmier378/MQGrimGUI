@@ -25,7 +25,8 @@ static bool s_IsCaster						= false;
 static bool s_ShowOutOfGame					= false;
 static bool s_FollowClicked					= false;
 static bool s_RezEFX						= false;
-static bool s_CanRevert = false;
+static bool s_CanRevert						= false;
+static bool s_DanNetEnabled					= false;
 
 static int s_TarBuffLineSize = 0;
 static int s_TestInt						= 100; // Color Test Value for Config Window
@@ -683,7 +684,7 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 
 			if (ImGui::BeginTable("##Player", 4))
 			{
-				float roleColSize = ImGui::GetContentRegionAvailWidth() - (ImGui::CalcTextSize(nameLabel).x + 100);
+				float roleColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
 				ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, roleColSize);
 				ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_NoResize, 30);
@@ -756,7 +757,7 @@ static void DrawMemberInfo(CGroupMember* pMember)
 		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
 			distToMember = GetDistance(pLocalPlayer, pSpawn);
 
-		float rolColSize = ImGui::GetContentRegionAvailWidth() - (ImGui::CalcTextSize(nameLabel).x + 100);
+		float rolColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize, 10);
 		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
@@ -808,17 +809,6 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 			ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
 		{
 			DrawMemberInfo(pMember);
-			if (mq::IsPluginLoaded("MQ2DanNet"))
-			{
-				if (ImGui::BeginPopupContextItem((fmt::format("##", pMember->Name).c_str())))
-				{
-					if (ImGui::MenuItem("Switch To"))
-					{
-						EzCommand(fmt::format("/dex {} /foreground", pMember->Name).c_str());
-					}
-					ImGui::EndPopup();
-				}
-			}
 		}
 		ImGui::EndChild();
 
@@ -855,27 +845,56 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 			GiveItem(pSpawn);
 
-		if (mq::IsPluginLoaded("MQ2DanNet"))
+		const char* spawnName = pSpawn->Name;
+		if (ImGui::BeginPopupContextItem(("##%s", spawnName)))
 		{
-			if (ImGui::BeginPopupContextItem(("##%s", pSpawn->Name)))
+			if (s_DanNetEnabled)
 			{
 				if (ImGui::MenuItem("Come To Me"))
 				{
-					EzCommand(fmt::format("/dex {} /multiline ; /afollow off; /nav stop ;  /timed 5, /nav id {}",pSpawn->Name, pLocalPlayer->GetId()).c_str());
+					EzCommand(fmt::format("/dex {} /multiline ; /afollow off; /nav stop ;  /timed 5, /nav id {}", pSpawn->Name, pLocalPlayer->GetId()).c_str());
 				}
-
-				if (ImGui::MenuItem("Go To"))
-				{
-					EzCommand(fmt::format("/nav spawn {}", pSpawn->Name).c_str());
-				}
-
+			}
+			if (ImGui::MenuItem("Go To"))
+			{
+				EzCommand(fmt::format("/nav spawn {}", spawnName).c_str());
+			}
+			if (s_DanNetEnabled)
+			{
 				if (ImGui::MenuItem("Switch To"))
 				{
-					EzCommand(fmt::format("/dex {} /foreground", pSpawn->Name).c_str());
+					EzCommand(fmt::format("/dex {} /foreground", spawnName).c_str());
 				}
-
-				ImGui::EndPopup();
 			}
+
+			if (ImGui::BeginMenu("Roles"))
+			{
+				if (ImGui::MenuItem("Main Assist"))
+					EzCommand(fmt::format("/grouproles set {} 2", spawnName).c_str());
+
+				if (ImGui::MenuItem("Main Tank"))
+					EzCommand(fmt::format("/grouproles set {} 1", spawnName).c_str());
+
+				if (ImGui::MenuItem("Puller"))
+					EzCommand(fmt::format("/grouproles set {} 3", spawnName).c_str());
+
+				if (pLocalPlayer->Name == GetCharInfo()->pGroupInfo->GetGroupLeader()->Name)
+				{
+					if (ImGui::MenuItem("Make Leader"))
+						EzCommand(fmt::format("/makeleader {}", spawnName).c_str());
+				}
+				else if (pMember == GetCharInfo()->pGroupInfo->GetGroupLeader())
+				{
+					if (s_DanNetEnabled)
+					{
+						if (ImGui::MenuItem("Make Me Leader"))
+							EzCommand(fmt::format("/dex {} /makeleader {}",
+								spawnName, pLocalPlayer->Name).c_str());
+					}
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndPopup();
 		}
 
 		if (drawPet)
@@ -1738,6 +1757,8 @@ PLUGIN_API void OnPulse()
 			GetHeading();
 
 			g_LastUpdateTime = now;
+
+			s_DanNetEnabled = mq::IsPluginLoaded("MQ2DanNet");
 		}
 
 		// update buff flash timers
