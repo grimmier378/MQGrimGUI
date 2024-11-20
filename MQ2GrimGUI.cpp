@@ -683,9 +683,10 @@ static void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumS
 
 			if (ImGui::BeginTable("##Player", 4))
 			{
+				float roleColSize = ImGui::GetContentRegionAvailWidth() - (ImGui::CalcTextSize(nameLabel).x + 100);
 				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
-				ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_NoResize, 100);
-				ImGui::TableSetupColumn("##Heading");
+				ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, roleColSize);
+				ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_NoResize, 30);
 				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_NoResize, 60);
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -755,10 +756,11 @@ static void DrawMemberInfo(CGroupMember* pMember)
 		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
 			distToMember = GetDistance(pLocalPlayer, pSpawn);
 
+		float rolColSize = ImGui::GetContentRegionAvailWidth() - (ImGui::CalcTextSize(nameLabel).x + 100);
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize, 10);
-		ImGui::TableSetupColumn("Roles");
-		ImGui::TableSetupColumn("Dist");
+		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
+		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize, 30);
 		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize, 30);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
