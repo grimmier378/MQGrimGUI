@@ -8,7 +8,6 @@
 #include <string>
 #include <filesystem>
 #include "SpellPicker.h"
-#include "SpellInspector.h"
 #include "MQ2GrimGUI.h"
 #include "main/MQ2SpellSearch.h"
 #include "Theme.h"
@@ -29,10 +28,6 @@ static bool s_RezEFX						= false;
 static int s_TestInt						= 100; // Color Test Value for Config Window
 static char s_SettingsFile[MAX_PATH]		= { 0 };
 
-static ImGuiWindowFlags s_WindowFlags		= ImGuiWindowFlags_None;
-static ImGuiWindowFlags s_WinLockFlags		= ImGuiWindowFlags_None;
-static ImGuiChildFlags s_ChildFlags			= ImGuiChildFlags_None;
-
 static const char* s_SecondAggroName		= "Unknown";
 static const char* s_CurrHeading			= "N";
 static int s_TarBuffLineSize				= 0;
@@ -43,17 +38,6 @@ grimgui::SpellsInspector* pSpellInspector	= nullptr;
 static bool s_MemSpell						= false;
 std::string s_MemSpellName;
 static int s_MemGemIndex					= 0;
-
-CTextureAnimation* m_pMainTankIcon		= nullptr;
-CTextureAnimation* m_pPullerIcon		= nullptr;
-CTextureAnimation* m_pMainAssistIcon	= nullptr;
-CTextureAnimation* m_pCombatIcon		= nullptr;
-CTextureAnimation* m_pDebuffIcon		= nullptr;
-CTextureAnimation* m_pRegenIcon			= nullptr;
-CTextureAnimation* m_pStandingIcon		= nullptr;
-CTextureAnimation* m_pTimerIcon			= nullptr;
-CTextureAnimation* m_StatusIcon			= nullptr;
-
 
 #pragma endregion
 
@@ -901,6 +885,159 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 	ImGui::EndChild();
 }
 
+static void DrawSpellBarIcons(int gemHeight)
+{
+	if (!pLocalPC)
+		return;
+
+	if (!m_pTASpellIcon)
+	{
+		m_pTASpellIcon = new CTextureAnimation();
+		if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+			*m_pTASpellIcon = *temp;
+	}
+
+	if (!m_pGemBackground)
+		m_pGemBackground = pSidlMgr->FindAnimation("A_SpellGemBackground");
+
+	if (!m_pGemHolder)
+		m_pGemHolder = pSidlMgr->FindAnimation("A_SpellGemHolder");
+
+	// calculate max pSpellGem count
+	int spellGemCount = 8;
+	int aaIndex = GetAAIndexByName("Mnemonic Retention");
+	if (CAltAbilityData* pAbility = GetAAById(aaIndex))
+	{
+		if (PlayerHasAAAbility(aaIndex))
+			spellGemCount += pAbility->CurrentRank;
+	}
+
+	int spellIconSize = static_cast<int>(gemHeight * 0.75);
+	CXSize gemSize = { static_cast<int>(gemHeight * 1.25), gemHeight };
+
+	for (int i = 0; i < spellGemCount; ++i)
+	{
+		ImGui::PushID(i);
+
+		int spellId = pLocalPC->GetMemorizedSpell(i);
+		if (!spellId)
+			continue;
+
+		CSpellGemWnd* pSpellGem = pCastSpellWnd->SpellSlots[i];
+		MQColor gemTint;
+
+		if (spellId == -1)
+		{
+			if (m_pGemHolder)
+			{
+				imgui::DrawTextureAnimation(m_pGemHolder, gemSize);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::Text("Right Click to Open Spell Picker, to memorize a spell");
+					ImGui::Text("You can also drop a spell from your spell book here to memorize it.");
+					ImGui::EndTooltip();
+
+					if (ImGui::IsMouseClicked(0))
+					{
+						pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
+					}
+					else if (ImGui::IsMouseClicked(1))
+					{
+						if (pSpellPicker)
+						{
+							pSpellPicker->SetOpen(true);
+							s_MemGemIndex = i + 1;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			// draw spell icon
+			EQ_Spell* spell = GetSpellByID(spellId);
+			if (spell)
+			{
+				m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+				MQColor tintCol = MQColor(255, 255, 255, 255);
+				gemTint = pSpellGem->SpellGemTintArray[pSpellGem->TintIndex];
+
+				if (!pSpellInspector->IsGemReady(i))
+					tintCol = MQColor(50, 50, 50, 255);
+
+				ImGui::BeginGroup();
+				float posX = ImGui::GetCursorPosX();
+				float posY = ImGui::GetCursorPosY();
+
+				ImGui::SetCursorPos(ImVec2(posX + ((gemSize.cx - spellIconSize) / 2), posY + ((gemSize.cy - spellIconSize) / 2)));
+				imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(spellIconSize, spellIconSize), tintCol);
+				ImGui::SetCursorPos(ImVec2(posX, posY));
+				imgui::DrawTextureAnimation(m_pGemBackground, gemSize, gemTint);
+
+				posX = ImGui::GetCursorPosX();
+				posY = ImGui::GetCursorPosY();
+
+				if (!pSpellInspector->IsGemReady(i))
+				{
+					float coolDown = static_cast<float>(pLocalPlayer->SpellGemETA[i] - pDisplay->TimeStamp) / 1000;
+					if (coolDown < 1801)
+					{
+						std::string label = std::to_string(static_cast<int>(std::ceil(coolDown)));
+						ImVec2 textSize = ImGui::CalcTextSize(label.c_str());
+						float centeredX = posX + static_cast<float>(gemSize.cx - textSize.x) / 2.0f;
+						float centeredY = posY - static_cast<float>(gemSize.cy * 0.75);
+						ImGui::SetCursorPos(ImVec2(centeredX, centeredY));
+						ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "%s", label.c_str());
+						ImGui::SetCursorPos(ImVec2(posX, posY));
+					}
+				}
+				ImGui::EndGroup();
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					if (spellId != -1)
+					{
+						EQ_Spell* spell = GetSpellByID(spellId);
+						if (spell)
+						{
+							ImGui::Text(spell->Name);
+							ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "Mana: %d", spell->ManaCost);
+							ImGui::Text("Recast: %d", spell->RecastTime / 1000);
+							ImGui::Spacing();
+							ImGui::Text("Ctrl + Click to pick up gem");
+							ImGui::Text("Alt + Click to inspect spell");
+						}
+					}
+					ImGui::EndTooltip();
+
+					if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModAlt))
+					{
+						pSpellInspector->DoInspectSpell(spellId);
+					}
+					else if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+					{
+						pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
+						pSpellGem->ParentWndNotification(pSpellGem, XWM_LBUTTONUPAFTERHELD, nullptr);
+					}
+					else if (ImGui::IsMouseClicked(0))
+					{
+						if (spellId != -1)
+							Cast(pLocalPlayer, spell->Name);
+					}
+					else if (ImGui::IsMouseClicked(1))
+					{
+						if (spellId != -1)
+							pSpellGem->ParentWndNotification(pSpellGem, XWM_RCLICK, nullptr);
+					}
+				}
+			}
+		}
+		ImGui::PopID();
+	}
+}
+
 #pragma endregion
 
 
@@ -1296,7 +1433,8 @@ static void DrawSpellWindow()
 		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
 			s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			pSpellInspector->DrawSpellBarIcons(s_NumSettings.spellGemHeight);
+			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
+
 			ImGui::Spacing();
 			ImGui::Dummy(ImVec2(0, 15));
 		}
