@@ -905,6 +905,9 @@ static void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int 
 
 
 #pragma region GUI Windows 
+// each window has a default initial size and window position on first use ever
+// all of the initial sizes have been verified to be on the screen down to 800x600 resolution.
+// resolutions below that is questionable on many lvls. you may need a bigger monitor.
 
 static void DrawTargetWindow()
 	{
@@ -1239,7 +1242,7 @@ static void DrawCastingBarWindow()
 		}
 		float displayX = ImGui::GetIO().DisplaySize.x;
 		float displayY = ImGui::GetIO().DisplaySize.y;
-		ImGui::SetNextWindowPos(ImVec2((displayX / 2.0f)-150, displayY * 0.3f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 150, displayY * 0.3f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 		if (ImGui::Begin("Casting##MQ2GrimGUI1", &s_IsCasting,
@@ -1766,11 +1769,11 @@ PLUGIN_API void OnUpdateImGui()
 			float displayX = ImGui::GetIO().DisplaySize.x;
 			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
-			int popCountsPlay = PushTheme(s_WinTheme.playerWinTheme);
-			if (ImGui::Begin("Tar##MQ2GrimGUI", &s_WinSettings.showTargetWindow, s_WindowFlags | s_WinLockFlags))
+			int popCountsTarg = PushTheme(s_WinTheme.playerWinTheme);
+			if (ImGui::Begin("Target##MQ2GrimGUI", &s_WinSettings.showTargetWindow, s_WindowFlags | s_WinLockFlags))
 				DrawTargetWindow();
 			
-			PopTheme(popCountsPlay);
+			PopTheme(popCountsTarg);
 			ImGui::End();
 
 			if (!s_WinSettings.showTargetWindow)
