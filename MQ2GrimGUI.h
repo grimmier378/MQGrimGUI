@@ -5,6 +5,8 @@
 #include "eqlib/Spells.h"
 #include "SpellPicker.h"
 
+const char* HELP_TEXT_MIN = "Color you progress down to from Max";
+const char* HELP_TEXT_MAX = "Color you progress up to from Min";
 
 ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 ImGuiWindowFlags s_WinLockFlags = ImGuiWindowFlags_None;
@@ -156,17 +158,19 @@ struct ColorSetting
 	const char* section;
 	const char* key;
 	mq::MQColor* value;
+	const char* label;
+	const char* helpText;
 };
 
 std::vector<ColorSetting> colorSettings = {
-	{"Colors",	 "MinColorHP",		&s_BarColors.minColorHP},
-	{"Colors",	 "MaxColorHP",		&s_BarColors.maxColorHP},
-	{"Colors",	 "MinColorMP",		&s_BarColors.minColorMP},
-	{"Colors",	 "MaxColorMP",		&s_BarColors.maxColorMP},
-	{"Colors",	 "MinColorEnd",		&s_BarColors.minColorEnd},
-	{"Colors",	 "MaxColorEnd",		&s_BarColors.maxColorEnd},
-	{"Colors",	 "MinColorCast",	&s_BarColors.minColorCast},
-	{"Colors",	 "MaxColorCast",	&s_BarColors.maxColorCast}
+	{"Colors",	 "MinColorHP",		&s_BarColors.minColorHP, "Min HP Color", HELP_TEXT_MIN},
+	{"Colors",	 "MaxColorHP",		&s_BarColors.maxColorHP, "Max HP Color", HELP_TEXT_MAX},
+	{"Colors",	 "MinColorMP",		&s_BarColors.minColorMP, "Min MP Color", HELP_TEXT_MIN},
+	{"Colors",	 "MaxColorMP",		&s_BarColors.maxColorMP, "Max MP Color", HELP_TEXT_MAX},
+	{"Colors",	 "MinColorEnd",		&s_BarColors.minColorEnd, "Min End Color", HELP_TEXT_MIN},
+	{"Colors",	 "MaxColorEnd",		&s_BarColors.maxColorEnd, "Max End Color", HELP_TEXT_MAX},
+	{"Colors",	 "MinColorCast",	&s_BarColors.minColorCast, "Min Cast Color", HELP_TEXT_MIN},
+	{"Colors",	 "MaxColorCast",	&s_BarColors.maxColorCast, "Max Cast Color", HELP_TEXT_MAX}
 };
 
 #pragma endregion

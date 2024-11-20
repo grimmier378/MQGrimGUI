@@ -25,13 +25,14 @@ static bool s_IsCaster						= false;
 static bool s_ShowOutOfGame					= false;
 static bool s_FollowClicked					= false;
 static bool s_RezEFX						= false;
+static bool s_CanRevert = false;
+
+static int s_TarBuffLineSize = 0;
 static int s_TestInt						= 100; // Color Test Value for Config Window
 static char s_SettingsFile[MAX_PATH]		= { 0 };
 
 static const char* s_SecondAggroName		= "Unknown";
 static const char* s_CurrHeading			= "N";
-static int s_TarBuffLineSize				= 0;
-
 SpellPicker* pSpellPicker					= nullptr;
 grimgui::SpellsInspector* pSpellInspector	= nullptr;
 
@@ -756,8 +757,8 @@ static void DrawMemberInfo(CGroupMember* pMember)
 
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoResize, ImGui::CalcTextSize(nameLabel).x);
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize, 10);
-		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, 80);
-		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_WidthStretch, 90);
+		ImGui::TableSetupColumn("Roles");
+		ImGui::TableSetupColumn("Dist");
 		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize, 30);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
@@ -1530,79 +1531,17 @@ static void DrawConfigWindow()
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
-				ImVec4 minHPColor = s_BarColors.minColorHP.ToImColor();
-				if (ImGui::ColorEdit4("Min HP Color", (float*)&minHPColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.minColorHP = MQColor(minHPColor);
-				
-				ImGui::SameLine();
-				DrawHelpIcon("Minimum HP Color");
+				for (const auto& setting : colorSettings)
+				{
+					ImVec4 colorValue = setting.value->ToImColor();
+					if (ImGui::ColorEdit4(setting.label, (float*)&colorValue, ImGuiColorEditFlags_NoInputs))
+						*setting.value = MQColor(colorValue);
 
-				ImGui::TableNextColumn();
+					ImGui::SameLine();
+					DrawHelpIcon(setting.helpText);
 
-				ImVec4 maxHPColor = s_BarColors.maxColorHP.ToImColor();
-				if (ImGui::ColorEdit4("Max HP Color", (float*)&maxHPColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.maxColorHP = MQColor(maxHPColor);
-				
-				ImGui::SameLine();
-				DrawHelpIcon("Maximum HP Color");
-
-				ImGui::TableNextColumn();
-
-				ImVec4 minMPColor = s_BarColors.minColorMP.ToImColor();
-				if (ImGui::ColorEdit4("Min MP Color", (float*)&minMPColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.minColorMP = MQColor(minMPColor);
-
-				ImGui::SameLine();
-				DrawHelpIcon("Minimum MP Color");
-
-				ImGui::TableNextColumn();
-
-				ImVec4 maxMPColor = s_BarColors.maxColorMP.ToImColor();
-				if (ImGui::ColorEdit4("Max MP Color", (float*)&maxMPColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.maxColorMP = MQColor(maxMPColor);
-
-				ImGui::SameLine();
-				DrawHelpIcon("Maximum MP Color");
-
-				ImGui::TableNextColumn();
-
-				ImVec4 minEndColor = s_BarColors.minColorEnd.ToImColor();
-				if (ImGui::ColorEdit4("Min End Color", (float*)&minEndColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.minColorEnd = MQColor(minEndColor);
-
-				ImGui::SameLine();
-				DrawHelpIcon("Minimum Endurance Color");
-
-				ImGui::TableNextColumn();
-
-				ImVec4 maxEndColor = s_BarColors.maxColorEnd.ToImColor();
-				if (ImGui::ColorEdit4("Max End Color", (float*)&maxEndColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.maxColorEnd = MQColor(maxEndColor);
-
-				ImGui::SameLine();
-				DrawHelpIcon("Maximum Endurance Color");
-
-				ImGui::TableNextColumn();
-
-				ImVec4 minCastColor = s_BarColors.minColorCast.ToImColor();
-
-				if (ImGui::ColorEdit4("Min Cast Color", (float*)&minCastColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.minColorCast = MQColor(minCastColor);
-
-				ImGui::SameLine();
-
-				DrawHelpIcon("Minimum Cast Color");
-
-				ImGui::TableNextColumn();
-
-				ImVec4 maxCastColor = s_BarColors.maxColorCast.ToImColor();
-
-				if (ImGui::ColorEdit4("Max Cast Color", (float*)&maxCastColor, ImGuiColorEditFlags_NoInputs))
-					s_BarColors.maxColorCast = MQColor(maxCastColor);
-
-				ImGui::SameLine();
-
-				DrawHelpIcon("Maximum Cast Color");
+					ImGui::TableNextColumn();
+				}
 
 				ImGui::EndTable();
 			}
