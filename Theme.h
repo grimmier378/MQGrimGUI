@@ -2,8 +2,6 @@
 #include <vector>
 #include <variant>
 
-#pragma region Themes Sets
-
 struct ThemeColor
 {
 	ImGuiCol property;
@@ -21,6 +19,8 @@ struct Theme
 	std::vector<ThemeColor> colors;
 	std::vector<ThemeStyle> styles;
 };
+
+#pragma region Themes Sets
 
 // Themes
 std::unordered_map<std::string, Theme> themeSet = {
@@ -393,7 +393,6 @@ std::unordered_map<std::string, Theme> themeSet = {
 };
 
 #pragma endregion
-
 
 #pragma region Theme Functions
 

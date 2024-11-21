@@ -224,6 +224,7 @@ static std::string ProperCase(const std::string& input) {
 	return result;
 }
 
+
 /**
 * @fn DrawSpellTree
 * 
@@ -355,7 +356,6 @@ void SpellPicker::PopulateSpellData()
 		return a.Level > b.Level;
 	});
 }
-
 
 void SpellPicker::DrawSpellPicker()
 {
