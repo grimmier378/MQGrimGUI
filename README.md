@@ -2,9 +2,9 @@
 
 Converting MyUI Lua into a Plugin. 
 
-This will give you a Main Window with toggles for enable/disabling other windows. 
+Giving you a feature filled ImGui based UI for the game.
 
-Current Windows include: 
+_Current Windows:_ 
 
 * Main Window (This containes toggles to all of the other windows as a button to get to config)
 * Player Window (Target window is included if not split out)
@@ -15,16 +15,21 @@ Current Windows include:
 * Song Window (Shows Bard Songs, and Short Duration Buffs)
 * Spell Window (Shows your spells and allows you to click to cast, right click to forget and Alt Click to Inspect, Right clicking an empty spell gem will bring up a spell picker)
 * Pet Window (Shows your pet You can customize which buttons you want on the window. Drop an item onto the pet health bar to trade.)
-* Config Window For Setting your Color Selections Bar/Gem scaling and flash settings for pusling icons or combat indicator.
+* Config Window For Setting All the Things.
 
-Theme Support built in:
+_Window Settings:_
+
+* Window locking per window, also a Lock ALL override toggle.
+* Right click Context for access to per window Settings and Locking.
+* See the config Window for setting up your colors and other settings.
+
+_Theme Support built-in:_
  
 * Each window can be themed and these will persist between sessions.
 * Currently there are 6 themes included beyond Default.
 * Custom themes may be added at a future date.
 
-
-## Getting Started
+### Getting Started
 
 Quick start instructions to get users up and going
 
@@ -40,19 +45,21 @@ From this windos you can toggle the other windows on or off and set up your sett
 Describe the commands available and how to use them.
 
 ```txt
-Command  | Option   | Description
----------|----------|---------------------
-/grimgui | [show]   | Toggles Main Window
-/grimgui | [lock]   | Toggles Window Locking]
-/grimgui | [player] | Toggles Player Window
-/grimgui | [target] | Toggles Target Window
-/grimgui | [pet]    | Toggles Pet Window
-/grimgui | [group]  | Toggles Group Window
-/grimgui | [spells] | Toggles Spells Window
-/grimgui | [buffs]  | Toggles Buffs Window
-/grimgui | [songs]  | Toggles Songs Window
-/grimgui | [config] | Opens Configuration Window
-/grimgui | [help]   | Displays this help message
+
+Command  | Option		  | Description
+---------|----------------|---------------------
+/grimgui | [show]		  | Toggles Main Window
+/grimgui | [lock]		  | Toggles Lock All Windows
+/grimgui | [player]		  | Toggles Player Window
+/grimgui | [target]		  | Toggles Target Window
+/grimgui | [pet]		  | Toggles Pet Window
+/grimgui | [group]		  | Toggles Group Window
+/grimgui | [spells]		  | Toggles Spells Window
+/grimgui | [buffs]		  | Toggles Buffs Window
+/grimgui | [songs]		  | Toggles Songs Window
+/grimgui | [config]		  | Opens Configuration Window
+/grimgui | [clickthrough] | Toggles Hud Click Through
+/grimgui | [help]		  | Displays this help message
 ```
 
 ### Configuration File
@@ -69,18 +76,30 @@ This will revert back after you camp to charecter select.
 [Settings]
 ShowMainGui=1
 ShowTitleBars=1
-LockWindows=0
-BuffIconSize=24
-FlashBuffInterval=40
+BuffIconSize=20
+FlashBuffInterval=4
+[LockWindows]
+LockAllWindows=0
+LockPlayerWin=0
+LockTargetWin=0
+LockPetWin=0
+LockGroupWin=0
+LockSpellsWin=0
+LockBuffsWin=0
+LockSongWin=0
+LockHudWin=0
 [PlayerTarg]
 SplitTarget=0
 ShowPlayerWindow=0
-CombatFlashInterval=100
-PlayerBarHeight=15
-TargetBarHeight=15
-AggroBarHeight=10
+ShowTargetBuffs=1
+ShowAggroMeter=1
+CombatFlashInterval=15
+PlayerBarHeight=12
+TargetBarHeight=12
+AggroBarHeight=12
 Theme=Default
 [Pet]
+ShowPetButtons=1
 ShowPetWindow=0
 Theme=Default
 Attack=1
@@ -99,7 +118,12 @@ Swarm=1
 Kill=1
 [Group]
 ShowGroupWindow=0
-GroupBarHeight=15
+ShowSelfOnGroup=0
+ShowEmptyGroup=1
+GroupBarHeight=12
+Theme=Default
+[Songs]
+ShowSongWindow=0
 Theme=Default
 [Spells]
 ShowSpellsWindow=0
@@ -109,9 +133,10 @@ Theme=Default
 ShowBuffWindow=0
 BuffTimerThreshold=0
 Theme=Default
-[Songs]
-ShowSongWindow=0
-Theme=Default
+[Hud]
+ShowHud=0
+HudClickThrough=0
+HudAlpha=120
 [Colors]
 MinColorHP=4292827135
 MaxColorHP=4292355879

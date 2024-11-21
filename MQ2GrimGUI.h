@@ -26,7 +26,6 @@ int s_MemGemIndex = 0;
 int s_TarBuffLineSize = 0;
 int s_TestInt = 100; // Color Test Value for Config Window
 
-
 ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 ImGuiWindowFlags s_LockAllWin = ImGuiWindowFlags_None;
 ImGuiChildFlags s_ChildFlags = ImGuiChildFlags_None;
@@ -667,7 +666,7 @@ struct CommandInfo
 const std::array<CommandInfo, 13> commandList = {
 	{
 		{GrimCommand::Show,			"show",			"Toggles Main Window"},
-		{GrimCommand::Lock,			"lock",			"Toggles Window Lock"},
+		{GrimCommand::Lock,			"lock",			"Toggles Lock All Windows"},
 		{GrimCommand::Player,		"player",		"Toggles Player Window"},
 		{GrimCommand::Target,		"target",		"Toggles Target Window"},
 		{GrimCommand::Pet,			"pet",			"Toggles Pet Window"},
