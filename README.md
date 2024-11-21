@@ -31,14 +31,13 @@ _Theme Support built-in:_
 
 ### Getting Started
 
-Quick start instructions to get users up and going
-
 ```txt
 /plugin MQ2GrimGUI
+```
+
 The first time you load this you should get a Main Window with all the toggles on it on the screen.
 If this does not show up try `/grimgui show` to toggle it.
-From this windos you can toggle the other windows on or off and set up your settings and colors.
-```
+From this window you can toggle the other windows on or off and set up your settings and colors.
 
 ### Commands
 
