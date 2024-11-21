@@ -402,18 +402,21 @@ std::unordered_map<std::string, Theme> themeSet = {
 * @param const std::string& themeName The name of the ThemeSet to Load
 * @return int The number of colors pushed + (the number of styles pushed << 16)
 */
-int PushTheme(const std::string& themeName) {
+int PushTheme(const std::string& themeName)
+{
 	int colorCount = 0;
 	int styleCount = 0;
 
 	auto themeIter = themeSet.find(themeName);
 	if (themeIter != themeSet.end()) {
 		const Theme& theme = themeIter->second;
-		for (const auto& color : theme.colors) {
+		for (const auto& color : theme.colors)
+		{
 			ImGui::PushStyleColor(color.property, color.color);
 			++colorCount;
 		}
-		for (const auto& style : theme.styles) {
+		for (const auto& style : theme.styles)
+		{
 			if (std::holds_alternative<ImVec2>(style.value)) {
 				ImGui::PushStyleVar(style.property, std::get<ImVec2>(style.value));
 			}
@@ -449,29 +452,37 @@ void PopTheme(int popCounts)
 * @param const char* winName The name of the window
 * @return std::string The name of the selected value
 */
-std::string DrawThemePicker(const std::string& currentTheme, const char* winName) {
+std::string DrawThemePicker(const std::string& currentTheme, const char* winName)
+{
 	std::vector<std::string> themeNames;
-	for (const auto& theme : themeSet) {
+	for (const auto& theme : themeSet)
 		themeNames.push_back(theme.first);
-	}
 
 	static int selectedThemeIndex = 0;
-	for (size_t i = 0; i < themeNames.size(); ++i) {
+	for (size_t i = 0; i < themeNames.size(); ++i)
+	{
 		if (currentTheme == themeNames[i]) {
 			selectedThemeIndex = static_cast<int>(i);
 			break;
 		}
 	}
 
-	if (ImGui::Combo(winName, &selectedThemeIndex, [](void* data, int idx, const char** out_text) {
-		const auto& themeNames = *static_cast<const std::vector<std::string>*>(data);
-		*out_text = themeNames[idx].c_str();
-		return true;
-		}, static_cast<void*>(&themeNames), themeNames.size())) {
-		return themeNames[selectedThemeIndex];
+	if (ImGui::BeginCombo(winName, themeNames[selectedThemeIndex].c_str()))
+	{
+		for (size_t i = 0; i < themeNames.size(); ++i)
+		{
+			bool isSelected = (selectedThemeIndex == i);
+			if (ImGui::Selectable(themeNames[i].c_str(), isSelected))
+				selectedThemeIndex = i;
+
+			if (isSelected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
 	}
 
-	return currentTheme;
+	return themeNames[selectedThemeIndex];
+
 }
 
 #pragma endregion

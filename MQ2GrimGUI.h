@@ -28,7 +28,7 @@ int s_TestInt = 100; // Color Test Value for Config Window
 
 
 ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
-ImGuiWindowFlags s_WinLockFlags = ImGuiWindowFlags_None;
+ImGuiWindowFlags s_LockAllWin = ImGuiWindowFlags_None;
 ImGuiChildFlags s_ChildFlags = ImGuiChildFlags_None;
 
 CTextureAnimation* m_pTASpellIcon = nullptr;
@@ -349,12 +349,20 @@ struct WinSettings
 	bool flashCombatFlag		= false;
 	bool flashTintFlag			= false;
 	bool showTitleBars			= true;
-	bool lockWindows			= false;
+	bool lockAllWin			= false;
+	bool lockPlayerWin = false;
+	bool lockTargetWin = false;
+	bool lockPetWin = false;
+	bool lockGroupWin = false;
+	bool lockSpellsWin = false;
+	bool lockBuffsWin = false;
+	bool lockSongWin = false;
+	bool lockHudWin = false;
 	bool hudClickThrough		= false;
 	bool showPetButtons			= true;
 	bool showTargetBuffs		= true;
 	bool showAggroMeter			= true;
-	bool showSelfOnGroup		= true;
+	bool showSelfOnGroup		= false;
 	bool showEmptyGroupSlot		= true;
 } s_WinSettings;
 
@@ -368,7 +376,15 @@ struct WinSetting
 std::vector<WinSetting> winSettings = {
 	{"Settings",	"ShowMainGui",			&s_WinSettings.showMainWindow},
 	{"Settings",	"ShowTitleBars",		&s_WinSettings.showTitleBars},
-	{"Settings",	"LockWindows",			&s_WinSettings.lockWindows},
+	{"LockWindows",	"LockAllWindows",		&s_WinSettings.lockAllWin},
+	{"LockWindows",	"LockPlayerWin",		&s_WinSettings.lockPlayerWin},
+	{"LockWindows",	"LockTargetWin",		&s_WinSettings.lockTargetWin},
+	{"LockWindows",	"LockPetWin",			&s_WinSettings.lockPetWin},
+	{"LockWindows",	"LockGroupWin",			&s_WinSettings.lockGroupWin},
+	{"LockWindows",	"LockSpellsWin",		&s_WinSettings.lockSpellsWin},
+	{"LockWindows",	"LockBuffsWin",			&s_WinSettings.lockBuffsWin},
+	{"LockWindows",	"LockSongWin",			&s_WinSettings.lockSongWin},
+	{"LockWindows",	"LockHudWin",			&s_WinSettings.lockHudWin},
 	{"PlayerTarg",	"SplitTarget",			&s_WinSettings.showTargetWindow},
 	{"PlayerTarg",	"ShowPlayerWindow",		&s_WinSettings.showPlayerWindow},
 	{"PlayerTarg",	"ShowTargetBuffs",		&s_WinSettings.showTargetBuffs},
@@ -698,8 +714,10 @@ static void DisplayPetButtons()
 {
 	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / 60);
 
-	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp)) {
-		for (auto& button : petButtons) {
+	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp))
+	{
+		for (auto& button : petButtons)
+		{
 			if (button.visible) {
 				ImGui::TableNextColumn();
 				std::string btnLabel = button.name;
@@ -753,46 +771,56 @@ std::vector<WindowOption> options = {
 	{"Hud Win",		&s_WinSettings.showHud,				"Hud",			"ShowHud"},
 };
 
-
 struct SliderOption
 {
 	const char* label;
 	int* value;
 	int min;
 	int max;
+	const bool clamp;
 	const char* helpText;
 };
 
 std::vector <SliderOption> sliderOptions = {
-	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 50,		"Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 30,		"Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
-	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		15, 40,		"Buff Icon Size"},
-	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3601,	"Buff Show Timer Threshold in Seconds (0 = Always Show)"},
-	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		8, 40,		"Player Bar Height"},
-	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		8, 40,		"Target Bar Height"},
-	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		8, 40,		"Aggro Bar Height"},
-	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		8, 40,		"Group Bar Height"},
-	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		15, 100,	"Spell Gem Height"},
-	{"Hud Alpha",				&s_NumSettings.hudAlpha,			0, 255,		"Hud Transparency (Alpha Level)" },
+	{"Flash Speed",				&s_NumSettings.combatFlashInterval, 0, 50,		true,	"Flash Speed : Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Flash Speed",		&s_NumSettings.flashBuffInterval,	0, 50,		true,	"Buff Flash Speed: Lower is slower, Higher is faster. 0 = Disabled"},
+	{"Buff Icon Size",			&s_NumSettings.buffIconSize,		15, 40,		false,	"Buff Icon Size"},
+	{"Buff Timer Threshold",	&s_NumSettings.buffTimerThreshold,	0, 3601,	false,	"Buff Show Timer Threshold in Seconds (0 = Always Show)"},
+	{"Player Bar Height",		&s_NumSettings.playerBarHeight,		8, 40,		true,	"Player Bar Height"},
+	{"Target Bar Height",		&s_NumSettings.targetBarHeight,		8, 40,		true,	"Target Bar Height"},
+	{"Aggro Bar Height",		&s_NumSettings.aggroBarHeight,		8, 40,		true,	"Aggro Bar Height"},
+	{"Group Bar Height",		&s_NumSettings.groupBarHeight,		8, 40,		true,	"Group Bar Height"},
+	{"Spell Gem Height",		&s_NumSettings.spellGemHeight,		15, 60,		false,	"Spell Gem Height"},
+	{"Hud Alpha",				&s_NumSettings.hudAlpha,			0, 255,		true,	"Hud Transparency (Alpha Level)"},
 };
 
 struct SettingToggleOption
 {
 	const char* label;
 	bool* setting;
+	const bool lockSetting;
 	const char* helpText;
 
 };
 
 std::vector <SettingToggleOption> settingToggleOptions = {
-	{"Title Bars",			&s_WinSettings.showTitleBars,		"Title Bars: Show or Hide the title bars on each window"},
-	{"Lock Windows",		&s_WinSettings.lockWindows,			"Lock Windows: Locks the windows in place"},
-	{"Hud Click Through",	&s_WinSettings.hudClickThrough,		"Hud Click Through: Allows clicking through the hud window"},
-	{"Pet Buttons",			&s_WinSettings.showPetButtons,		"Pet Buttons: Show or Hide the pet command buttons"},
-	{"Target Buffs",		&s_WinSettings.showTargetBuffs,		"Target Buffs: Show or Hide the target buffs"},
-	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		"Aggro Meter: Show or Hide the aggro meter"},
-	{"Group Show Self",		&s_WinSettings.showSelfOnGroup,		"Group Show Self: Show or Hide Yourself on the group window"},
-	{"Group Show Empty",	&s_WinSettings.showEmptyGroupSlot,	"Group Show Empty: Show or Hide Empty Group Slots"},
+	{"Title Bars",			&s_WinSettings.showTitleBars,		false,	"Title Bars: Show or Hide the title bars on each window"},
+	{"Hud Click Through",	&s_WinSettings.hudClickThrough,		false,	"Hud Click Through: Allows clicking through the hud window"},
+	{"Pet Buttons",			&s_WinSettings.showPetButtons,		false,	"Pet Buttons: Show or Hide the pet command buttons"},
+	{"Target Buffs",		&s_WinSettings.showTargetBuffs,		false,	"Target Buffs: Show or Hide the target buffs"},
+	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		false,	"Aggro Meter: Show or Hide the aggro meter"},
+	{"Group Show Self",		&s_WinSettings.showSelfOnGroup,		false,	"Group Show Self: Show or Hide Yourself on the group window"},
+	{"Group Show Empty",	&s_WinSettings.showEmptyGroupSlot,	false,	"Group Show Empty: Show or Hide Empty Group Slots"},
+	{"Lock ALL",			&s_WinSettings.lockAllWin,			true,	"Lock Windows: Locks All Windows in place"},
+	{"Lock Group",			&s_WinSettings.lockGroupWin,		true,	"Lock Group: Toggle locking the Group Window"},
+	{"Lock Player",			&s_WinSettings.lockPlayerWin,		true,	"Lock Player: Toggle locking the Player Window"},
+	{"Lock Target",			&s_WinSettings.lockTargetWin,		true,	"Lock Target: Toggle locking the Target Window"},
+	{"Lock Pet",			&s_WinSettings.lockPetWin,			true,	"Lock Pet: Toggle locking the Pet Window"},
+	{"Lock Spell",			&s_WinSettings.lockSpellsWin,		true,	"Lock Group: Toggle locking the Group Window"},
+	{"Lock Buffs",			&s_WinSettings.lockBuffsWin,		true,	"Lock Player: Toggle locking the Player Window"},
+	{"Lock Songs",			&s_WinSettings.lockSongWin,			true,	"Lock Target: Toggle locking the Target Window"},
+	{"Lock Hud",			&s_WinSettings.lockHudWin,			true,	"Lock Pet: Toggle locking the Pet Window"},
+
 };
 
 struct ThemeOption
@@ -974,8 +1002,8 @@ void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 			SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Lock:
-			s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
-			SaveSetting(&s_WinSettings.lockWindows, &s_SettingsFile[0]);
+			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
+			SaveSetting(&s_WinSettings.lockAllWin, &s_SettingsFile[0]);
 			break;
 		case GrimCommand::Player:
 			s_WinSettings.showPlayerWindow = !s_WinSettings.showPlayerWindow;

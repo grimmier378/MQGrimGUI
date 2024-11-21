@@ -278,19 +278,25 @@ static void DrawPlayerWindow()
 		ImGui::SetNextWindowSize(ImVec2(300, 290), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.playerWinTheme);
 		ImGuiWindowFlags menuFlag = s_WinSettings.showTitleBars ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
-		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinSettings.showPlayerWindow, s_WindowFlags | s_WinLockFlags | menuFlag | ImGuiWindowFlags_NoScrollbar))
+		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPlayerWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinSettings.showPlayerWindow, s_WindowFlags | lockFlag | menuFlag | ImGuiWindowFlags_NoScrollbar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
 
 			if (ImGui::BeginMenuBar())
 			{
+				ImGui::Text(ICON_FA_COG);
+				if (ImGui::IsItemClicked())
+					s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+
 				if (ImGui::BeginMenu("Main"))
 				{
-					if (ImGui::MenuItem("Lock Windows", NULL, s_WinSettings.lockWindows))
+					if (ImGui::MenuItem("Lock All Windows", NULL, s_WinSettings.lockAllWin))
 					{
-						s_WinSettings.lockWindows = !s_WinSettings.lockWindows;
-						SaveSetting(&s_WinSettings.lockWindows, &s_SettingsFile[0]);
+						s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
+						SaveSetting(&s_WinSettings.lockAllWin, &s_SettingsFile[0]);
 					}
 
 					if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
@@ -322,6 +328,33 @@ static void DrawPlayerWindow()
 				DrawTargetWindow();
 			}
 		}
+		
+		if (ImGui::BeginPopupContextWindow("PlayerContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+		{
+			if (ImGui::MenuItem("Lock Player Window", NULL, s_WinSettings.lockPlayerWin))
+			{
+				s_WinSettings.lockPlayerWin = !s_WinSettings.lockPlayerWin;
+				SaveSetting(&s_WinSettings.lockPlayerWin, &s_SettingsFile[0]);
+			}
+
+			if (ImGui::MenuItem("Show Title Bars", NULL, s_WinSettings.showTitleBars))
+				s_WinSettings.showTitleBars = !s_WinSettings.showTitleBars;
+
+			if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
+			{
+				s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
+				SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
+			}
+
+			if (ImGui::MenuItem("Show Config", NULL, s_WinSettings.showConfigWindow))
+				s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+
+			if (ImGui::MenuItem("Close Player Window", NULL, s_WinSettings.showPlayerWindow))
+				s_WinSettings.showPlayerWindow = false;
+
+			ImGui::EndPopup();
+		}
+
 		PopTheme(popCounts);
 		ImGui::End();
 	}
@@ -335,8 +368,10 @@ static void DrawGroupWindow()
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.groupWinTheme);
 
+	ImGuiWindowFlags lockFlag = (s_WinSettings.lockGroupWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
 	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinSettings.showGroupWindow,
-		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
+		s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
 		if (s_WinSettings.showSelfOnGroup)
 			DrawPlayerBars(false, s_NumSettings.groupBarHeight, true);
@@ -430,6 +465,32 @@ static void DrawGroupWindow()
 			}
 		}
 	}
+	if (ImGui::BeginPopupContextWindow("GroupContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+	{
+		if (ImGui::MenuItem("Lock Group Window", NULL, s_WinSettings.lockGroupWin))
+		{
+			s_WinSettings.lockGroupWin = !s_WinSettings.lockGroupWin;
+			SaveSetting(&s_WinSettings.lockGroupWin, &s_SettingsFile[0]);
+		}
+
+		if (ImGui::MenuItem("Show Self", NULL, s_WinSettings.showSelfOnGroup))
+		{
+			s_WinSettings.showSelfOnGroup = !s_WinSettings.showSelfOnGroup;
+			SaveSetting(&s_WinSettings.showSelfOnGroup, &s_SettingsFile[0]);
+		}
+
+		if (ImGui::MenuItem("Show Empty Slots", NULL, s_WinSettings.showEmptyGroupSlot))
+		{
+			s_WinSettings.showEmptyGroupSlot = !s_WinSettings.showEmptyGroupSlot;
+			SaveSetting(&s_WinSettings.showEmptyGroupSlot, &s_SettingsFile[0]);
+		}
+
+		if (ImGui::MenuItem("Close Group Window", NULL, s_WinSettings.showGroupWindow))
+			s_WinSettings.showGroupWindow = false;
+
+		ImGui::EndPopup();
+	}
+
 	PopTheme(popCounts);
 	ImGui::End();
 }
@@ -446,7 +507,10 @@ static void DrawPetWindow()
 		ImGui::SetNextWindowPos(ImVec2(displayX * 0.75f, displayY * 0.5f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 283), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.petWinTheme);
-		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
+
+		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		{
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
@@ -521,6 +585,27 @@ static void DrawPetWindow()
 			}
 
 		}
+
+		if (ImGui::BeginPopupContextWindow("PetContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+		{
+			if (ImGui::MenuItem("Lock Pet Window", NULL, s_WinSettings.lockPetWin))
+			{
+				s_WinSettings.lockPetWin = !s_WinSettings.lockPetWin;
+				SaveSetting(&s_WinSettings.lockPetWin, &s_SettingsFile[0]);
+			}
+
+			if (ImGui::MenuItem("Show Pet Buttons", NULL, s_WinSettings.showPetButtons))
+			{
+				s_WinSettings.showPetButtons = !s_WinSettings.showPetButtons;
+				SaveSetting(&s_WinSettings.showPetButtons, &s_SettingsFile[0]);
+			}
+
+			if (ImGui::MenuItem("Close Pet Window", NULL, s_WinSettings.showPetWindow))
+				s_WinSettings.showPetWindow = false;
+
+			ImGui::EndPopup();
+		}
+
 		PopTheme(popCounts);
 		ImGui::End();
 	}
@@ -543,7 +628,7 @@ static void DrawCastingBarWindow()
 		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 		if (ImGui::Begin("Casting##MQ2GrimGUI1", &s_IsCasting,
-			s_WinLockFlags | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
+			s_LockAllWin | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
 			EQ_Spell* pSpell = GetSpellByName(spellName);
@@ -584,8 +669,9 @@ static void DrawCastingBarWindow()
 			}
 
 		}
-		ImGui::End();
+
 		PopTheme(popCounts);
+		ImGui::End();
 	}
 	else
 		s_IsCasting = false;
@@ -604,16 +690,37 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowSize(ImVec2(79, 662), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
 	
+		ImGuiWindowFlags lockFlag = (s_WinSettings.lockSpellsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
 		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
-			s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_AlwaysAutoResize))
+			s_WindowFlags | lockFlag | ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 
 			ImGui::Spacing();
 			ImGui::Dummy(ImVec2(0, 15));
 		}
-		ImGui::End();
+
+		if (ImGui::BeginPopupContextWindow("SpellsContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+		{
+			if (ImGui::MenuItem("Lock Spells Window", NULL, s_WinSettings.lockSpellsWin))
+			{
+				s_WinSettings.lockSpellsWin = !s_WinSettings.lockSpellsWin;
+				SaveSetting(&s_WinSettings.lockSpellsWin, &s_SettingsFile[0]);
+			}
+
+			if (ImGui::MenuItem("Show Title Bars", NULL, s_WinSettings.showTitleBars))
+				s_WinSettings.showTitleBars = !s_WinSettings.showTitleBars;
+
+			if (ImGui::MenuItem("Close Spells Window", NULL, s_WinSettings.showSpellsWindow))
+				s_WinSettings.showSpellsWindow = false;
+
+			ImGui::EndPopup();
+		}
+
 		PopTheme(popCounts);
+		ImGui::End();
+
 	}
 }
 
@@ -625,9 +732,25 @@ static void DrawBuffWindow()
 	ImGui::SetNextWindowPos(ImVec2(15,10), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
-	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow,
-		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
+
+	ImGuiWindowFlags lockFlag = (s_WinSettings.lockBuffsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow,	s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
+
+	if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+	{
+		if (ImGui::MenuItem("Lock Buffs Window", NULL, s_WinSettings.lockBuffsWin))
+		{
+			s_WinSettings.lockBuffsWin = !s_WinSettings.lockBuffsWin;
+			SaveSetting(&s_WinSettings.lockBuffsWin, s_SettingsFile);
+		}
+
+		if (ImGui::MenuItem("Close Buffs Window", NULL, s_WinSettings.showBuffWindow))
+			s_WinSettings.showBuffWindow = false;
+
+		ImGui::EndPopup();
+	}
 
 	PopTheme(popCounts);
 	ImGui::End();
@@ -642,10 +765,27 @@ static void DrawSongWindow()
 	ImGui::SetNextWindowPos(ImVec2(15, 310), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 	int popCounts = PushTheme(s_WinTheme.songWinTheme);
+
+	ImGuiWindowFlags lockFlag = (s_WinSettings.lockSongWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
 	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinSettings.showSongWindow,
-		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
+		s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
 	
+	if (ImGui::BeginPopupContextWindow("SongContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+	{
+		if (ImGui::MenuItem("Lock Songs Window", NULL, s_WinSettings.lockSongWin))
+		{
+			s_WinSettings.lockSongWin = !s_WinSettings.lockSongWin;
+			SaveSetting(&s_WinSettings.lockSongWin, s_SettingsFile);
+		}
+
+		if (ImGui::MenuItem("Close Songs Window", NULL, s_WinSettings.showSongWindow))
+			s_WinSettings.showSongWindow = false;
+
+		ImGui::EndPopup();
+	}
+
 	PopTheme(popCounts);
 	ImGui::End();
 }
@@ -661,20 +801,30 @@ static void DrawHudWindow()
 	ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 15, 0), ImGuiCond_FirstUseEver);
 	float alpha = (s_NumSettings.hudAlpha / 255.0f);
 	ImGui::SetNextWindowBgAlpha(alpha); // Transparent background
-	if (ImGui::Begin("Hud##GrimGui", &s_WinSettings.showHud, s_WinLockFlags | window_flags))
+
+	ImGuiWindowFlags lockFlag = (s_WinSettings.lockHudWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+	if (ImGui::Begin("Hud##GrimGui", &s_WinSettings.showHud, lockFlag | window_flags))
 	{
 
 		DrawStatusEffects();
 
 		if (ImGui::BeginPopupContextWindow("HudContext##GrimGui",ImGuiPopupFlags_MouseButtonRight))
 		{
-			if (ImGui::MenuItem("Toggle Click Through"))
+			if (ImGui::MenuItem("Toggle Click Through", NULL, s_WinSettings.hudClickThrough))
 			{
 				s_WinSettings.hudClickThrough = !s_WinSettings.hudClickThrough;
 				SaveSetting(&s_WinSettings.hudClickThrough, s_SettingsFile);
 			}
 
-			if (ImGui::MenuItem("Close Hud"))
+			if (ImGui::MenuItem("Lock Hud", NULL, s_WinSettings.lockHudWin))
+			{
+				s_WinSettings.lockHudWin = !s_WinSettings.lockHudWin;
+				SaveSetting(&s_WinSettings.lockHudWin, s_SettingsFile);
+			}
+
+			if (ImGui::MenuItem("Close Hud", NULL, s_WinSettings.showHud))
+				s_WinSettings.showHud = false;
 			{
 				s_WinSettings.showHud = false;
 			}
@@ -761,9 +911,11 @@ static void DrawConfigWindow()
 			    ImGui::TableNextRow();
 			    for (const auto& slider : sliderOptions)
 				{
+					ImGuiSliderFlags clamp = slider.clamp ? ImGuiSliderFlags_AlwaysClamp : ImGuiSliderFlags_None;
+				
 					ImGui::TableNextColumn();
 			        ImGui::SetNextItemWidth(100);
-			        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max);
+			        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max, "%d", clamp);
 			        ImGui::SameLine();
 
 			        if (*slider.value == 0 && (std::string(slider.label).find("Flash") != std::string::npos))
@@ -782,21 +934,67 @@ static void DrawConfigWindow()
 
 		if (ImGui::CollapsingHeader("Window Settings Toggles"))
 		{
-			for (const auto& toggle : settingToggleOptions)
-			{
-				if (ImGui::Checkbox(toggle.label, toggle.setting))
-					SaveSetting(toggle.setting, &s_SettingsFile[0]);
+			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+			int col = sizeX / 165;
+			if (col < 1)
+				col = 1;
 
-				ImGui::SameLine();
-				DrawHelpIcon(toggle.helpText);
+			if (ImGui::BeginTable("Toggle Controls", col))
+			{
+				ImGui::TableNextRow();
+
+				for (const auto& toggle : settingToggleOptions)
+				{
+					if (!toggle.lockSetting)
+					{
+						ImGui::TableNextColumn();
+						if (ImGui::Checkbox(toggle.label, toggle.setting))
+							SaveSetting(toggle.setting, &s_SettingsFile[0]);
+
+						ImGui::SameLine();
+						DrawHelpIcon(toggle.helpText);
+					}
+				}
+
+				ImGui::EndTable();
 			}
 		}
+		ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Window Lock Toggles"))
+		{
+			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+			int col = sizeX / 165;
+			if (col < 1)
+				col = 1;
+
+			if (ImGui::BeginTable("Lock Controls", col))
+			{
+				ImGui::TableNextRow();
+
+				for (const auto& toggle : settingToggleOptions)
+				{
+					if (toggle.lockSetting)
+					{
+						ImGui::TableNextColumn();
+						if (ImGui::Checkbox(toggle.label, toggle.setting))
+							SaveSetting(toggle.setting, &s_SettingsFile[0]);
+
+						ImGui::SameLine();
+						DrawHelpIcon(toggle.helpText);
+					}
+				}
+
+				ImGui::EndTable();
+			}
+		}
+
 		ImGui::Spacing();
 
 		if (ImGui::CollapsingHeader("Window Themes"))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
-			int col = sizeX / 180;
+			int col = sizeX / 120;
 			if (col < 1)
 				col = 1;
 
@@ -806,7 +1004,6 @@ static void DrawConfigWindow()
 				for (const auto& theme : themeOptions)
 				{
 					ImGui::TableNextColumn();
-					ImGui::SetNextItemWidth(100);
 					*theme.theme = DrawThemePicker(*theme.theme, theme.label);
 				}
 				ImGui::EndTable();
@@ -881,7 +1078,7 @@ PLUGIN_API void OnPulse()
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
 		s_IsCaster = CheckCaster();
-		s_WinLockFlags = s_WinSettings.lockWindows ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+		s_LockAllWin = s_WinSettings.lockAllWin ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 		s_WindowFlags = s_WinSettings.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
 
 		if (s_ShowOutOfGame)
@@ -1019,9 +1216,26 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
 			int popCountsTarg = PushTheme(s_WinTheme.playerWinTheme);
-			if (ImGui::Begin("Target##MQ2GrimGUI", &s_WinSettings.showTargetWindow, s_WindowFlags | s_WinLockFlags))
+
+			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+			if (ImGui::Begin("Target##MQ2GrimGUI", &s_WinSettings.showTargetWindow, lockFlag | s_LockAllWin))
 				DrawTargetWindow();
 			
+			if (ImGui::BeginPopupContextWindow("TarContext##GrimGui", ImGuiPopupFlags_MouseButtonRight))
+			{
+				if (ImGui::MenuItem("Lock Target Window", NULL, s_WinSettings.lockTargetWin))
+				{
+					s_WinSettings.lockTargetWin = !s_WinSettings.lockTargetWin;
+					SaveSetting(&s_WinSettings.lockTargetWin, &s_SettingsFile[0]);
+				}
+
+				if (ImGui::MenuItem("Close (unsplits)", NULL, s_WinSettings.showTargetWindow))
+					s_WinSettings.showTargetWindow = false;
+
+				ImGui::EndPopup();
+			}
+
 			PopTheme(popCountsTarg);
 			ImGui::End();
 
@@ -1088,8 +1302,8 @@ PLUGIN_API void OnLoadPlugin(const char* Name)
 	if (!s_WinSettings.showTitleBars)
 		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
 
-	if (s_WinSettings.lockWindows)
-		s_WinLockFlags = ImGuiWindowFlags_NoMove;
+	if (s_WinSettings.lockAllWin)
+		s_LockAllWin = ImGuiWindowFlags_NoMove;
 }
 
 /**
