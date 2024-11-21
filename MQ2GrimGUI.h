@@ -332,8 +332,6 @@ grimgui::SpellsInspector* pSpellInspector = nullptr;
 
 #pragma endregion
 
-
-
 #pragma region Window Visibility Settings
 
 struct WinSettings
@@ -379,7 +377,6 @@ std::vector<WinSetting> winSettings = {
 
 #pragma endregion
 
-
 #pragma region Numeric Settings
 
 struct NumericSettings
@@ -419,7 +416,6 @@ std::vector<NumericSetting> numericSettings = {
 };
 
 #pragma endregion
-
 
 #pragma region Theme and Color Settings
 
@@ -483,7 +479,6 @@ std::vector<ColorSetting> colorSettings = {
 };
 
 #pragma endregion
-
 
 #pragma region Color utility functions
 
@@ -617,7 +612,6 @@ MQColor GetConColor(int color_code)
 
 #pragma endregion
 
-
 #pragma region Command Definitions
 
 enum class GrimCommand
@@ -663,7 +657,6 @@ const std::array<CommandInfo, 13> commandList = {
 };
 
 #pragma endregion
-
 
 #pragma region Pet Buttons
 
@@ -730,7 +723,6 @@ static void DisplayPetButtons()
 
 #pragma endregion
 
-
 #pragma region Config Structs
 struct WindowOption
 {
@@ -791,7 +783,6 @@ std::vector<ThemeOption> themeOptions = {
 };
 
 #pragma endregion
-
 
 #pragma region Hud Stuff
 
@@ -1007,6 +998,8 @@ void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 }
 
 #pragma endregion
+
+#pragma region Some ImGui Stuff (Draw functions)
 
 static void DrawSpellBarIcons(int gemHeight)
 {
@@ -1291,7 +1284,6 @@ void DrawPlayerIcons(CGroupMember* pMember)
 	ImGui::Dummy(ImVec2(1.0f, 1.0f));
 }
 
-
 void DrawCombatStateIcon()
 {
 	int comState = GetCombatState();
@@ -1322,6 +1314,7 @@ void DrawCombatStateIcon()
 		break;
 	}
 }
+
 
 /**
 * @fn DrawHelpIcon
@@ -1374,7 +1367,6 @@ void DrawBar(const char* label, int current, int max, int height,
 		ImGui::EndTooltip();
 	}
 }
-
 
 void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 {
@@ -1586,6 +1578,7 @@ void DrawMemberInfo(CGroupMember* pMember)
 
 }
 
+
 /**
 * @fn DrawGroupMemberBars
 *
@@ -1730,6 +1723,3 @@ void TogglePetButtonVisibilityMenu()
 }
 
 #pragma endregion
-
-
-

@@ -12,8 +12,6 @@ static bool s_CharIniLoaded					= false;
 static bool s_DefaultLoaded					= false;
 static bool s_IsCaster						= false;
 static bool s_FollowClicked					= false;
-static bool s_RezEFX						= false;
-static bool s_CanRevert						= false;
 
 
 #pragma region Timers
@@ -839,7 +837,6 @@ static void DrawMainWindow()
 }
 
 #pragma endregion
-
 
 #pragma region Plugin API
 
