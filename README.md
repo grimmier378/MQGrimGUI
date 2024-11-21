@@ -41,8 +41,6 @@ From this window you can toggle the other windows on or off and set up your sett
 
 ### Commands
 
-Describe the commands available and how to use them.
-
 ```txt
 
 Command  | Option		  | Description
@@ -63,14 +61,13 @@ Command  | Option		  | Description
 
 ### Configuration File
 
-Describe the configuration file and what the settings do
-
 Your Settings will default to MQ2GrimGUI.ini while you are not logged into a character.
 
 Once you Log in we will Load MQ2GrimGUI_Server name_CharName.ini file or create one from the defaults if it is missing.
 
 This will revert back after you camp to charecter select. 
 
+Default Settings:
 ```yaml
 [Settings]
 ShowMainGui=1
