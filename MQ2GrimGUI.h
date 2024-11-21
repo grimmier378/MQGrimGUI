@@ -1452,7 +1452,8 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		return;
 
 	if (ImGui::BeginChild(pLocalPC->Name, ImVec2(ImGui::GetContentRegionAvail().x, 0),
-		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY,
+		ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 	{
 		ImGuiChildFlags s_ChildFlags = drawCombatBorder ? ImGuiChildFlags_Border : ImGuiChildFlags_None;
 
@@ -1470,7 +1471,8 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
 
 		if (ImGui::BeginChild("info", ImVec2(ImGui::GetContentRegionAvail().x, 26),
-			s_ChildFlags | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+			s_ChildFlags | ImGuiChildFlags_AutoResizeY,
+			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
@@ -1510,7 +1512,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		if (drawCombatBorder)
 			ImGui::PopStyleColor();
 
-		// Health bar cause if we have no health we are dead!
+		// Health bar because if we have no health we are dead!
 		DrawBar("##hp", GetCurHPS(), GetMaxHPS(), barHeight, s_BarColors.minColorHP, s_BarColors.maxColorHP, "HP");
 
 		// Mana bar if you have mana that is
@@ -1522,7 +1524,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 
 		if (drawPet)
 		{
-			// go Minion go!
+			// Go Fluffy Go!
 			if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
 				DrawPetInfo(MyPet, false);
 		}

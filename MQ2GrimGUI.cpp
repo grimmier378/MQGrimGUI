@@ -12,6 +12,8 @@ static bool s_CharIniLoaded					= false;
 static bool s_DefaultLoaded					= false;
 static bool s_IsCaster						= false;
 static bool s_FollowClicked					= false;
+static const char* PLUGIN_NAME				= "MQ2GrimGUI";
+static std::string DEFAULT_INI				= fmt::format( "{}/{}.ini", gPathConfig, PLUGIN_NAME);
 
 
 #pragma region Timers
@@ -104,19 +106,16 @@ static void UpdateSettingFile()
 			{
 
 				char CharIniFile[MAX_PATH] = { 0 };
-				fmt::format_to(CharIniFile, "{}/MQ2GrimGUI_{}_{}.ini", gPathConfig, GetServerShortName(), pCharInfo->Name);
-
+				snprintf(CharIniFile, MAX_PATH, "%s/%s_%s_%s.ini", gPathConfig, PLUGIN_NAME, GetServerShortName(), pCharInfo->Name);
+				
 				if (!std::filesystem::exists(CharIniFile))
 				{
 					// Check for character-specific file if missing then check for the default file to copy from incase edited at char select
 					// this way we can copy their settings over. 
 					// This allows you to set up the settings once and all characters can use that for a base.
-					char DefaultIniFile[MAX_PATH] = { 0 };
-					fmt::format_to(DefaultIniFile, "{}/MQ2GrimGUI.ini", gPathConfig);
-
-					if (std::filesystem::exists(DefaultIniFile))
+					if (std::filesystem::exists(DEFAULT_INI))
 					{
-						std::filesystem::copy_file(DefaultIniFile, CharIniFile, std::filesystem::copy_options::overwrite_existing);
+						std::filesystem::copy_file(DEFAULT_INI, CharIniFile, std::filesystem::copy_options::overwrite_existing);
 					}
 					else
 					{
@@ -153,16 +152,12 @@ static void UpdateSettingFile()
 		{
 			s_CharIniLoaded = false;
 
-			char DefaultIniFile[MAX_PATH] = { 0 };
-			fmt::format_to(DefaultIniFile, "{}/MQ2GrimGUI.ini", gPathConfig);
-			static bool s_DefaultExists = std::filesystem::exists(DefaultIniFile);
-			memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
-			strcpy_s(s_SettingsFile, DefaultIniFile);
-
-			if (!s_DefaultExists)
-				SaveSettings();
-			else
-				LoadSettings();
+			if (strcmp(s_SettingsFile, DEFAULT_INI.c_str()) != 0) 
+			{
+				memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+				strcpy_s(s_SettingsFile, DEFAULT_INI.c_str());
+			}
+			LoadSettings();
 
 			s_DefaultLoaded = true;
 			s_IsCaster = false;
@@ -1082,6 +1077,14 @@ PLUGIN_API void InitializePlugin()
 	PrintGrimHelp();
 	pSpellInspector = new grimgui::SpellsInspector();
 	pSpellPicker = new SpellPicker();
+
+	static bool s_DefaultExists = std::filesystem::exists(DEFAULT_INI);
+	memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+	strcpy_s(s_SettingsFile, DEFAULT_INI.c_str());
+
+	if (!s_DefaultExists)
+		SaveSettings();
+
 	UpdateSettingFile();
 }
 
