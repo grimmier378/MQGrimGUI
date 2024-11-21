@@ -338,7 +338,8 @@ static void DrawGroupWindow()
 	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinSettings.showGroupWindow,
 		s_WindowFlags | s_WinLockFlags | ImGuiWindowFlags_NoScrollbar))
 	{
-		DrawPlayerBars(false, s_NumSettings.groupBarHeight, true);
+		if (s_WinSettings.showSelfOnGroup)
+			DrawPlayerBars(false, s_NumSettings.groupBarHeight, true);
 
 		PCHARINFO pChar = GetCharInfo();
 		if (pChar && pChar->pGroupInfo)
@@ -346,10 +347,27 @@ static void DrawGroupWindow()
 			for (int i = 1; i < MAX_GROUP_SIZE; i++)
 			{
 				if (CGroupMember* pMember = pChar->pGroupInfo->GetGroupMember(i))
+				{
 					DrawGroupMemberBars(pMember, true, i);
+				}
+				else
+				{
+					if (s_WinSettings.showEmptyGroupSlot)
+						DrawEmptyMember(i);
+				}
 			}
 		}
+		else
+		{
+			if (s_WinSettings.showEmptyGroupSlot)
+			{
+				for (int i = 1; i < MAX_GROUP_SIZE; i++)
+				{
 
+					DrawEmptyMember(i);
+				}
+			}
+		}
 		ImGui::Spacing();
 		ImGui::Separator();
 

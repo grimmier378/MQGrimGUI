@@ -351,9 +351,11 @@ struct WinSettings
 	bool showTitleBars			= true;
 	bool lockWindows			= false;
 	bool hudClickThrough		= false;
-	bool showPetButtons = true;
-	bool showTargetBuffs = true;
-	bool showAggroMeter = true;
+	bool showPetButtons			= true;
+	bool showTargetBuffs		= true;
+	bool showAggroMeter			= true;
+	bool showSelfOnGroup		= true;
+	bool showEmptyGroupSlot		= true;
 } s_WinSettings;
 
 struct WinSetting
@@ -369,16 +371,18 @@ std::vector<WinSetting> winSettings = {
 	{"Settings",	"LockWindows",			&s_WinSettings.lockWindows},
 	{"PlayerTarg",	"SplitTarget",			&s_WinSettings.showTargetWindow},
 	{"PlayerTarg",	"ShowPlayerWindow",		&s_WinSettings.showPlayerWindow},
+	{"PlayerTarg",	"ShowTargetBuffs",		&s_WinSettings.showTargetBuffs},
+	{"PlayerTarg",	"ShowAggroMeter",		&s_WinSettings.showAggroMeter},
+	{"Pet",			"ShowPetButtons",		&s_WinSettings.showPetButtons},
 	{"Pet",			"ShowPetWindow",		&s_WinSettings.showPetWindow},
 	{"Group",		"ShowGroupWindow",		&s_WinSettings.showGroupWindow},
+	{"Group",		"ShowSelfOnGroup",		&s_WinSettings.showSelfOnGroup},
+	{"Group",		"ShowEmptyGroup",		&s_WinSettings.showEmptyGroupSlot},
+	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow},
 	{"Spells",		"ShowSpellsWindow",		&s_WinSettings.showSpellsWindow},
 	{"Buffs",		"ShowBuffWindow",		&s_WinSettings.showBuffWindow},
-	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow},
 	{"Hud",			"ShowHud",				&s_WinSettings.showHud},
 	{"Hud",			"HudClickThrough",		&s_WinSettings.hudClickThrough},
-	{"Pet",			"ShowPetButtons",		&s_WinSettings.showPetButtons},
-	{"PlayerTarg",	"ShowTargetBuffs",		&s_WinSettings.showTargetBuffs},
-	{"PlayerTarg",	"ShowAggroMeter",		&s_WinSettings.showAggroMeter}
 };
 
 #pragma endregion
@@ -746,7 +750,7 @@ std::vector<WindowOption> options = {
 	{"Buff Win",	&s_WinSettings.showBuffWindow,		"Buffs",		"ShowBuffWindow"},
 	{"Song Win",	&s_WinSettings.showSongWindow,		"Songs",		"ShowSongWindow"},
 	{"Group Win",	&s_WinSettings.showGroupWindow,		"Group",		"ShowGroupWindow"},
-	{"Hud Win",		&s_WinSettings.showHud,				"Hud",			"ShowHud"}
+	{"Hud Win",		&s_WinSettings.showHud,				"Hud",			"ShowHud"},
 };
 
 
@@ -786,7 +790,9 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Hud Click Through",	&s_WinSettings.hudClickThrough,		"Hud Click Through: Allows clicking through the hud window"},
 	{"Pet Buttons",			&s_WinSettings.showPetButtons,		"Pet Buttons: Show or Hide the pet command buttons"},
 	{"Target Buffs",		&s_WinSettings.showTargetBuffs,		"Target Buffs: Show or Hide the target buffs"},
-	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		"Aggro Meter: Show or Hide the aggro meter"}
+	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		"Aggro Meter: Show or Hide the aggro meter"},
+	{"Group Show Self",		&s_WinSettings.showSelfOnGroup,		"Group Show Self: Show or Hide Yourself on the group window"},
+	{"Group Show Empty",	&s_WinSettings.showEmptyGroupSlot,	"Group Show Empty: Show or Hide Empty Group Slots"},
 };
 
 struct ThemeOption
@@ -1554,6 +1560,16 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 	ImGui::EndChild();
 }
 
+void DrawEmptyMember(int slot)
+{
+	float sizeY = static_cast<float>(s_NumSettings.groupBarHeight) * 4 + 50;
+	if (ImGui::BeginChild(("##Empty%d", slot), ImVec2(ImGui::GetContentRegionAvail().x, sizeY),
+		ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
+	{
+		ImGui::Text("Open");
+	}
+	ImGui::EndChild();
+}
 
 /**
 * @fn DrawMemberInfo
