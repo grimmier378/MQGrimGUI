@@ -43,20 +43,20 @@ From this window you can toggle the other windows on or off and set up your sett
 
 ```txt
 
-Command  | Option		  | Description
----------|----------------|---------------------
-/grimgui | [show]		  | Toggles Main Window
-/grimgui | [lock]		  | Toggles Lock All Windows
-/grimgui | [player]		  | Toggles Player Window
-/grimgui | [target]		  | Toggles Target Window
-/grimgui | [pet]		  | Toggles Pet Window
-/grimgui | [group]		  | Toggles Group Window
-/grimgui | [spells]		  | Toggles Spells Window
-/grimgui | [buffs]		  | Toggles Buffs Window
-/grimgui | [songs]		  | Toggles Songs Window
-/grimgui | [config]		  | Opens Configuration Window
+Command  | Option	  | Description
+---------|----------------|-------------
+/grimgui | [show]	  | Toggles Main Window
+/grimgui | [lock]	  | Toggles Lock All Windows
+/grimgui | [player]	  | Toggles Player Window
+/grimgui | [target]	  | Toggles Target Window
+/grimgui | [pet]	  | Toggles Pet Window
+/grimgui | [group]	  | Toggles Group Window
+/grimgui | [spells]	  | Toggles Spells Window
+/grimgui | [buffs]	  | Toggles Buffs Window
+/grimgui | [songs]	  | Toggles Songs Window
+/grimgui | [config]	  | Opens Configuration Window
 /grimgui | [clickthrough] | Toggles Hud Click Through
-/grimgui | [help]		  | Displays this help message
+/grimgui | [help]	  | Displays this help message
 ```
 
 ### Configuration File
