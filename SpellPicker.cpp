@@ -7,13 +7,9 @@
 * Displays your spell book information in a searchable tree, sorted by Category, Subcategory and Level (highest at top) 
 */
 #include <mq/Plugin.h>
-#include <imgui.h>
 #include <mq/imgui/Widgets.h>
-#include <string>
 #include <algorithm>
 #include "SpellPicker.h"
-#include "eqlib/Spells.h"
-#include <map>
 
 const std::map<int, std::string> SpellCategoryMap = {
 	{1,		"SPELLCAT_AEGOLISM"},
@@ -369,7 +365,7 @@ void SpellPicker::DrawSpellPicker()
 	if (ImGui::Begin("Spell Picker", &Open, ImGuiWindowFlags_NoDocking))
 	{
 		char buffer[256] = {};
-		std::strncpy(buffer, Filter.c_str(), sizeof(buffer));
+		strncpy_s(buffer, Filter.c_str(), sizeof(buffer));
 		if (ImGui::InputText("Search##SpellPicker", buffer, sizeof(buffer)))
 			Filter = buffer;
 

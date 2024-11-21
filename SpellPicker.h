@@ -1,7 +1,5 @@
 #pragma once
-
-#include <imgui.h>
-#include <string>
+#include "eqlib/Spells.h"
 
 struct SpellData
 {
