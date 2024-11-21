@@ -531,7 +531,21 @@ static void DrawCastingBarWindow()
 					ImGui::ProgressBar(spellProgress, ImVec2(ImGui::GetContentRegionAvail().x, 12), "##CastingProgress");
 					ImGui::PopStyleColor();
 					ImGui::Text("%s %0.1fs", spellName, (castingTime - spellTimer) / 1000);
-					pCastingWnd->GetChildItem("Casting_Gauge")->GetSidlPiece("Casting_Gauge");
+						
+					switch (pSpell->TargetType)
+					{
+					case TargetType_TargetPC:
+						if (pTarget)
+							ImGui::Text("Target: %s", pTarget->DisplayedName);
+						break;
+					case TargetType_Single:
+						if (pTarget)
+							ImGui::Text("Target: %s", pTarget->DisplayedName);
+						break;
+					case TargetType_Self:
+						ImGui::Text("Target: %s", pLocalPlayer->DisplayedName);
+						break;
+					}
 				}
 			}
 

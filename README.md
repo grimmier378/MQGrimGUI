@@ -10,6 +10,7 @@ Current Windows include:
 * Player Window (Target window is included if not split out)
 * Target Window (You can split this out from the Player Window and either use both or as a standalone)
 * Group Window (Shows party members and allows you drop items onto their bars to trade)
+* Casting Window (Shows the spell Casting Bar when you are casting a Spell, AA, Item...)
 * Buff Window (Shows Buffs and Debuffs)
 * Song Window (Shows Bard Songs, and Short Duration Buffs)
 * Spell Window (Shows your spells and allows you to click to cast, right click to forget and Alt Click to Inspect, Right clicking an empty spell gem will bring up a spell picker)
