@@ -1,5 +1,6 @@
 #include <mq/Plugin.h>
 #include <chrono>
+#include <imgui.h>
 #include <filesystem>
 #include "MQ2GrimGUI.h"
 #include "Theme.h"
@@ -197,13 +198,17 @@ static void DrawTargetWindow()
 				tar_label = healthIntPct;
 				colorTarHP = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, healthIntPct);
 			}
+			// LoS Idicator Icon
 			DrawLineOfSight(pLocalPlayer, pTarget);
 			ImGui::SameLine();
+			//name
 			ImGui::Text(tarName);
 
 			ImGui::SameLine(sizeX * .75f);
+			//distance
 			ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.1f m", GetDistance(pLocalPlayer, pTarget));
 
+			// Target HP Bar
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
 			ImGui::SetNextItemWidth(sizeX - 15);
 			yPos = ImGui::GetCursorPosY();
@@ -212,45 +217,55 @@ static void DrawTargetWindow()
 			ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + midX - 8), yPos));
 			ImGui::Text("%d %%", tar_label);
 			ImGui::NewLine();
+			//tar level
 			ImGui::SameLine();
 			ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "Lvl %d", CurTarget->Level);
 
+			//target class
 			ImGui::SameLine();
 			const char* classCode = CurTarget->GetClassThreeLetterCode();
 			
 			const char* tClass = (classCode && classCode != "UNKNOWN CLASS") ? classCode : ICON_MD_HELP_OUTLINE;
 			ImGui::Text(tClass);
-
+			//body type
 			ImGui::SameLine();
 			ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
 
 			ImGui::SameLine(sizeX * .5f);
 			ImGui::TextColored(ImVec4(GetConColor(ConColor(pTarget)).ToImColor()),ICON_MD_LENS);
-
-
-			if (s_NumSettings.myAggroPct < 100)
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Orange).ToImColor()));
-			else
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Purple).ToImColor()));
 			
-			ImGui::SetNextItemWidth(sizeX - 15);
-			yPos = ImGui::GetCursorPosY();
-			ImGui::ProgressBar(static_cast<float>(s_NumSettings.myAggroPct) / 100, ImVec2(0.0f, static_cast<float>(s_NumSettings.aggroBarHeight)), "##Aggro");
-			ImGui::PopStyleColor();
-			ImGui::SetCursorPos(ImVec2(10, yPos));
-			ImGui::Text(s_SecondAggroName);
-			ImGui::SetCursorPos(ImVec2((sizeX/2)-8, yPos));
-			ImGui::Text("%d %%", s_NumSettings.myAggroPct);
-			ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
-			ImGui::Text("%d %%", s_NumSettings.secondAggroPct);	
-
-			if (ImGui::BeginChild("TargetBuffs", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
+			//aggro meter
+			if (s_WinSettings.showAggroMeter)
 			{
 
-				if (gTargetbuffs)
-					pSpellInspector->DrawBuffsIcons("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+				if (s_NumSettings.myAggroPct < 100)
+					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Orange).ToImColor()));
+				else
+					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Purple).ToImColor()));
+
+				ImGui::SetNextItemWidth(sizeX - 15);
+				yPos = ImGui::GetCursorPosY();
+				ImGui::ProgressBar(static_cast<float>(s_NumSettings.myAggroPct) / 100, ImVec2(0.0f, static_cast<float>(s_NumSettings.aggroBarHeight)), "##Aggro");
+				ImGui::PopStyleColor();
+				ImGui::SetCursorPos(ImVec2(10, yPos));
+				ImGui::Text(s_SecondAggroName);
+				ImGui::SetCursorPos(ImVec2((sizeX / 2) - 8, yPos));
+				ImGui::Text("%d %%", s_NumSettings.myAggroPct);
+				ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
+				ImGui::Text("%d %%", s_NumSettings.secondAggroPct);
 			}
-			ImGui::EndChild();
+			
+			// Target Buffs Section
+			if (s_WinSettings.showTargetBuffs)
+			{
+				if (ImGui::BeginChild("TargetBuffs", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
+				{
+
+					if (gTargetbuffs)
+						pSpellInspector->DrawBuffsIcons("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+				}
+				ImGui::EndChild();
+			}
 		}
 	}
 
@@ -467,13 +482,14 @@ static void DrawPetWindow()
 				ImGui::EndChild();
 				
 				//Pet Buttons Section
+				if (s_WinSettings.showPetButtons)
+				{
+					if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
+						ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+						DisplayPetButtons();
 
-				if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
-					ImGuiChildFlags_Border , ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
-					DisplayPetButtons();
-
-				ImGui::EndChild();
-
+					ImGui::EndChild();
+				}
 				// Pet Buffs Section (Column)
 				ImGui::TableNextColumn();
 				
@@ -748,22 +764,14 @@ static void DrawConfigWindow()
 
 		if (ImGui::CollapsingHeader("Window Settings Toggles"))
 		{
-			if (ImGui::Checkbox("Show Title Bars", &s_WinSettings.showTitleBars))
-				s_WindowFlags = s_WinSettings.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
-			
-			ImGui::SameLine();
-			DrawHelpIcon("Show Title Bars");
+			for (const auto& toggle : settingToggleOptions)
+			{
+				if (ImGui::Checkbox(toggle.label, toggle.setting))
+					SaveSetting(toggle.setting, &s_SettingsFile[0]);
 
-			if (ImGui::Checkbox("Lock Windows", &s_WinSettings.lockWindows))
-				s_WinLockFlags = s_WinSettings.lockWindows ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
-
-			ImGui::SameLine();
-			DrawHelpIcon("Lock Windows");
-
-			if (ImGui::Checkbox("Hud Click Through", &s_WinSettings.hudClickThrough))
-
-			ImGui::SameLine();
-			DrawHelpIcon("Toggles Mouse Click through on Hud Window");
+				ImGui::SameLine();
+				DrawHelpIcon(toggle.helpText);
+			}
 		}
 		ImGui::Spacing();
 

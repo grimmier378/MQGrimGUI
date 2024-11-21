@@ -351,6 +351,9 @@ struct WinSettings
 	bool showTitleBars			= true;
 	bool lockWindows			= false;
 	bool hudClickThrough		= false;
+	bool showPetButtons = true;
+	bool showTargetBuffs = true;
+	bool showAggroMeter = true;
 } s_WinSettings;
 
 struct WinSetting
@@ -373,6 +376,9 @@ std::vector<WinSetting> winSettings = {
 	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow},
 	{"Hud",			"ShowHud",				&s_WinSettings.showHud},
 	{"Hud",			"HudClickThrough",		&s_WinSettings.hudClickThrough},
+	{"Pet",			"ShowPetButtons",		&s_WinSettings.showPetButtons},
+	{"PlayerTarg",	"ShowTargetBuffs",		&s_WinSettings.showTargetBuffs},
+	{"PlayerTarg",	"ShowAggroMeter",		&s_WinSettings.showAggroMeter}
 };
 
 #pragma endregion
@@ -766,6 +772,22 @@ std::vector <SliderOption> sliderOptions = {
 	{"Hud Alpha",				&s_NumSettings.hudAlpha,			0, 255,		"Hud Transparency (Alpha Level)" },
 };
 
+struct SettingToggleOption
+{
+	const char* label;
+	bool* setting;
+	const char* helpText;
+
+};
+
+std::vector <SettingToggleOption> settingToggleOptions = {
+	{"Title Bars",			&s_WinSettings.showTitleBars,		"Title Bars: Show or Hide the title bars on each window"},
+	{"Lock Windows",		&s_WinSettings.lockWindows,			"Lock Windows: Locks the windows in place"},
+	{"Hud Click Through",	&s_WinSettings.hudClickThrough,		"Hud Click Through: Allows clicking through the hud window"},
+	{"Pet Buttons",			&s_WinSettings.showPetButtons,		"Pet Buttons: Show or Hide the pet command buttons"},
+	{"Target Buffs",		&s_WinSettings.showTargetBuffs,		"Target Buffs: Show or Hide the target buffs"},
+	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		"Aggro Meter: Show or Hide the aggro meter"}
+};
 
 struct ThemeOption
 {
