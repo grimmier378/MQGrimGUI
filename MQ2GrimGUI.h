@@ -999,7 +999,7 @@ void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 
 #pragma endregion
 
-#pragma region Some ImGui Stuff (Draw functions)
+#pragma region Some ImGui Stuff *Draw functions*
 
 static void DrawSpellBarIcons(int gemHeight)
 {
@@ -1097,6 +1097,7 @@ static void DrawSpellBarIcons(int gemHeight)
 
 				if (!pSpellInspector->IsGemReady(i))
 				{
+					// gem not read cooldown timer
 					float coolDown = static_cast<float>(pLocalPlayer->SpellGemETA[i] - pDisplay->TimeStamp) / 1000;
 					if (coolDown < 1801)
 					{
@@ -1171,6 +1172,13 @@ void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 		ImGui::TextColored(GetMQColor(ColorName::Red).ToImColor(), ICON_MD_VISIBILITY_OFF);
 }
 
+/**
+* @fn DrawStatusEffects
+* 
+* @brief Draws negative status effects icons for the current player. 
+* examples: Poisoned, Diseased, Rooted, Feared, Stunned, etc.
+*
+*/
 void DrawStatusEffects()
 {
 	if (!m_StatusIcon)
@@ -1228,6 +1236,13 @@ void DrawStatusEffects()
 
 }
 
+/**
+* @fn DrawPlayerIcons
+*
+* @brief Draws Role Icons for the Group Member, such as Main Tank, Main Assist, Puller, and Group Leader
+* 
+* @param pMember CGroupMember Pointer to the Group Member
+*/
 void DrawPlayerIcons(CGroupMember* pMember)
 {
 	if (!pMember)
@@ -1239,11 +1254,8 @@ void DrawPlayerIcons(CGroupMember* pMember)
 		imgui::DrawTextureAnimation(m_pMainTankIcon, ImVec2(20.0f, 20.0f));
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Main Tank");
-			ImGui::EndTooltip();
-		}
+			ImGui::SetItemTooltip("Main Tank");
+
 	}
 	if (pMember->IsMainAssist())
 	{
@@ -1251,11 +1263,7 @@ void DrawPlayerIcons(CGroupMember* pMember)
 		imgui::DrawTextureAnimation(m_pMainAssistIcon, ImVec2(20.0f, 20.0f));
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Main Assist");
-			ImGui::EndTooltip();
-		}
+			ImGui::SetItemTooltip("Main Assist");
 	}
 	if (pMember->IsPuller())
 	{
@@ -1263,27 +1271,25 @@ void DrawPlayerIcons(CGroupMember* pMember)
 		imgui::DrawTextureAnimation(m_pPullerIcon, ImVec2(20.0f, 20.0f));
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Puller");
-			ImGui::EndTooltip();
-		}
+			ImGui::SetItemTooltip("Puller");
 	}
 	if (pMember == GetCharInfo()->pGroupInfo->GetGroupLeader())
 	{
 		ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), ICON_MD_STAR);
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Group Leader");
-			ImGui::EndTooltip();
-		}
+			ImGui::SetItemTooltip("Group Leader");
 	}
 
 	ImGui::Dummy(ImVec2(1.0f, 1.0f));
 }
 
+/**
+* @fn DrawCombatStateIcon
+*
+* @brief Draws a combat state icon based on the current combat state
+* : In Combat, Debuffed, Timer, Standing, Regen
+*/
 void DrawCombatStateIcon()
 {
 	int comState = GetCombatState();
@@ -1293,22 +1299,33 @@ void DrawCombatStateIcon()
 	case eCombatState_Combat:
 		m_pCombatIcon = pSidlMgr->FindAnimation("A_PWCSInCombat");
 		imgui::DrawTextureAnimation(m_pCombatIcon, ImVec2(20.0f, 20.0f));
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("In Combat");
 		break;
 	case eCombatState_Debuff:
 		m_pDebuffIcon = pSidlMgr->FindAnimation("A_PWCSDebuff");
 		imgui::DrawTextureAnimation(m_pDebuffIcon, ImVec2(20.0f, 20.0f));
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("You are Debuffed. You may not rest.");
 		break;
 	case eCombatState_Timer:
 		m_pTimerIcon = pSidlMgr->FindAnimation("A_PWCSTimer");
 		imgui::DrawTextureAnimation(m_pTimerIcon, ImVec2(20.0f, 20.0f));
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("You are recovering from combat, and may not rest yet!");
 		break;
 	case eCombatState_Standing:
 		m_pStandingIcon = pSidlMgr->FindAnimation("A_PWCSStanding");
 		imgui::DrawTextureAnimation(m_pStandingIcon, ImVec2(20.0f, 20.0f));
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("You are not in combat. You may rest at any time.");
 		break;
 	case eCombatState_Regen:
 		m_pRegenIcon = pSidlMgr->FindAnimation("A_PWCSRegen");
 		imgui::DrawTextureAnimation(m_pRegenIcon, ImVec2(20.0f, 20.0f));
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("You are resting.");
+
 		break;
 	default:
 		break;
@@ -1328,11 +1345,7 @@ void DrawHelpIcon(const char* helpText)
 	ImGui::SameLine();
 	ImGui::TextDisabled(ICON_FA_QUESTION_CIRCLE_O);
 	if (ImGui::IsItemHovered())
-	{
-		ImGui::BeginTooltip();
-		ImGui::Text("%s", helpText);
-		ImGui::EndTooltip();
-	}
+		ImGui::SetItemTooltip("%s", helpText);
 }
 
 
@@ -1361,11 +1374,8 @@ void DrawBar(const char* label, int current, int max, int height,
 	ImGui::PopStyleColor();
 
 	if (ImGui::IsItemHovered())
-	{
-		ImGui::BeginTooltip();
-		ImGui::Text("%s: %d / %d", tooltip, current, max);
-		ImGui::EndTooltip();
-	}
+		ImGui::SetItemTooltip("%s: %d / %d", tooltip, current, max);
+
 }
 
 void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
@@ -1423,9 +1433,7 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 	if (ImGui::IsItemHovered())
 	{
 		GiveItem(pSpawnManager->GetSpawnByID(pLocalPlayer->PetID));
-		ImGui::BeginTooltip();
-		ImGui::Text("%s  %d%", petName, petInfo->HPCurrent);
-		ImGui::EndTooltip();
+		ImGui::SetItemTooltip("%s  %d%", petName, petInfo->HPCurrent);
 	}
 }
 
