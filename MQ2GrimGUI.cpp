@@ -424,7 +424,9 @@ static void DrawGroupWindow()
 		ImGui::Spacing();
 		ImGui::Separator();
 
-		float posX = ImGui::GetWindowWidth() * 0.5f - 65;
+		ImVec2 btnSize = CalcButtonSize("Disband", 1.0f, s_FontScaleSettings.groupWinScale);
+
+		float posX = ImGui::GetWindowWidth() * 0.5f - btnSize.x + 2; // 8 chars to cover max butting text length
 		if (posX < 0)
 			posX = 0;
 
@@ -432,12 +434,12 @@ static void DrawGroupWindow()
 
 		if (pLocalPlayer->InvitedToGroup)
 		{
-			if (ImGui::Button("Accept", ImVec2(60, 20)))
+			if (ImGui::Button("Accept", btnSize))
 				EzCommand("/invite");
 		}
 		else
 		{
-			if (ImGui::Button("Invite", ImVec2(60, 20)))
+			if (ImGui::Button("Invite", btnSize))
 			{
 				if (pTarget)
 					EzCommand(fmt::format("/invite {}", pTarget->Name).c_str());
@@ -445,13 +447,14 @@ static void DrawGroupWindow()
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Disband", ImVec2(60, 20)))
+		if (ImGui::Button("Disband", btnSize))
 			EzCommand("/disband");
 
 
 		if (mq::IsPluginLoaded("MQ2DanNet"))
 		{
-			posX = ImGui::GetWindowWidth() * 0.5f - 80;
+			ImVec2 MaxBtnSize = CalcButtonSize("Follow Me", 2.0f, s_FontScaleSettings.groupWinScale);
+			float posX = ImGui::GetWindowWidth() * 0.5f - MaxBtnSize.x; // 10 chars to cover max butting text length
 			if (posX < 0)
 				posX = 0;
 
@@ -462,26 +465,26 @@ static void DrawGroupWindow()
 			if (s_FollowClicked)
 				followLabel = "Stop Follow##";
 
-			if (ImGui::Button(followLabel, ImVec2(75, 20)))
+			if (ImGui::Button(followLabel, MaxBtnSize))
 			{
-				if (s_FollowClicked)
+				if (!s_FollowClicked)
 				{
 					EzCommand(fmt::format("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /dgge /afollow spawn {}", myID).c_str());
+					s_FollowClicked = true;
 				}
 				else
 				{
 					EzCommand("/dgge /multiline ; /afollow off; /nav stop");
+					s_FollowClicked = false;
 				}
-				s_FollowClicked = !s_FollowClicked;
 			}
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Come Here##", ImVec2(75, 20)))
-			{
-				EzCommand(fmt::format("/dgge /multiline ; /afollow off; /nav stop ;  /timed 5, /nav id {}", myID).c_str());
-			}
-		}
+			if (ImGui::Button("Come Here##", MaxBtnSize))
+				EzCommand(fmt::format("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /nav id {}", myID).c_str());
+
+		}	
 	}
 	if (ImGui::BeginPopupContextWindow("GroupContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 	{
@@ -987,6 +990,7 @@ static void DrawConfigWindow()
 				ImGui::EndTable();
 			}
 		}
+		ImGui::Spacing();
 
 		if (ImGui::CollapsingHeader("Window Settings Toggles"))
 		{

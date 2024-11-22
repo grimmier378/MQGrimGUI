@@ -746,45 +746,6 @@ static std::vector<PetButtonData> petButtons = {
 	{"Kill",		"/pet kill",			true},
 };
 
-static void DisplayPetButtons()
-{
-	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / 60);
-
-	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp))
-	{
-		for (auto& button : petButtons)
-		{
-			if (button.visible) {
-				ImGui::TableNextColumn();
-				std::string btnLabel = button.name;
-
-				bool isAttacking = false;
-				bool isSitting = false;
-				if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
-				{
-					isAttacking = MyPet->WhoFollowing;
-					isSitting = MyPet->StandState != 100;
-				}
-
-				if ((btnLabel == "Attack" && isAttacking) || (btnLabel == "Sit" && isSitting))
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(GetMQColor(ColorName::Teal).ToImColor()));
-					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
-						EzCommand(button.command.c_str());
-
-					ImGui::PopStyleColor();
-				}
-				else
-				{
-					if (ImGui::Button(btnLabel.c_str(), ImVec2(55, 20)))
-						EzCommand(button.command.c_str());
-				}
-			}
-		}
-		ImGui::EndTable();
-	}
-}
-
 #pragma endregion
 
 #pragma region Config Structs
@@ -1089,6 +1050,23 @@ void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 	}
 }
 
+/**
+* @fn CalcButtonSize
+* 
+* @brief Function to calculate the dynamic size of a button based on the label and padding.
+* If you have a bunch of buttons you want to be the same size pass the largest label to this function
+* 
+* @param label const char* Label text for the button
+* @param padding float Padding value to add to the button size
+* @param scale float Font scale to use for the button
+* 
+* @return ImVec2 Calculated button size
+*/
+ImVec2 CalcButtonSize(const char* label, float padding = 2.0f, float scale = 1.0f)
+{
+	ImVec2 textSize = ImGui::CalcTextSize(label);
+	return ImVec2((textSize.x * scale) + padding, (textSize.y * scale) + padding);
+}
 #pragma endregion
 
 #pragma region Some ImGui Stuff *Draw functions*
@@ -1247,6 +1225,48 @@ static void DrawSpellBarIcons(int gemHeight)
 	}
 }
 
+
+static void DisplayPetButtons()
+{
+	ImVec2 btnSize = CalcButtonSize("Regroup", 1, s_FontScaleSettings.petWinScale);
+	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / btnSize.x);
+
+	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp))
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		for (auto& button : petButtons)
+		{
+			if (button.visible) {
+				ImGui::TableNextColumn();
+				std::string btnLabel = button.name;
+
+				bool isAttacking = false;
+				bool isSitting = false;
+				if (PSPAWNINFO MyPet = pSpawnManager->GetSpawnByID(pLocalPlayer->PetID))
+				{
+					isAttacking = MyPet->WhoFollowing;
+					isSitting = MyPet->StandState != 100;
+				}
+
+				if ((btnLabel == "Attack" && isAttacking) || (btnLabel == "Sit" && isSitting))
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(GetMQColor(ColorName::Teal).ToImColor()));
+					if (ImGui::Button(btnLabel.c_str(), btnSize))
+						EzCommand(button.command.c_str());
+
+					ImGui::PopStyleColor();
+				}
+				else
+				{
+					if (ImGui::Button(btnLabel.c_str(), btnSize))
+						EzCommand(button.command.c_str());
+				}
+			}
+		}
+		ImGui::PopStyleVar();
+		ImGui::EndTable();
+	}
+}
 
 /**
 * @fn DrawLineOfSight
@@ -1566,7 +1586,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		if (ImGui::BeginChild("info", ImVec2(ImGui::GetContentRegionAvail().x, 26 * fontScale),
 			s_ChildFlags | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 		{
-			ImGui::SetWindowFontScale(fontScale);
+			//ImGui::SetWindowFontScale(fontScale);
 
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
@@ -1580,7 +1600,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 
 				float roleColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 				float nameCalcSize = ImGui::CalcTextSize(nameLabel).x;
-				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthFixed, nameCalcSize);
+				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthFixed, ceil(nameCalcSize));
 				ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, roleColSize);
 				ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30);
 				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 60);
