@@ -30,18 +30,18 @@ ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 ImGuiWindowFlags s_LockAllWin = ImGuiWindowFlags_None;
 ImGuiChildFlags s_ChildFlags = ImGuiChildFlags_None;
 
-CTextureAnimation* m_pTASpellIcon = nullptr;
-CTextureAnimation* m_pGemHolder = nullptr;
-CTextureAnimation* m_pGemBackground = nullptr;
-CTextureAnimation* m_pMainTankIcon = nullptr;
-CTextureAnimation* m_pPullerIcon = nullptr;
+CTextureAnimation* m_pTASpellIcon    = nullptr;
+CTextureAnimation* m_pGemHolder      = nullptr;
+CTextureAnimation* m_pGemBackground  = nullptr;
+CTextureAnimation* m_pMainTankIcon   = nullptr;
+CTextureAnimation* m_pPullerIcon     = nullptr;
 CTextureAnimation* m_pMainAssistIcon = nullptr;
-CTextureAnimation* m_pCombatIcon = nullptr;
-CTextureAnimation* m_pDebuffIcon = nullptr;
-CTextureAnimation* m_pRegenIcon = nullptr;
-CTextureAnimation* m_pStandingIcon = nullptr;
-CTextureAnimation* m_pTimerIcon = nullptr;
-CTextureAnimation* m_StatusIcon = nullptr;
+CTextureAnimation* m_pCombatIcon     = nullptr;
+CTextureAnimation* m_pDebuffIcon     = nullptr;
+CTextureAnimation* m_pRegenIcon      = nullptr;
+CTextureAnimation* m_pStandingIcon   = nullptr;
+CTextureAnimation* m_pTimerIcon      = nullptr;
+CTextureAnimation* m_StatusIcon      = nullptr;
 
 #pragma region Spells Inspector
 
@@ -136,6 +136,7 @@ namespace grimgui {
 		void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 			if (ImGui::BeginTable("Buffs", 3,
 				ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
 			{
@@ -192,6 +193,8 @@ namespace grimgui {
 
 						if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
 						{
+							ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+
 							if (ImGui::MenuItem(("Remove##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
 								RemoveBuffByName(spell->Name);
 
@@ -201,6 +204,7 @@ namespace grimgui {
 							if (ImGui::MenuItem("Inspect##", nullptr, false, true))
 								DoInspectSpell(spell->ID);
 
+							ImGui::SetWindowFontScale(1.0f);
 							ImGui::EndPopup();
 						}
 						if (ImGui::IsItemHovered())
@@ -232,6 +236,7 @@ namespace grimgui {
 					slotNum++;
 				}
 				ImGui::EndTable();
+				ImGui::SetWindowFontScale(1.0f);
 			}
 		}
 
@@ -438,6 +443,38 @@ std::vector<NumericSetting> numericSettings = {
 	{"Group",			"GroupBarHeight",			&s_NumSettings.groupBarHeight},
 	{"Spells",			"SpellGemHeight",			&s_NumSettings.spellGemHeight},
 	{"Hud",				"HudAlpha",					&s_NumSettings.hudAlpha}
+};
+
+#pragma endregion
+
+#pragma region Font Scale Settings
+
+struct FontScaleSettings
+{
+	float playerWinScale = 1.0f;
+	float targetWinScale = 1.0f;
+	float petWinScale    = 1.0f;
+	float groupWinScale  = 1.0f;
+	float spellsWinScale = 1.0f;
+	float buffsWinScale  = 1.0f;
+
+} s_FontScaleSettings;
+
+struct FontScaleSetting
+{
+	const char* section;
+	const char* key;
+	float* value;
+	const char* helpText;
+};
+
+std::vector<FontScaleSetting> fontScaleSettings = {
+	{"PlayerTarg", "PlayerWinScale", &s_FontScaleSettings.playerWinScale, "Player Window Scale"},
+	{"PlayerTarg", "TargetWinScale", &s_FontScaleSettings.targetWinScale, "Target Window Scale"},
+	{"Pet", "PetWinScale", &s_FontScaleSettings.petWinScale, "Pet Window Scale"},
+	{"Group", "GroupWinScale", &s_FontScaleSettings.groupWinScale, "Group Window Scale"},
+	{"Spells", "SpellsWinScale", &s_FontScaleSettings.spellsWinScale, "Spells Window Scale"},
+	{"Buffs", "BuffsWinScale", &s_FontScaleSettings.buffsWinScale, "Buffs Window Scale"},
 };
 
 #pragma endregion
@@ -1478,6 +1515,7 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 		if (ImGui::BeginChild("PetBar", ImVec2(ImGui::GetColumnWidth(), 0),
 			ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+
 			float barSize = static_cast<float>(s_NumSettings.groupBarHeight * 0.75);
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Green2).ToImColor()));
 			ImGui::ProgressBar(petPercentage, ImVec2(ImGui::GetColumnWidth(), barSize), "##");
@@ -1501,7 +1539,7 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 * @param drawCombatBorder bool Draw a combat border around the player bars
 * @param barHeight int Height of the player bars, Defaults to playerBarHeight but you can pass a different value
 */
-void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings.playerBarHeight, bool drawPet = false)
+void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings.playerBarHeight, bool drawPet = false, float fontScale = 1.0f)
 {
 	if (!pLocalPC)
 		return;
@@ -1510,6 +1548,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY,
 		ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 	{
+		ImGui::SetWindowFontScale(fontScale);
 		ImGuiChildFlags s_ChildFlags = drawCombatBorder ? ImGuiChildFlags_Border : ImGuiChildFlags_None;
 
 		if (drawCombatBorder && pEverQuestInfo->bAutoAttack)
@@ -1525,10 +1564,12 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
 
-		if (ImGui::BeginChild("info", ImVec2(ImGui::GetContentRegionAvail().x, 26),
+		if (ImGui::BeginChild("info", ImVec2(ImGui::GetContentRegionAvail().x, 26 * fontScale),
 			s_ChildFlags | ImGuiChildFlags_AutoResizeY,
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
 		{
+			ImGui::SetWindowFontScale(fontScale);
+
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
 
@@ -1561,6 +1602,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::EndTable();
 			}
 		}
+		ImGui::SetWindowFontScale(1.0f);
 		ImGui::EndChild();
 
 		ImGui::PopStyleVar(2);
@@ -1584,6 +1626,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				DrawPetInfo(MyPet, false);
 		}
 	}
+	ImGui::SetWindowFontScale(1.0f);
 	ImGui::EndChild();
 }
 

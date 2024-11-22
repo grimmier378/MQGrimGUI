@@ -63,6 +63,12 @@ static void LoadSettings()
 		button.visible = GetPrivateProfileBool("Pet", button.name.c_str(),
 			&button.visible, &s_SettingsFile[0]);
 	}
+
+	for (const auto& scale : fontScaleSettings)
+	{
+		*scale.value = GetPrivateProfileFloat("FontScale", scale.key,
+			*scale.value, &s_SettingsFile[0]);
+	}
 }
 
 static void SaveSettings()
@@ -90,6 +96,11 @@ static void SaveSettings()
 	for (const auto& button : petButtons)
 	{
 		WritePrivateProfileBool("Pet", button.name.c_str(), button.visible, &s_SettingsFile[0]);
+	}
+
+	for (const auto& scale : fontScaleSettings)
+	{
+		WritePrivateProfileFloat("FontScale", scale.key, *scale.value, &s_SettingsFile[0]);
 	}
 }
 
@@ -173,10 +184,12 @@ static void UpdateSettingFile()
 // all of the initial sizes have been verified to be on the screen down to 800x600 resolution.
 // resolutions below that is questionable on many lvls. you may need a bigger monitor.
 
-static void DrawTargetWindow()
+static void DrawTargetWindow(bool splitTar = false)
 	{
 	if (PSPAWNINFO CurTarget = pTarget)
 	{
+		if (splitTar)
+			ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale);
 		const char* tarName = CurTarget->DisplayedName;
 		if (mq::IsAnonymized())
 		{
@@ -254,7 +267,7 @@ static void DrawTargetWindow()
 				ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
 				ImGui::Text("%d %%", s_NumSettings.secondAggroPct);
 			}
-			
+			ImGui::SetWindowFontScale(1.0f);
 			// Target Buffs Section
 			if (s_WinSettings.showTargetBuffs)
 			{
@@ -279,7 +292,6 @@ static void DrawPlayerWindow()
 		int popCounts = PushTheme(s_WinTheme.playerWinTheme);
 		ImGuiWindowFlags menuFlag = s_WinSettings.showTitleBars ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPlayerWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
-
 		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinSettings.showPlayerWindow, s_WindowFlags | lockFlag | menuFlag | ImGuiWindowFlags_NoScrollbar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
@@ -320,7 +332,8 @@ static void DrawPlayerWindow()
 				ImGui::EndMenuBar();
 			}
 
-			DrawPlayerBars(true);
+			ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
+			DrawPlayerBars(true,s_NumSettings.playerBarHeight,false,s_FontScaleSettings.playerWinScale);
 
 			if (!s_WinSettings.showTargetWindow)
 			{
@@ -331,6 +344,8 @@ static void DrawPlayerWindow()
 		
 		if (ImGui::BeginPopupContextWindow("PlayerContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
+
 			if (ImGui::MenuItem("Lock Player Window", NULL, s_WinSettings.lockPlayerWin))
 			{
 				s_WinSettings.lockPlayerWin = !s_WinSettings.lockPlayerWin;
@@ -352,9 +367,11 @@ static void DrawPlayerWindow()
 			if (ImGui::MenuItem("Close Player Window", NULL, s_WinSettings.showPlayerWindow))
 				s_WinSettings.showPlayerWindow = false;
 
+			ImGui::SetWindowFontScale(1.0f);
 			ImGui::EndPopup();
 		}
 
+		ImGui::SetWindowFontScale(1.0f);
 		PopTheme(popCounts);
 		ImGui::End();
 	}
@@ -373,8 +390,9 @@ static void DrawGroupWindow()
 	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinSettings.showGroupWindow,
 		s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
+		ImGui::SetWindowFontScale(s_FontScaleSettings.groupWinScale);
 		if (s_WinSettings.showSelfOnGroup)
-			DrawPlayerBars(false, s_NumSettings.groupBarHeight, true);
+			DrawPlayerBars(false, s_NumSettings.groupBarHeight, true, s_FontScaleSettings.groupWinScale);
 
 		PCHARINFO pChar = GetCharInfo();
 		if (pChar && pChar->pGroupInfo)
@@ -491,6 +509,7 @@ static void DrawGroupWindow()
 		ImGui::EndPopup();
 	}
 
+	ImGui::SetWindowFontScale(1.0f);
 	PopTheme(popCounts);
 	ImGui::End();
 }
@@ -512,6 +531,7 @@ static void DrawPetWindow()
 
 		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
 			float midX = (sizeX / 2);
@@ -588,6 +608,7 @@ static void DrawPetWindow()
 
 		if (ImGui::BeginPopupContextWindow("PetContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
 			if (ImGui::MenuItem("Lock Pet Window", NULL, s_WinSettings.lockPetWin))
 			{
 				s_WinSettings.lockPetWin = !s_WinSettings.lockPetWin;
@@ -603,9 +624,11 @@ static void DrawPetWindow()
 			if (ImGui::MenuItem("Close Pet Window", NULL, s_WinSettings.showPetWindow))
 				s_WinSettings.showPetWindow = false;
 
+			ImGui::SetWindowFontScale(1.0f);
 			ImGui::EndPopup();
 		}
 
+		ImGui::SetWindowFontScale(1.0f);
 		PopTheme(popCounts);
 		ImGui::End();
 	}
@@ -630,6 +653,7 @@ static void DrawCastingBarWindow()
 		if (ImGui::Begin("Casting##MQ2GrimGUI1", &s_IsCasting,
 			s_LockAllWin | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
 			EQ_Spell* pSpell = GetSpellByName(spellName);
 			if (pSpell)
@@ -670,6 +694,7 @@ static void DrawCastingBarWindow()
 
 		}
 
+		ImGui::SetWindowFontScale(1.0f);
 		PopTheme(popCounts);
 		ImGui::End();
 	}
@@ -695,6 +720,7 @@ static void DrawSpellWindow()
 		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
 			s_WindowFlags | lockFlag | ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 
 			ImGui::Spacing();
@@ -703,6 +729,8 @@ static void DrawSpellWindow()
 
 		if (ImGui::BeginPopupContextWindow("SpellsContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+
 			if (ImGui::MenuItem("Lock Spells Window", NULL, s_WinSettings.lockSpellsWin))
 			{
 				s_WinSettings.lockSpellsWin = !s_WinSettings.lockSpellsWin;
@@ -715,9 +743,11 @@ static void DrawSpellWindow()
 			if (ImGui::MenuItem("Close Spells Window", NULL, s_WinSettings.showSpellsWindow))
 				s_WinSettings.showSpellsWindow = false;
 
+			ImGui::SetWindowFontScale(1.0f);
 			ImGui::EndPopup();
 		}
 
+		ImGui::SetWindowFontScale(1.0f);
 		PopTheme(popCounts);
 		ImGui::End();
 
@@ -740,6 +770,7 @@ static void DrawBuffWindow()
 
 	if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 	{
+		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 		if (ImGui::MenuItem("Lock Buffs Window", NULL, s_WinSettings.lockBuffsWin))
 		{
 			s_WinSettings.lockBuffsWin = !s_WinSettings.lockBuffsWin;
@@ -749,6 +780,7 @@ static void DrawBuffWindow()
 		if (ImGui::MenuItem("Close Buffs Window", NULL, s_WinSettings.showBuffWindow))
 			s_WinSettings.showBuffWindow = false;
 
+		ImGui::SetWindowFontScale(1.0f);
 		ImGui::EndPopup();
 	}
 
@@ -774,6 +806,8 @@ static void DrawSongWindow()
 	
 	if (ImGui::BeginPopupContextWindow("SongContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 	{
+		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+
 		if (ImGui::MenuItem("Lock Songs Window", NULL, s_WinSettings.lockSongWin))
 		{
 			s_WinSettings.lockSongWin = !s_WinSettings.lockSongWin;
@@ -783,6 +817,7 @@ static void DrawSongWindow()
 		if (ImGui::MenuItem("Close Songs Window", NULL, s_WinSettings.showSongWindow))
 			s_WinSettings.showSongWindow = false;
 
+		ImGui::SetWindowFontScale(1.0f);
 		ImGui::EndPopup();
 	}
 
@@ -806,7 +841,6 @@ static void DrawHudWindow()
 
 	if (ImGui::Begin("Hud##GrimGui", &s_WinSettings.showHud, lockFlag | window_flags))
 	{
-
 		DrawStatusEffects();
 
 		if (ImGui::BeginPopupContextWindow("HudContext##GrimGui",ImGuiPopupFlags_MouseButtonRight))
@@ -932,6 +966,28 @@ static void DrawConfigWindow()
 		}
 		ImGui::Spacing();
 
+		if (ImGui::CollapsingHeader("Font Scaling"))
+		{
+			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
+			int col = sizeX / 220;
+			if (col < 1)
+				col = 1;
+
+			if (ImGui::BeginTable("Font Scaling", col))
+			{
+				ImGui::TableNextRow();
+				for (const auto& font : fontScaleSettings)
+				{
+					ImGui::TableNextColumn();
+					ImGui::SetNextItemWidth(100);
+					ImGui::SliderFloat(font.key, font.value, 0, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+					ImGui::SameLine();
+					DrawHelpIcon(font.helpText);
+				}
+				ImGui::EndTable();
+			}
+		}
+
 		if (ImGui::CollapsingHeader("Window Settings Toggles"))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
@@ -988,7 +1044,6 @@ static void DrawConfigWindow()
 				ImGui::EndTable();
 			}
 		}
-
 		ImGui::Spacing();
 
 		if (ImGui::CollapsingHeader("Window Themes"))
@@ -1220,10 +1275,13 @@ PLUGIN_API void OnUpdateImGui()
 			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
 			if (ImGui::Begin("Target##MQ2GrimGUI", &s_WinSettings.showTargetWindow, lockFlag | s_LockAllWin))
-				DrawTargetWindow();
-			
+			{
+				DrawTargetWindow(true);
+			}
 			if (ImGui::BeginPopupContextWindow("TarContext##GrimGui", ImGuiPopupFlags_MouseButtonRight))
 			{
+				ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale && s_WinSettings.showTargetWindow ? s_FontScaleSettings.targetWinScale : s_FontScaleSettings.playerWinScale);
+
 				if (ImGui::MenuItem("Lock Target Window", NULL, s_WinSettings.lockTargetWin))
 				{
 					s_WinSettings.lockTargetWin = !s_WinSettings.lockTargetWin;
@@ -1232,6 +1290,7 @@ PLUGIN_API void OnUpdateImGui()
 
 				if (ImGui::MenuItem("Close (unsplits)", NULL, s_WinSettings.showTargetWindow))
 					s_WinSettings.showTargetWindow = false;
+				ImGui::SetWindowFontScale(1.0f);
 
 				ImGui::EndPopup();
 			}
