@@ -587,7 +587,7 @@ static void DrawPetWindow()
 				if (s_WinSettings.showPetButtons)
 				{
 					if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
-						ImGuiChildFlags_Border| ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
+						ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 						DisplayPetButtons();
 
 					ImGui::EndChild();

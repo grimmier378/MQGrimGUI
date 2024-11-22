@@ -181,7 +181,7 @@ namespace grimgui {
 						}
 
 						int secondsLeft = buffInfo.GetBuffTimer() / 1000;
-						if (secondsLeft < 18 && !petBuffs)
+						if (secondsLeft < 18 && secondsLeft > 0 && !petBuffs)
 						{
 							if (s_WinSettings.flashTintFlag)
 								tintCol = MQColor(0, 0, 0, 255);
@@ -276,7 +276,7 @@ namespace grimgui {
 						borderCol = MQColor(250, 250, 0, 255);
 
 					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
-					if (secondsLeft < 18 && !petBuffs)
+					if (secondsLeft < 18 && secondsLeft > 0 && !petBuffs)
 					{
 						if (s_WinSettings.flashTintFlag)
 							tintCol = MQColor(0, 0, 0, 255);
@@ -1582,8 +1582,8 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				float nameCalcSize = ImGui::CalcTextSize(nameLabel).x;
 				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthFixed, nameCalcSize);
 				ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, roleColSize);
-				ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_NoResize, 30);
-				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_NoResize, 60);
+				ImGui::TableSetupColumn("##Heading", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30);
+				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 60);
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 				ImGui::Text(nameLabel);
@@ -1666,10 +1666,10 @@ void DrawMemberInfo(CGroupMember* pMember)
 
 		float rolColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(nameLabel).x);
-		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize, 10);
+		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 10);
 		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
-		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize, 30);
-		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize, 30);
+		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30);
+		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 		ImGui::Text(nameLabel);
