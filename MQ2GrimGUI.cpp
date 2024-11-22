@@ -426,7 +426,7 @@ static void DrawGroupWindow()
 
 		ImVec2 btnSize = CalcButtonSize("Disband", 1.0f, s_FontScaleSettings.groupWinScale);
 
-		float posX = ImGui::GetWindowWidth() * 0.5f - btnSize.x + 2; // 8 chars to cover max butting text length
+		float posX = ImGui::GetWindowWidth() * 0.5f - btnSize.x;
 		if (posX < 0)
 			posX = 0;
 
@@ -453,8 +453,8 @@ static void DrawGroupWindow()
 
 		if (mq::IsPluginLoaded("MQ2DanNet"))
 		{
-			ImVec2 MaxBtnSize = CalcButtonSize("Follow Me", 2.0f, s_FontScaleSettings.groupWinScale);
-			float posX = ImGui::GetWindowWidth() * 0.5f - MaxBtnSize.x; // 10 chars to cover max butting text length
+			ImVec2 MaxBtnSize = CalcButtonSize("Follow Me", 1.0f, s_FontScaleSettings.groupWinScale);
+			float posX = (ImGui::GetWindowWidth() * 0.5f) - MaxBtnSize.x;
 			if (posX < 0)
 				posX = 0;
 

@@ -1355,7 +1355,7 @@ void DrawStatusEffects()
 * 
 * @param pMember CGroupMember Pointer to the Group Member
 */
-void DrawPlayerIcons(CGroupMember* pMember)
+void DrawPlayerIcons(CGroupMember* pMember, ImVec2 iconSize = { 20.0f, 20.0f })
 {
 	if (!pMember)
 		return;
@@ -1363,7 +1363,7 @@ void DrawPlayerIcons(CGroupMember* pMember)
 	if (pMember->IsMainTank())
 	{
 		m_pMainTankIcon = pSidlMgr->FindAnimation("A_Tank");
-		imgui::DrawTextureAnimation(m_pMainTankIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pMainTankIcon, iconSize);
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Main Tank");
@@ -1372,7 +1372,7 @@ void DrawPlayerIcons(CGroupMember* pMember)
 	if (pMember->IsMainAssist())
 	{
 		m_pMainAssistIcon = pSidlMgr->FindAnimation("A_Assist");
-		imgui::DrawTextureAnimation(m_pMainAssistIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pMainAssistIcon, iconSize);
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Main Assist");
@@ -1380,7 +1380,7 @@ void DrawPlayerIcons(CGroupMember* pMember)
 	if (pMember->IsPuller())
 	{
 		m_pPullerIcon = pSidlMgr->FindAnimation("A_Puller");
-		imgui::DrawTextureAnimation(m_pPullerIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pPullerIcon, iconSize);
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Puller");
@@ -1402,7 +1402,7 @@ void DrawPlayerIcons(CGroupMember* pMember)
 * @brief Draws a combat state icon based on the current combat state
 * : In Combat, Debuffed, Timer, Standing, Regen
 */
-void DrawCombatStateIcon()
+void DrawCombatStateIcon(ImVec2 iconSize = {20.0f, 20.0f})
 {
 	int comState = GetCombatState();
 
@@ -1410,31 +1410,31 @@ void DrawCombatStateIcon()
 	{
 	case eCombatState_Combat:
 		m_pCombatIcon = pSidlMgr->FindAnimation("A_PWCSInCombat");
-		imgui::DrawTextureAnimation(m_pCombatIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pCombatIcon, iconSize);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("In Combat");
 		break;
 	case eCombatState_Debuff:
 		m_pDebuffIcon = pSidlMgr->FindAnimation("A_PWCSDebuff");
-		imgui::DrawTextureAnimation(m_pDebuffIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pDebuffIcon, iconSize);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("You are Debuffed. You may not rest.");
 		break;
 	case eCombatState_Timer:
 		m_pTimerIcon = pSidlMgr->FindAnimation("A_PWCSTimer");
-		imgui::DrawTextureAnimation(m_pTimerIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pTimerIcon, iconSize);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("You are recovering from combat, and may not rest yet!");
 		break;
 	case eCombatState_Standing:
 		m_pStandingIcon = pSidlMgr->FindAnimation("A_PWCSStanding");
-		imgui::DrawTextureAnimation(m_pStandingIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pStandingIcon, iconSize);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("You are not in combat. You may rest at any time.");
 		break;
 	case eCombatState_Regen:
 		m_pRegenIcon = pSidlMgr->FindAnimation("A_PWCSRegen");
-		imgui::DrawTextureAnimation(m_pRegenIcon, ImVec2(20.0f, 20.0f));
+		imgui::DrawTextureAnimation(m_pRegenIcon, iconSize);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("You are resting.");
 
@@ -1597,7 +1597,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 
 			if (ImGui::BeginTable("##Player", 4))
 			{
-
+				ImVec2 iconSize = { s_NumSettings.buffIconSize * fontScale, s_NumSettings.buffIconSize * fontScale };
 				float roleColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 				float nameCalcSize = ImGui::CalcTextSize(nameLabel).x;
 				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthFixed, ceil(nameCalcSize));
@@ -1608,12 +1608,12 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::TableNextColumn();
 				ImGui::Text(nameLabel);
 				ImGui::TableNextColumn();
-				DrawCombatStateIcon();
+				DrawCombatStateIcon(iconSize);
 				if (GetCharInfo() && GetCharInfo()->pGroupInfo)
 				{
 					CGroupMember* pMember = GetCharInfo()->pGroupInfo->GetGroupMember(pLocalPlayer);
 					ImGui::SameLine(0.0f, 10.0f);
-					DrawPlayerIcons(pMember);
+					DrawPlayerIcons(pMember, iconSize);
 				}
 				ImGui::TableNextColumn();
 				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_CurrHeading);
@@ -1686,10 +1686,10 @@ void DrawMemberInfo(CGroupMember* pMember)
 
 		float rolColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(nameLabel).x);
-		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 10);
+		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(ICON_MD_VISIBILITY_OFF).x);
 		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
-		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30);
-		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30);
+		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
+		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 		ImGui::Text(nameLabel);
