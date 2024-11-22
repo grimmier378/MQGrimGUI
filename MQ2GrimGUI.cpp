@@ -550,8 +550,8 @@ static void DrawPetWindow()
 
 				// Pet Target Section
 				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 0),
-					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY,
-					ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize,
+					 ImGuiWindowFlags_NoScrollbar))
 				{
 					if (PSPAWNINFO pPetTarget = MyPet->WhoFollowing)
 					{
@@ -587,7 +587,7 @@ static void DrawPetWindow()
 				if (s_WinSettings.showPetButtons)
 				{
 					if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
-						ImGuiChildFlags_Border, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+						ImGuiChildFlags_Border| ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 						DisplayPetButtons();
 
 					ImGui::EndChild();

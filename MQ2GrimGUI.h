@@ -1486,7 +1486,7 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 	if (showAll)
 	{
 		if (ImGui::BeginChild("Pet", ImVec2(ImGui::GetColumnWidth(), 0),
-			ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+			ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize , ImGuiWindowFlags_NoScrollbar))
 		{
 			DrawLineOfSight(pLocalPlayer, petInfo);
 			ImGui::SameLine();
@@ -1513,7 +1513,7 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 	{
 		// just draw a green pet health bar at 3/4 size of the player bars for group window.
 		if (ImGui::BeginChild("PetBar", ImVec2(ImGui::GetColumnWidth(), 0),
-			ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize))
+			ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize))
 		{
 
 			float barSize = static_cast<float>(s_NumSettings.groupBarHeight * 0.75);
@@ -1545,8 +1545,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		return;
 
 	if (ImGui::BeginChild(pLocalPC->Name, ImVec2(ImGui::GetContentRegionAvail().x, 0),
-		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY,
-		ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 	{
 		ImGui::SetWindowFontScale(fontScale);
 		ImGuiChildFlags s_ChildFlags = drawCombatBorder ? ImGuiChildFlags_Border : ImGuiChildFlags_None;
@@ -1565,8 +1564,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
 
 		if (ImGui::BeginChild("info", ImVec2(ImGui::GetContentRegionAvail().x, 26 * fontScale),
-			s_ChildFlags | ImGuiChildFlags_AutoResizeY,
-			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+			s_ChildFlags | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 		{
 			ImGui::SetWindowFontScale(fontScale);
 
@@ -1726,7 +1724,7 @@ void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int groupSl
 	SPAWNINFO* pSpawn = pMember->GetPlayer();
 
 	if (ImGui::BeginChild(pSpawn->Name, ImVec2(ImGui::GetContentRegionAvail().x, 0),
-		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar))
+		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY| ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 	{
 
 		ImGui::PushID(pSpawn->Name);
