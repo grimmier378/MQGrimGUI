@@ -1531,7 +1531,13 @@ void DrawMenu(const char* winName)
 				break;
 			}
 		}
-
+		
+		ImGui::SameLine();
+		ImGui::Text(ICON_FA_COG);
+		if (ImGui::IsItemClicked())
+			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("Config Window");
 
 		if (ImGui::BeginMenu("Windows"))
 		{
