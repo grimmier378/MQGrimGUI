@@ -20,7 +20,7 @@ bool s_ShowOutOfGame = false;
 bool s_MemSpell = false;
 bool s_DanNetEnabled = false;
 bool s_ShowSpellBook = false;
-
+bool s_SettingModified = false;
 std::string s_MemSpellName;
 
 int s_MemGemIndex = 0;
@@ -823,8 +823,8 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 
 struct ThemeOption
 {
-	const char* label;
-	std::string* theme;
+	const char* winName;
+	std::string* themeName;
 };
 
 std::vector<ThemeOption> themeOptions = {

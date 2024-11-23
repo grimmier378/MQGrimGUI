@@ -910,7 +910,10 @@ static void DrawConfigWindow()
 				{
 					ImVec4 colorValue = setting.value->ToImColor();
 					if (ImGui::ColorEdit4(setting.label, (float*)&colorValue, ImGuiColorEditFlags_NoInputs))
+					{
 						*setting.value = MQColor(colorValue);
+						s_SettingModified = true;
+					}
 
 					ImGui::SameLine();
 					DrawHelpIcon(setting.helpText);
@@ -967,14 +970,17 @@ static void DrawConfigWindow()
 				
 					ImGui::TableNextColumn();
 			        ImGui::SetNextItemWidth(100);
-			        ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max, "%d", clamp);
+					if (ImGui::SliderInt(slider.label, slider.value, slider.min, slider.max, "%d", clamp))
+					{
+						s_SettingModified = true;
+					}
 			        ImGui::SameLine();
 
 			        if (*slider.value == 0 && (std::string(slider.label).find("Flash") != std::string::npos))
-					{
+					{	
 						DrawHelpIcon((std::string(slider.label) + " Disabled").c_str());
 					} else {
-			            DrawHelpIcon(slider.helpText);
+						DrawHelpIcon(slider.helpText);
 			        }
 
 			    }
@@ -998,7 +1004,9 @@ static void DrawConfigWindow()
 				{
 					ImGui::TableNextColumn();
 					ImGui::SetNextItemWidth(100);
-					ImGui::SliderFloat(font.key, font.value, 0, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+					if (ImGui::SliderFloat(font.key, font.value, 0, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp))
+						s_SettingModified = true;
+
 					ImGui::SameLine();
 					DrawHelpIcon(font.helpText);
 				}
@@ -1078,7 +1086,11 @@ static void DrawConfigWindow()
 				for (const auto& theme : themeOptions)
 				{
 					ImGui::TableNextColumn();
-					*theme.theme = DrawThemePicker(*theme.theme, theme.label);
+					std::string temp = *theme.themeName;
+					*theme.themeName = DrawThemePicker(*theme.themeName, theme.winName);
+					if (temp != *theme.themeName)
+						s_SettingModified = true;
+
 				}
 				ImGui::EndTable();
 			}
@@ -1095,7 +1107,18 @@ static void DrawConfigWindow()
 			// only Save when the user clicks the button. 
 			// If they close the window and don't click the button the settings will not be saved and only be temporary.
 			s_WinSettings.showConfigWindow = false;
+			s_SettingModified = false;
 			SaveSettings();
+		}
+
+		if (s_SettingModified)
+		{
+			ImGui::SameLine();
+			if (ImGui::Button("Revert"))
+			{
+				LoadSettings();
+				s_SettingModified = false;
+			}
 		}
 	}
 	ImGui::End();
