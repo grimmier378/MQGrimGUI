@@ -250,7 +250,10 @@ static void DrawTargetWindow(bool splitTar = false)
 			//aggro meter
 			if (s_WinSettings.showAggroMeter)
 			{
-
+				const char* secAgName = s_SecondAggroName;
+				if (mq::IsAnonymized())
+					secAgName = MaskName(secAgName);
+				
 				if (s_NumSettings.myAggroPct < 100)
 					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(GetMQColor(ColorName::Orange).ToImColor()));
 				else
@@ -261,7 +264,7 @@ static void DrawTargetWindow(bool splitTar = false)
 				ImGui::ProgressBar(static_cast<float>(s_NumSettings.myAggroPct) / 100, ImVec2(0.0f, static_cast<float>(s_NumSettings.aggroBarHeight)), "##Aggro");
 				ImGui::PopStyleColor();
 				ImGui::SetCursorPos(ImVec2(10, yPos));
-				ImGui::Text(s_SecondAggroName);
+				ImGui::Text(secAgName);
 				ImGui::SetCursorPos(ImVec2((sizeX / 2) - 8, yPos));
 				ImGui::Text("%d %%", s_NumSettings.myAggroPct);
 				ImGui::SetCursorPos(ImVec2(sizeX - 40, yPos));
@@ -534,6 +537,28 @@ static void DrawPetWindow()
 
 		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		{
+			if (ImGui::BeginPopupContextWindow("PetContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+			{
+				ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
+				if (ImGui::MenuItem("Lock Pet Window", NULL, s_WinSettings.lockPetWin))
+				{
+					s_WinSettings.lockPetWin = !s_WinSettings.lockPetWin;
+					SaveSetting(&s_WinSettings.lockPetWin, &s_SettingsFile[0]);
+				}
+
+				if (ImGui::MenuItem("Show Pet Buttons", NULL, s_WinSettings.showPetButtons))
+				{
+					s_WinSettings.showPetButtons = !s_WinSettings.showPetButtons;
+					SaveSetting(&s_WinSettings.showPetButtons, &s_SettingsFile[0]);
+				}
+
+				if (ImGui::MenuItem("Close Pet Window", NULL, s_WinSettings.showPetWindow))
+					s_WinSettings.showPetWindow = false;
+
+				ImGui::SetWindowFontScale(1.0f);
+				ImGui::EndPopup();
+			}
+
 			ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
@@ -542,8 +567,8 @@ static void DrawPetWindow()
 			if (ImGui::BeginTable("Pet", 2,
 				ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable ))
 			{
-				ImGui::TableSetupColumn(petName, ImGuiTableColumnFlags_None, -1);
-				ImGui::TableSetupColumn("Buffs", ImGuiTableColumnFlags_None, -1);
+				ImGui::TableSetupColumn(petName);
+				ImGui::TableSetupColumn("Buffs");
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
 				ImGui::TableNextRow();
@@ -619,28 +644,6 @@ static void DrawPetWindow()
 
 		}
 
-		if (ImGui::BeginPopupContextWindow("PetContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
-		{
-			ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
-			if (ImGui::MenuItem("Lock Pet Window", NULL, s_WinSettings.lockPetWin))
-			{
-				s_WinSettings.lockPetWin = !s_WinSettings.lockPetWin;
-				SaveSetting(&s_WinSettings.lockPetWin, &s_SettingsFile[0]);
-			}
-
-			if (ImGui::MenuItem("Show Pet Buttons", NULL, s_WinSettings.showPetButtons))
-			{
-				s_WinSettings.showPetButtons = !s_WinSettings.showPetButtons;
-				SaveSetting(&s_WinSettings.showPetButtons, &s_SettingsFile[0]);
-			}
-
-			if (ImGui::MenuItem("Close Pet Window", NULL, s_WinSettings.showPetWindow))
-				s_WinSettings.showPetWindow = false;
-
-			ImGui::SetWindowFontScale(1.0f);
-			ImGui::EndPopup();
-		}
-
 		ImGui::SetWindowFontScale(1.0f);
 		PopTheme(popCounts);
 		ImGui::End();
@@ -678,6 +681,7 @@ static void DrawCastingBarWindow()
 				}
 				else
 				{
+	
 					int spellTimer = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(now - g_StartCastTime).count());
 					float castingTime = static_cast<float>(pSpell->CastTime - GetCastingTimeModifier(pSpell));
 					float spellProgress = 1.0f - static_cast<float>(spellTimer / castingTime);
@@ -692,14 +696,37 @@ static void DrawCastingBarWindow()
 					{
 					case TargetType_TargetPC:
 						if (pTarget)
-							ImGui::Text("Target: %s", pTarget->DisplayedName);
+						{
+							const char* tarName = pTarget->DisplayedName;
+							if (mq::IsAnonymized())
+							{
+								if (pTarget->Type == SPAWN_PLAYER)
+									tarName = MaskName(tarName);
+							}
+							ImGui::Text("Target: %s", tarName);
+						}
 						break;
 					case TargetType_Single:
 						if (pTarget)
-							ImGui::Text("Target: %s", pTarget->DisplayedName);
+						{
+							const char* tarName = pTarget->DisplayedName;
+							if (mq::IsAnonymized())
+							{
+								if (pTarget->Type == SPAWN_PLAYER)
+									tarName = MaskName(tarName);
+							}
+							ImGui::Text("Target: %s", tarName);
+						}						
 						break;
 					case TargetType_Self:
-						ImGui::Text("Target: %s", pLocalPlayer->DisplayedName);
+						{
+							const char* tarName = pLocalPlayer->DisplayedName;
+							if (mq::IsAnonymized())
+							{
+								tarName = MaskName(tarName);
+							}
+							ImGui::Text("Target: %s", tarName);
+						}
 						break;
 					}
 				}
@@ -736,16 +763,15 @@ static void DrawSpellWindow()
 			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 
-			ImVec2 btnSize = CalcButtonSize(ICON_FA_BOOK, 2.0f, s_FontScaleSettings.spellsWinScale);
+			ImVec2 btnSize = CalcButtonSize(ICON_FA_BOOK, 3.0f, s_FontScaleSettings.spellsWinScale);
 			ImGui::SetCursorPosX((ImGui::GetWindowWidth() - btnSize.x) * 0.5f);
 			if (ImGui::Button(ICON_FA_BOOK, btnSize))
 				s_ShowSpellBook = !s_ShowSpellBook;
 
 			ImGui::Spacing();
-			ImGui::Dummy(ImVec2(0, 15));
 		}
 
-		if (ImGui::BeginPopupContextWindow("SpellsContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+		if (ImGui::BeginPopupContextItem("SpellsContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
 			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 
@@ -785,7 +811,9 @@ static void DrawBuffWindow()
 
 	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow,	s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
-
+	
+	ImGui::Spacing();
+	
 	if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 	{
 		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
@@ -875,11 +903,8 @@ static void DrawHudWindow()
 				SaveSetting(&s_WinSettings.lockHudWin, s_SettingsFile);
 			}
 
-			if (ImGui::MenuItem("Close Hud", NULL, s_WinSettings.showHud))
+			if (ImGui::MenuItem("Close Hud", NULL, !s_WinSettings.showHud))
 				s_WinSettings.showHud = false;
-			{
-				s_WinSettings.showHud = false;
-			}
 
 			ImGui::EndPopup();
 		}

@@ -22,6 +22,7 @@ _Window Settings:_
 * Window locking per window, also a Lock ALL override toggle.
 * Right click Context for access to per window Settings and Locking.
 * See the config Window for setting up your colors and other settings.
+* Font Scaling per window settings.
 
 _Theme Support built-in:_
  
@@ -146,8 +147,11 @@ MaxColorCast=4279531480
 
 ## Other Notes
 
+Demo 1
 https://www.youtube.com/watch?v=2xn2amsY28A
 
+Demo 2
+https://www.youtube.com/watch?v=mWMjgkP7c7o
 ## Authors
 
 * **Grimmier aka GrimGUI** - *Initial work*

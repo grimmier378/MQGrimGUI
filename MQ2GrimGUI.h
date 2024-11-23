@@ -138,8 +138,12 @@ namespace grimgui {
 			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 		{
 			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
-			if (ImGui::BeginTable("Buffs", 3,
-				ImGuiTableFlags_Hideable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
+			float sizeY = ImGui::GetContentRegionAvail().y;
+			sizeY = sizeY - 10 > 0 ? sizeY - 10 : 1;
+
+			if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable |
+				ImGuiTableFlags_Borders | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable |
+				ImGuiTableFlags_ScrollY, ImVec2(ImGui::GetContentRegionAvail().x, sizeY)))
 			{
 				int slotNum = 0;
 				ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_NumSettings.buffIconSize));
@@ -1066,7 +1070,8 @@ void GrimCommandHandler(PlayerClient* pPC, const char* szLine)
 ImVec2 CalcButtonSize(const char* label, float padding = 2.0f, float scale = 1.0f)
 {
 	ImVec2 textSize = ImGui::CalcTextSize(label);
-	return ImVec2((textSize.x * scale) + padding, (textSize.y * scale) + padding);
+	ImVec2 framePadding = ImGui::GetStyle().FramePadding;
+	return ImVec2((textSize.x * scale) + framePadding.x + padding, (textSize.y * scale) + framePadding.y + padding);
 }
 #pragma endregion
 
@@ -1356,12 +1361,12 @@ void DrawStatusEffects()
 * 
 * @param pMember CGroupMember Pointer to the Group Member
 */
-void DrawPlayerIcons(CGroupMember* pMember, float iconX = 20.0f, float iconY = 20.0f)
+void DrawPlayerIcons(CGroupMember* pMember, float fontScale = 1.0f)
 {
 	if (!pMember)
 		return;
 	
-	ImVec2 iconSize(iconX, iconY);
+	ImVec2 iconSize(20 * fontScale, 20 * fontScale);
 	
 	if (pMember->IsMainTank())
 	{
@@ -1405,10 +1410,10 @@ void DrawPlayerIcons(CGroupMember* pMember, float iconX = 20.0f, float iconY = 2
 * @brief Draws a combat state icon based on the current combat state
 * : In Combat, Debuffed, Timer, Standing, Regen
 */
-void DrawCombatStateIcon(float iconX = 20.0f, float iconY = 20.0f)
+void DrawCombatStateIcon(float fontScale = 1.0f)
 {
 	int comState = GetCombatState();
-	ImVec2 iconSize(iconX, iconY);
+	ImVec2 iconSize(20 * fontScale, 20 * fontScale);
 
 	switch (comState)
 	{
@@ -1547,10 +1552,12 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 		}
 		ImGui::EndChild();
 	}
-	if (ImGui::IsItemHovered())
+	if (ImGui::IsItemHovered() )
 	{
-		GiveItem(pSpawnManager->GetSpawnByID(pLocalPlayer->PetID));
 		ImGui::SetItemTooltip("%s  %d%", petName, petInfo->HPCurrent);
+
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+			GiveItem(pSpawnManager->GetSpawnByID(pLocalPlayer->PetID));		
 	}
 }
 
@@ -1613,12 +1620,12 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::TableNextColumn();
 				ImGui::Text(nameLabel);
 				ImGui::TableNextColumn();
-				DrawCombatStateIcon(s_NumSettings.buffIconSize * fontScale, s_NumSettings.buffIconSize * fontScale);
+				DrawCombatStateIcon(fontScale);
 				if (GetCharInfo() && GetCharInfo()->pGroupInfo)
 				{
 					CGroupMember* pMember = GetCharInfo()->pGroupInfo->GetGroupMember(pLocalPlayer);
 					ImGui::SameLine(0.0f, 10.0f);
-					DrawPlayerIcons(pMember, s_NumSettings.buffIconSize * fontScale, s_NumSettings.buffIconSize * fontScale);
+					DrawPlayerIcons(pMember,fontScale);
 				}
 				ImGui::TableNextColumn();
 				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_CurrHeading);
@@ -1673,7 +1680,7 @@ void DrawEmptyMember(int slot)
 *
 * @param pMember CGroupMember* Pointer to the group member to draw the info for
 */
-void DrawMemberInfo(CGroupMember* pMember)
+void DrawMemberInfo(CGroupMember* pMember, float fontScale = 1.0f)
 {
 	if (!pMember)
 		return;
@@ -1708,7 +1715,7 @@ void DrawMemberInfo(CGroupMember* pMember)
 			ImGui::TextColored(GetMQColor(ColorName::Red).ToImColor(), ICON_MD_VISIBILITY_OFF);
 		}
 		ImGui::TableNextColumn();
-		DrawPlayerIcons(pMember);
+		DrawPlayerIcons(pMember, fontScale);
 		ImGui::TableNextColumn();
 		ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.0f m", distToMember);
 		ImGui::TableNextColumn();
@@ -1741,7 +1748,7 @@ void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int groupSl
 		if (ImGui::BeginChild(("##Empty%d", groupSlot), ImVec2(ImGui::GetContentRegionAvail().x, sizeY),
 			ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
 		{
-			DrawMemberInfo(pMember);
+			DrawMemberInfo(pMember, s_FontScaleSettings.groupWinScale);
 		}
 		ImGui::EndChild();
 
@@ -1758,7 +1765,7 @@ void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int groupSl
 		ImGui::BeginGroup();
 		{
 
-			DrawMemberInfo(pMember);
+			DrawMemberInfo(pMember, s_FontScaleSettings.groupWinScale);
 
 			// Health bar "Not Deat Yet!"
 			if (pSpawn->HPCurrent && pSpawn->HPMax)
