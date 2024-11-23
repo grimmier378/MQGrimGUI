@@ -944,15 +944,14 @@ const char* MaskName(const char* name)
 
 void LockAll()
 {
-	bool setVal = s_WinSettings.lockAllWin;
-	s_WinSettings.lockPlayerWin = setVal;
-	s_WinSettings.lockTargetWin = setVal;
-	s_WinSettings.lockPetWin    = setVal;
-	s_WinSettings.lockGroupWin  = setVal;
-	s_WinSettings.lockSpellsWin = setVal;
-	s_WinSettings.lockBuffsWin  = setVal;
-	s_WinSettings.lockSongWin   = setVal;
-	s_WinSettings.lockHudWin    = setVal;
+	for (const auto& lockWin : settingToggleOptions)
+	{
+		if (lockWin.label && strncmp(lockWin.label, "Lock ", 5) == 0)
+		{
+			if (!(lockWin.label && strncmp(lockWin.label, "Lock ALL", 9) == 0))
+				*lockWin.setting = s_WinSettings.lockAllWin;
+		}
+	}
 	SaveSettings();
 }
 
@@ -1548,13 +1547,12 @@ void DrawHelpIcon(const char* helpText)
 
 void DrawMenu(const char* winName)
 {
-	const char* lockAllIcon = s_WinSettings.lockAllWin ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN;
-	MQColor lockLabelColor = s_WinSettings.lockAllWin ? GetMQColor(ColorName::Red) : GetMQColor(ColorName::Green);
+	const char* lockAllIcon = s_WinSettings.lockAllWin ? ICON_MD_LOCK : ICON_FA_UNLOCK_ALT;
 	if (ImGui::BeginMenuBar())
 	{
 
 		// Lock All Windows Icon
-		ImGui::TextColored(lockLabelColor.ToImColor(), lockAllIcon);
+		ImGui::Text(lockAllIcon);
 		if (ImGui::IsItemClicked())
 		{
 			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
@@ -1569,10 +1567,9 @@ void DrawMenu(const char* winName)
 			if (winLocks.label && std::string(winLocks.label) == "Lock " + std::string(winName))
 			{
 				const char* lockIcon = *winLocks.setting ? ICON_FA_LOCK : ICON_FA_UNLOCK;
-				MQColor lockLabelColor = *winLocks.setting ? GetMQColor(ColorName::Red) : GetMQColor(ColorName::Green);
 
 				ImGui::SameLine();
-				ImGui::TextColored(lockLabelColor.ToImColor(), lockIcon);
+				ImGui::Text(lockIcon);
 				if (ImGui::IsItemClicked())
 				{	
 					if (*winLocks.setting && s_WinSettings.lockAllWin)
