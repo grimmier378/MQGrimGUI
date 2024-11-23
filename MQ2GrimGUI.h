@@ -878,7 +878,6 @@ std::vector<StatusFXData> statusFXData = {
 	{SPA_MOVEMENT_RATE,		5,		false,	"Snared"},
 	{SPA_FEAR,				164,	false,	"Feared"},
 	{SPA_STUN,				165,	false,	"Stunned"},
-	{SPA_FEIGN_DEATH,		92,		true,	"Feign Death"},
 	// invis effects
 	{SPA_INVISIBILITY,		18,		true,	"Invisible"},
 	{SPA_INVIS_VS_UNDEAD,	33,		true,	"Invis vs Undead"},
@@ -1394,6 +1393,18 @@ void DrawStatusEffects()
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
 		ImGui::SameLine();
 		ImGui::SetItemTooltip("Resurrection Sickness");
+	}
+
+	if (pLocalPlayer->StandState == STANDSTATE_FEIGN)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(92);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SetItemTooltip("Feign Death");
+		if (ImGui::IsItemClicked())
+			pLocalPlayer->StandState = STANDSTATE_STAND;
+
+		ImGui::SameLine();
 	}
 		
 	if (!efxflag)
