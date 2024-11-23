@@ -27,6 +27,8 @@ int s_MemGemIndex = 0;
 int s_TarBuffLineSize = 0;
 int s_TestInt = 100; // Color Test Value for Config Window
 
+void SaveSettings();
+
 ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
 ImGuiWindowFlags s_LockAllWin = ImGuiWindowFlags_None;
 ImGuiChildFlags s_ChildFlags = ImGuiChildFlags_None;
@@ -869,6 +871,10 @@ std::vector<StatusFXData> statusFXData = {
 
 #pragma endregion
 
+#pragma region Menu Bar
+
+
+
 #pragma region Utility Functions
 // Rut Roh Raggy!
 // Grimmier watched a "The Cherno" video on overloading functions. 
@@ -914,6 +920,20 @@ const char* MaskName(const char* name)
 		snprintf(anonymizedName, sizeof(anonymizedName), "****");
 
 	return anonymizedName;
+}
+
+void LockAll()
+{
+	bool setVal = s_WinSettings.lockAllWin;
+	s_WinSettings.lockPlayerWin = setVal;
+	s_WinSettings.lockTargetWin = setVal;
+	s_WinSettings.lockPetWin    = setVal;
+	s_WinSettings.lockGroupWin  = setVal;
+	s_WinSettings.lockSpellsWin = setVal;
+	s_WinSettings.lockBuffsWin  = setVal;
+	s_WinSettings.lockSongWin   = setVal;
+	s_WinSettings.lockHudWin    = setVal;
+	SaveSettings();
 }
 
 void GetHeading()
@@ -1468,6 +1488,87 @@ void DrawHelpIcon(const char* helpText)
 	if (ImGui::IsItemHovered())
 		ImGui::SetItemTooltip("%s", helpText);
 }
+
+
+void DrawMenu(const char* winName)
+{
+	const char* lockAllIcon = s_WinSettings.lockAllWin ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN;
+	ImVec4 lockLabelColor = s_WinSettings.lockAllWin ? GetMQColor(ColorName::Red).ToImColor() : GetMQColor(ColorName::Green).ToImColor();
+	if (ImGui::BeginMenuBar())
+	{
+		ImGui::TextColored(lockLabelColor, lockAllIcon);
+		if (ImGui::IsItemClicked())
+		{
+			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
+			LockAll();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("%s All Windows", s_WinSettings.lockAllWin ? "Unlock" : "Lock");
+
+		for (const auto& winLocks : settingToggleOptions)
+		{
+			if (winLocks.label && std::string(winLocks.label) == "Lock " + std::string(winName))
+			{
+				const char* lockIcon = *winLocks.setting ? ICON_FA_LOCK : ICON_FA_UNLOCK;
+				ImVec4 lockLabelColor = *winLocks.setting ? GetMQColor(ColorName::Red).ToImColor() : GetMQColor(ColorName::Green).ToImColor();
+
+				ImGui::SameLine();
+				ImGui::TextColored(lockLabelColor, lockIcon);
+				if (ImGui::IsItemClicked())
+				{	
+					if (*winLocks.setting && s_WinSettings.lockAllWin)
+					{
+						s_WinSettings.lockAllWin = false;
+						SaveSetting(&s_WinSettings.lockAllWin, &s_SettingsFile[0]);
+					}
+
+					*winLocks.setting = !*winLocks.setting;
+					SaveSetting(winLocks.setting, &s_SettingsFile[0]);
+				}
+				if (ImGui::IsItemHovered())
+					ImGui::SetItemTooltip("%s %s Window", *winLocks.setting ? "Unlock" : "Lock", winName);
+
+				break;
+			}
+		}
+
+
+		if (ImGui::BeginMenu("Windows"))
+		{
+
+			for (const auto& window : options)
+			{
+				if (ImGui::MenuItem(window.label, nullptr, *window.setting))
+					*window.setting = !*window.setting;
+			}
+
+			ImGui::Separator();
+			if (ImGui::MenuItem("Main Window", nullptr, s_WinSettings.showMainWindow))
+				s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Locking"))
+		{
+			for (const auto& lockWin : settingToggleOptions)
+			{
+				if (lockWin.label && strncmp(lockWin.label, "Lock ", 5) == 0)
+				{
+					if (ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting))
+					{
+						*lockWin.setting = !*lockWin.setting;
+
+						if (lockWin.label && strncmp(lockWin.label, "Lock All", 8) == 0)
+							LockAll();
+					}
+				}
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+}
+		
 
 
 /**

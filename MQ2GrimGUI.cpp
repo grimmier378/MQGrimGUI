@@ -293,47 +293,51 @@ static void DrawPlayerWindow()
 		ImGui::SetNextWindowPos(ImVec2(displayX - 310, 0), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 290), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.playerWinTheme);
-		ImGuiWindowFlags menuFlag = s_WinSettings.showTitleBars ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
+		//ImGuiWindowFlags menuFlag = s_WinSettings.showTitleBars ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
+		ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar ;
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPlayerWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 		if (ImGui::Begin("Player##MQ2GrimGUI", &s_WinSettings.showPlayerWindow, s_WindowFlags | lockFlag | menuFlag | ImGuiWindowFlags_NoScrollbar))
 		{
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
 
-			if (ImGui::BeginMenuBar())
-			{
-				ImGui::Text(ICON_FA_COG);
-				if (ImGui::IsItemClicked())
-					s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+			DrawMenu("Player");
 
-				if (ImGui::BeginMenu("Main"))
-				{
-					if (ImGui::MenuItem("Lock All Windows", NULL, s_WinSettings.lockAllWin))
-					{
-						s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
-						SaveSetting(&s_WinSettings.lockAllWin, &s_SettingsFile[0]);
-					}
 
-					if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
-					{
-						s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
-						SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
-					}
+			//if (ImGui::BeginMenuBar())
+			//{
+			//	ImGui::Text(ICON_FA_COG);
+			//	if (ImGui::IsItemClicked())
+			//		s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
 
-					if (ImGui::MenuItem("Show Config", NULL, s_WinSettings.showConfigWindow))
-						s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+			//	if (ImGui::BeginMenu("Main"))
+			//	{
+			//		if (ImGui::MenuItem("Lock All Windows", NULL, s_WinSettings.lockAllWin))
+			//		{
+			//			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
+			//			SaveSetting(&s_WinSettings.lockAllWin, &s_SettingsFile[0]);
+			//		}
 
-					if (ImGui::MenuItem("Show Main", NULL, s_WinSettings.showMainWindow))
-					{
-						s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
-						SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
-					}
+			//		if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
+			//		{
+			//			s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
+			//			SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
+			//		}
 
-					ImGui::EndMenu();
-				}
-				
-				ImGui::EndMenuBar();
-			}
+			//		if (ImGui::MenuItem("Show Config", NULL, s_WinSettings.showConfigWindow))
+			//			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+
+			//		if (ImGui::MenuItem("Show Main", NULL, s_WinSettings.showMainWindow))
+			//		{
+			//			s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
+			//			SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
+			//		}
+
+			//		ImGui::EndMenu();
+			//	}
+			//	
+			//	ImGui::EndMenuBar();
+			//}
 
 			ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
 			DrawPlayerBars(true,s_NumSettings.playerBarHeight,false,s_FontScaleSettings.playerWinScale);
@@ -389,10 +393,14 @@ static void DrawGroupWindow()
 	int popCounts = PushTheme(s_WinTheme.groupWinTheme);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockGroupWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 
 	if (ImGui::Begin("Group##MQ2GrimGUI", &s_WinSettings.showGroupWindow,
-		s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
+		s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
+
+		DrawMenu("Group");
+
 		ImGui::SetWindowFontScale(s_FontScaleSettings.groupWinScale);
 		if (s_WinSettings.showSelfOnGroup)
 			DrawPlayerBars(false, s_NumSettings.groupBarHeight, true, s_FontScaleSettings.groupWinScale);
@@ -533,10 +541,13 @@ static void DrawPetWindow()
 		ImGui::SetNextWindowSize(ImVec2(300, 283), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.petWinTheme);
 
+		ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
-		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
+		if (ImGui::Begin("Pet##MQ2GrimGUI", &s_WinSettings.showPetWindow, s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		{
+			DrawMenu("Pet");
+
 			if (ImGui::BeginPopupContextWindow("PetContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 			{
 				ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
@@ -808,28 +819,31 @@ static void DrawBuffWindow()
 	int popCounts = PushTheme(s_WinTheme.buffsWinTheme);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockBuffsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 
-	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow,	s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
-		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
-	
-	ImGui::Spacing();
-	
-	if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow, s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
-		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
-		if (ImGui::MenuItem("Lock Buffs Window", NULL, s_WinSettings.lockBuffsWin))
+		DrawMenu("Buffs");
+		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
+
+		ImGui::Spacing();
+
+		if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
-			s_WinSettings.lockBuffsWin = !s_WinSettings.lockBuffsWin;
-			SaveSetting(&s_WinSettings.lockBuffsWin, s_SettingsFile);
+			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+			if (ImGui::MenuItem("Lock Buffs Window", NULL, s_WinSettings.lockBuffsWin))
+			{
+				s_WinSettings.lockBuffsWin = !s_WinSettings.lockBuffsWin;
+				SaveSetting(&s_WinSettings.lockBuffsWin, s_SettingsFile);
+			}
+
+			if (ImGui::MenuItem("Close Buffs Window", NULL, s_WinSettings.showBuffWindow))
+				s_WinSettings.showBuffWindow = false;
+
+			ImGui::SetWindowFontScale(1.0f);
+			ImGui::EndPopup();
 		}
-
-		if (ImGui::MenuItem("Close Buffs Window", NULL, s_WinSettings.showBuffWindow))
-			s_WinSettings.showBuffWindow = false;
-
-		ImGui::SetWindowFontScale(1.0f);
-		ImGui::EndPopup();
 	}
-
 	PopTheme(popCounts);
 	ImGui::End();
 
@@ -845,28 +859,32 @@ static void DrawSongWindow()
 	int popCounts = PushTheme(s_WinTheme.songWinTheme);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockSongWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 
 	if (ImGui::Begin("Songs##MQ2GrimGUI", &s_WinSettings.showSongWindow,
-		s_WindowFlags | lockFlag | ImGuiWindowFlags_NoScrollbar))
-		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
-	
-	if (ImGui::BeginPopupContextWindow("SongContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+		s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
-		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+		DrawMenu("Songs");
 
-		if (ImGui::MenuItem("Lock Songs Window", NULL, s_WinSettings.lockSongWin))
+		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
+
+		if (ImGui::BeginPopupContextWindow("SongContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
-			s_WinSettings.lockSongWin = !s_WinSettings.lockSongWin;
-			SaveSetting(&s_WinSettings.lockSongWin, s_SettingsFile);
+			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+
+			if (ImGui::MenuItem("Lock Songs Window", NULL, s_WinSettings.lockSongWin))
+			{
+				s_WinSettings.lockSongWin = !s_WinSettings.lockSongWin;
+				SaveSetting(&s_WinSettings.lockSongWin, s_SettingsFile);
+			}
+
+			if (ImGui::MenuItem("Close Songs Window", NULL, s_WinSettings.showSongWindow))
+				s_WinSettings.showSongWindow = false;
+
+			ImGui::SetWindowFontScale(1.0f);
+			ImGui::EndPopup();
 		}
-
-		if (ImGui::MenuItem("Close Songs Window", NULL, s_WinSettings.showSongWindow))
-			s_WinSettings.showSongWindow = false;
-
-		ImGui::SetWindowFontScale(1.0f);
-		ImGui::EndPopup();
 	}
-
 	PopTheme(popCounts);
 	ImGui::End();
 }
@@ -1057,7 +1075,12 @@ static void DrawConfigWindow()
 					{
 						ImGui::TableNextColumn();
 						if (ImGui::Checkbox(toggle.label, toggle.setting))
+						{
 							SaveSetting(toggle.setting, &s_SettingsFile[0]);
+							
+							if (toggle.label && strncmp(toggle.label, "Lock All", 8) == 0)
+								LockAll();
+						}
 
 						ImGui::SameLine();
 						DrawHelpIcon(toggle.helpText);
@@ -1332,8 +1355,9 @@ PLUGIN_API void OnUpdateImGui()
 		}
 		
 		// Split Target Window
-		if (s_WinSettings.showTargetWindow)
+		if (s_WinSettings.showTargetWindow && pTarget)
 		{
+
 			float displayX = ImGui::GetIO().DisplaySize.x;
 			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
@@ -1341,7 +1365,7 @@ PLUGIN_API void OnUpdateImGui()
 
 			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
-			if (ImGui::Begin("Target##MQ2GrimGUI", &s_WinSettings.showTargetWindow, lockFlag | s_LockAllWin))
+			if (ImGui::Begin("Target##MQ2GrimGUI", &s_WinSettings.showTargetWindow, s_WindowFlags | lockFlag | s_LockAllWin))
 			{
 				DrawTargetWindow(true);
 			}
