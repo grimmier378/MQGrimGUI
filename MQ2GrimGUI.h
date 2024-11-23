@@ -28,6 +28,13 @@ int s_MemGemIndex = 0;
 int s_TarBuffLineSize = 0;
 int s_TestInt = 100; // Color Test Value for Config Window
 
+const MQColor DEF_BORDER_COL = MQColor(255, 255, 255, 255);
+const MQColor DEF_BENI_BORDER_COL = MQColor(0, 0, 250, 255);
+const MQColor DEF_DET_BORDER_COL = MQColor(250, 0, 0, 255);
+const MQColor DEF_SELF_CAST_BORDER_COL = MQColor(250, 250, 0, 255);
+const MQColor DEF_TINT_COL = MQColor(255, 255, 255, 255);
+
+
 void SaveSettings();
 
 ImGuiWindowFlags s_WindowFlags = ImGuiWindowFlags_None;
@@ -177,16 +184,16 @@ namespace grimgui {
 					if (spell)
 					{
 						m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-						MQColor borderCol = MQColor(0, 0, 250, 255); // Default color blue (beneficial)
-						MQColor tintCol = MQColor(255, 255, 255, 255);
+						MQColor borderCol = DEF_BENI_BORDER_COL; // Default color blue (beneficial)
+						MQColor tintCol = DEF_TINT_COL;
 						if (!spell->IsBeneficialSpell())
-							borderCol = MQColor(250, 0, 0, 255); // Red for detrimental spells
+							borderCol = DEF_DET_BORDER_COL; // Red for detrimental spells
 
 						if (!playerBuffs)
 						{
 							std::string caster = buffInfo.GetCaster();
 							if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
-								borderCol = MQColor(250, 250, 0, 255); // Yellow for spells cast by me
+								borderCol = DEF_SELF_CAST_BORDER_COL; // Yellow for spells cast by me
 						}
 
 						int secondsLeft = buffInfo.GetBuffTimer() / 1000;
@@ -279,14 +286,14 @@ namespace grimgui {
 				if (spell)
 				{
 					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-					MQColor borderCol = MQColor(0, 0, 250, 255);
-					MQColor tintCol = MQColor(255, 255, 255, 255);
+					MQColor borderCol = DEF_BENI_BORDER_COL;
+					MQColor tintCol = DEF_TINT_COL;
 					if (!spell->IsBeneficialSpell())
-						borderCol = MQColor(250, 0, 0, 255);
+						borderCol = DEF_DET_BORDER_COL;
 
 					std::string caster = buffInfo.GetCaster();
 					if (caster == pLocalPC->Name && !spell->IsBeneficialSpell())
-						borderCol = MQColor(250, 250, 0, 255);
+						borderCol = DEF_SELF_CAST_BORDER_COL;
 
 					int secondsLeft = buffInfo.GetBuffTimer() / 1000;
 					if (secondsLeft < 18 && secondsLeft > 0 && !petBuffs)
@@ -571,7 +578,7 @@ std::vector<ColorSetting> colorSettings = {
 * @param midColor const MQColor* Optional midColor value to calculate in two segments
 * @param midValue int Optional midValue to split the value between minColor and maxColor
 *
-* @return ImVec4 color value
+* @return ImVec4 color value Since this is what is used and returned by the picker.
 */
 ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColor, int value, const MQColor* midColor = nullptr, int midValue = 50)
 {
@@ -613,6 +620,7 @@ ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColo
 
 	return ImVec4(r, g, b, a);
 }
+
 
 enum class ColorName {
 	Red, Pink2, Pink, Orange, Tangerine, Yellow, Yellow2, White,
@@ -670,7 +678,7 @@ constexpr MQColor GetMQColor(ColorName color)
 	}
 }
 
-MQColor GetConColor(int color_code)
+constexpr MQColor GetConColor(int color_code)
 {
 	switch (color_code)
 	{
@@ -678,12 +686,12 @@ MQColor GetConColor(int color_code)
 	case 0x02: return COLOR_GREEN;         // CONCOLOR_GREEN
 	case 0x12: return COLOR_SOFT_BLUE;     // CONCOLOR_LIGHTBLUE
 	case 0x04: return COLOR_BLUE;          // CONCOLOR_BLUE
-	case 0x14: return COLOR_DEFAULT_WHITE; // CONCOLOR_BLACK (or default to white for transparency)
+	case 0x14: return COLOR_WHITE;		   // CONCOLOR_BLACK
 	case 0x0a: return COLOR_WHITE;         // CONCOLOR_WHITE
 	case 0x0f: return COLOR_YELLOW;        // CONCOLOR_YELLOW
 	case 0x0d: return COLOR_RED;           // CONCOLOR_RED
 
-		// Default color if the color code doesn't match any known values
+	// Default color if the color code doesn't match any known values
 	default: return COLOR_DEFAULT_WHITE;
 	}
 }
@@ -1188,7 +1196,7 @@ static void DrawSpellBarIcons(int gemHeight)
 			if (spell)
 			{
 				m_pTASpellIcon->SetCurCell(spell->SpellIcon);
-				MQColor tintCol = MQColor(255, 255, 255, 255);
+				MQColor tintCol = DEF_TINT_COL;
 				gemTint = pSpellGem->SpellGemTintArray[pSpellGem->TintIndex];
 
 				if (!pSpellInspector->IsGemReady(i))
@@ -1345,8 +1353,8 @@ void DrawStatusEffects()
 
 	bool efxflag = false;
 	CXSize iconSize(30, 30);
-	MQColor borderCol = MQColor(250, 0, 0, 255);
-	MQColor tintCol = MQColor(255, 255, 255, 255);
+	MQColor borderCol = DEF_DET_BORDER_COL;
+	MQColor tintCol = DEF_TINT_COL;
 
 
 	for (const auto& debuff : statusFXData)
@@ -1354,7 +1362,6 @@ void DrawStatusEffects()
 		int check = GetSelfBuff(SpellAffect(debuff.spaValue, debuff.positveFX));
 		if (check >= 0)
 		{
-			borderCol = MQColor(250, 0, 0, 255);
 
 			efxflag = true;
 			m_StatusIcon->SetCurCell(debuff.iconID);
@@ -1367,11 +1374,12 @@ void DrawStatusEffects()
 			ImGui::SetItemTooltip(debuff.tooltip.c_str());
 			ImGui::SameLine();
 		}
+		borderCol = DEF_DET_BORDER_COL;
+
 	}
 
 	if (GetSelfBuff([](EQ_Spell* spell) { return SpellAffect(SPA_HP, false)(spell) && spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }) >= 0)
 	{
-		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(140);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
@@ -1381,7 +1389,6 @@ void DrawStatusEffects()
 
 	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage)) >= 0)
 	{
-		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(55);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
@@ -1391,7 +1398,6 @@ void DrawStatusEffects()
 
 	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter)) >= 0)
 	{
-		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(72);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
@@ -1401,7 +1407,6 @@ void DrawStatusEffects()
 
 	if (s_HasRezEfx)
 	{
-		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(164);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
@@ -1411,7 +1416,6 @@ void DrawStatusEffects()
 
 	if (pLocalPlayer->StandState == STANDSTATE_FEIGN)
 	{
-		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(92);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
@@ -1469,7 +1473,7 @@ void DrawPlayerIcons(CGroupMember* pMember, float fontScale = 1.0f)
 	}
 	if (pMember == GetCharInfo()->pGroupInfo->GetGroupLeader())
 	{
-		ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), ICON_MD_STAR);
+		ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), ICON_MD_STAR);
 		ImGui::SameLine(0.0f, 1.0f);
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Group Leader");
@@ -1548,12 +1552,12 @@ void DrawHelpIcon(const char* helpText)
 void DrawMenu(const char* winName)
 {
 	const char* lockAllIcon = s_WinSettings.lockAllWin ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN;
-	ImVec4 lockLabelColor = s_WinSettings.lockAllWin ? GetMQColor(ColorName::Red).ToImColor() : GetMQColor(ColorName::Green).ToImColor();
+	MQColor lockLabelColor = s_WinSettings.lockAllWin ? GetMQColor(ColorName::Red) : GetMQColor(ColorName::Green);
 	if (ImGui::BeginMenuBar())
 	{
 
 		// Lock All Windows Icon
-		ImGui::TextColored(lockLabelColor, lockAllIcon);
+		ImGui::TextColored(lockLabelColor.ToImColor(), lockAllIcon);
 		if (ImGui::IsItemClicked())
 		{
 			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
@@ -1568,10 +1572,10 @@ void DrawMenu(const char* winName)
 			if (winLocks.label && std::string(winLocks.label) == "Lock " + std::string(winName))
 			{
 				const char* lockIcon = *winLocks.setting ? ICON_FA_LOCK : ICON_FA_UNLOCK;
-				ImVec4 lockLabelColor = *winLocks.setting ? GetMQColor(ColorName::Red).ToImColor() : GetMQColor(ColorName::Green).ToImColor();
+				MQColor lockLabelColor = *winLocks.setting ? GetMQColor(ColorName::Red) : GetMQColor(ColorName::Green);
 
 				ImGui::SameLine();
-				ImGui::TextColored(lockLabelColor, lockIcon);
+				ImGui::TextColored(lockLabelColor.ToImColor(), lockIcon);
 				if (ImGui::IsItemClicked())
 				{	
 					if (*winLocks.setting && s_WinSettings.lockAllWin)
@@ -1694,11 +1698,11 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 			ImGui::SameLine();
 			ImGui::Text("Lvl");
 			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", petInfo->Level);
+			ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "%d", petInfo->Level);
 			ImGui::SameLine();
 			ImGui::Text("Dist:");
 			ImGui::SameLine();
-			ImGui::TextColored(ImVec4(GetMQColor(ColorName::Tangerine).ToImColor()), "%0.0f m", GetDistance(pLocalPlayer, petInfo));
+			ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%0.0f m", GetDistance(pLocalPlayer, petInfo));
 
 			// health bar
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHP);
@@ -1757,12 +1761,12 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 
 		if (drawCombatBorder && pEverQuestInfo->bAutoAttack)
 		{
-			ImVec4 borderColor = s_WinSettings.flashCombatFlag ? ImVec4(GetMQColor(ColorName::Red).ToImColor()) : ImVec4(GetMQColor(ColorName::White).ToImColor());
-			ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
+			MQColor borderColor = s_WinSettings.flashCombatFlag ? DEF_DET_BORDER_COL : DEF_BORDER_COL;
+			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(borderColor.ToImColor()));
 		}
 		else if (drawCombatBorder)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(GetMQColor(ColorName::White).ToImColor()));
+			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(DEF_BORDER_COL.ToImColor()));
 		}
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
@@ -1802,7 +1806,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 					DrawPlayerIcons(pMember,fontScale);
 				}
 				ImGui::TableNextColumn();
-				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_CurrHeading);
+				ImGui::TextColored(GetMQColor(ColorName::Yellow).ToImColor(), s_CurrHeading);
 				ImGui::TableNextColumn();
 				ImGui::Text("Lvl: %d", pLocalPC->GetLevel());
 				ImGui::EndTable();

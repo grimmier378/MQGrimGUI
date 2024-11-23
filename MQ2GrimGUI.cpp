@@ -245,7 +245,7 @@ static void DrawTargetWindow(bool splitTar = false)
 			ImGui::Text(GetBodyTypeDesc(GetBodyType(pTarget)));
 
 			ImGui::SameLine(sizeX * .5f);
-			ImGui::TextColored(ImVec4(GetConColor(ConColor(pTarget)).ToImColor()),ICON_MD_LENS);
+			ImGui::TextColored(GetConColor(ConColor(pTarget)).ToImColor(), ICON_MD_LENS);
 			
 			//aggro meter
 			if (s_WinSettings.showAggroMeter)
@@ -601,12 +601,13 @@ static void DrawPetWindow()
 
 						ImGui::Text("Lvl");
 						ImGui::SameLine();
-						ImGui::TextColored(ImVec4(GetMQColor(ColorName::Teal).ToImColor()), "%d", pPetTarget->Level);
+						ImGui::TextColored(GetMQColor(ColorName::Teal).ToImColor(), "%d", pPetTarget->Level);
 						ImGui::SameLine();
 						ImGui::Text(petTargetName);
 						float petTargetPercentage = static_cast<float>(pPetTarget->HPCurrent) / 100;
 						int petTargetLabel = pPetTarget->HPCurrent;
 						ImVec4 colorTarHPTarget = CalculateProgressiveColor(s_BarColors.minColorHP, s_BarColors.maxColorHP, pPetTarget->HPCurrent);
+						
 						ImGui::PushStyleColor(ImGuiCol_PlotHistogram, colorTarHPTarget);
 						ImGui::SetNextItemWidth(static_cast<float>(sizeX) - 15);
 						yPos = ImGui::GetCursorPosY();
