@@ -1539,36 +1539,41 @@ void DrawMenu(const char* winName)
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Config Window");
 
-		if (ImGui::BeginMenu("Windows"))
+		if (ImGui::BeginMenu("Menu"))
 		{
-
-			for (const auto& window : options)
+			if (ImGui::BeginMenu("Windows"))
 			{
-				if (ImGui::MenuItem(window.label, nullptr, *window.setting))
-					*window.setting = !*window.setting;
+
+				for (const auto& window : options)
+				{
+					if (ImGui::MenuItem(window.label, nullptr, *window.setting))
+						*window.setting = !*window.setting;
+				}
+
+				ImGui::Separator();
+				if (ImGui::MenuItem("Main Window", nullptr, s_WinSettings.showMainWindow))
+					s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
+				ImGui::EndMenu();
 			}
 
-			ImGui::Separator();
-			if (ImGui::MenuItem("Main Window", nullptr, s_WinSettings.showMainWindow))
-				s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("Locking"))
-		{
-			for (const auto& lockWin : settingToggleOptions)
+			if (ImGui::BeginMenu("Locking"))
 			{
-				if (lockWin.label && strncmp(lockWin.label, "Lock ", 5) == 0)
+				for (const auto& lockWin : settingToggleOptions)
 				{
-					if (ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting))
+					if (lockWin.label && strncmp(lockWin.label, "Lock ", 5) == 0)
 					{
-						*lockWin.setting = !*lockWin.setting;
+						if (ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting))
+						{
+							*lockWin.setting = !*lockWin.setting;
 
-						if (lockWin.label && strncmp(lockWin.label, "Lock All", 8) == 0)
-							LockAll();
+							if (lockWin.label && strncmp(lockWin.label, "Lock All", 8) == 0)
+								LockAll();
+						}
 					}
 				}
+				ImGui::EndMenu();
 			}
+
 			ImGui::EndMenu();
 		}
 		ImGui::EndMenuBar();
