@@ -4,10 +4,11 @@
 struct SpellData
 {
 	int ID;
+	int Level;
+	int IconID;
+	int SpellBookIndex;
 	std::string Name;
 	std::string RankName;
-	int Level;
-	int Icon;
 	std::string TargetType;
 	std::string Category;
 	std::string SubCategory;
@@ -21,6 +22,7 @@ public:
 
 	void DrawSpellPicker();
 	void DrawSpellTree();
+	void DrawSpellTable();
 
 	SpellPicker()
 	{
@@ -67,4 +69,5 @@ private:
 
 	bool Open = false;
 	std::string Filter;
+	std::string FilterTable;
 };

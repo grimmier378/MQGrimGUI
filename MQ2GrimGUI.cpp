@@ -537,7 +537,7 @@ static void DrawPetWindow()
 			ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
-			float midX = (sizeX / 2);
+			float midX = (sizeX / 2) > 1 ? (sizeX / 2) : 2.0f;
 
 			if (ImGui::BeginTable("Pet", 2,
 				ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable ))
@@ -552,6 +552,7 @@ static void DrawPetWindow()
 				DrawPetInfo(MyPet);
 
 				// Pet Target Section
+				
 				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 0),
 					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize,
 					 ImGuiWindowFlags_NoScrollbar))
@@ -589,19 +590,28 @@ static void DrawPetWindow()
 				//Pet Buttons Section
 				if (s_WinSettings.showPetButtons)
 				{
-					if (ImGui::BeginChild("PetButtons", ImVec2(ImGui::GetColumnWidth(), 0),
-						ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
-						DisplayPetButtons();
+					float childBtnWidth = ImGui::GetColumnWidth();
+					float childBtnHeight = ImGui::GetContentRegionAvail().y ;
 
+					if (ImGui::BeginChild("PetButtons", ImVec2(childBtnWidth, childBtnHeight),
+						ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
+					{
+						DisplayPetButtons();
+					}
 					ImGui::EndChild();
+
 				}
 				// Pet Buffs Section (Column)
 				ImGui::TableNextColumn();
 				
-				if (ImGui::BeginChild("PetBuffs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetContentRegionAvail().y), 
-					ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
+				float childBuffWidth = ImGui::GetColumnWidth();
+				float childBuffHeight = ImGui::GetContentRegionAvail().y;
+
+				if (ImGui::BeginChild("PetBuffs", ImVec2(childBuffWidth, childBuffHeight),
+					ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
+				{
 					pSpellInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
-				
+				}
 				ImGui::EndChild();
 
 				ImGui::EndTable();
@@ -717,14 +727,19 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowPos(ImVec2(230,80), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(79, 662), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
-	
+
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockSpellsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
 		if (ImGui::Begin("Spells##MQ2GrimGUI", &s_WinSettings.showSpellsWindow,
-			s_WindowFlags | lockFlag | ImGuiWindowFlags_AlwaysAutoResize))
+			s_WindowFlags | lockFlag | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
+
+			ImVec2 btnSize = CalcButtonSize(ICON_FA_BOOK, 2.0f, s_FontScaleSettings.spellsWinScale);
+			ImGui::SetCursorPosX((ImGui::GetWindowWidth() - btnSize.x) * 0.5f);
+			if (ImGui::Button(ICON_FA_BOOK, btnSize))
+				s_ShowSpellBook = !s_ShowSpellBook;
 
 			ImGui::Spacing();
 			ImGui::Dummy(ImVec2(0, 15));
@@ -1335,6 +1350,18 @@ PLUGIN_API void OnUpdateImGui()
 		// Status Effects HUD Window
 		if (s_WinSettings.showHud)
 			DrawHudWindow();
+
+		if (s_ShowSpellBook)
+		{
+
+			if (ImGui::Begin("Spell Book##GrimGui", &s_ShowSpellBook, s_WindowFlags | ImGuiWindowFlags_NoCollapse))
+			{
+				ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+				pSpellPicker->DrawSpellTable();
+				ImGui::SetWindowFontScale(1.0f);
+			}
+			ImGui::End();
+		}
 	}
 	
 }

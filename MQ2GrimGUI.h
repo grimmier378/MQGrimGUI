@@ -19,6 +19,7 @@ SpellPicker* pSpellPicker = nullptr;
 bool s_ShowOutOfGame = false;
 bool s_MemSpell = false;
 bool s_DanNetEnabled = false;
+bool s_ShowSpellBook = false;
 
 std::string s_MemSpellName;
 
@@ -1230,10 +1231,11 @@ static void DisplayPetButtons()
 {
 	ImVec2 btnSize = CalcButtonSize("Regroup", 1, s_FontScaleSettings.petWinScale);
 	int numColumns = static_cast<int>(1, ImGui::GetColumnWidth() / btnSize.x);
+	if (numColumns < 1)
+		numColumns = 1;
 
 	if (ImGui::BeginTable("ButtonsTable", numColumns, ImGuiTableFlags_SizingStretchProp))
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		for (auto& button : petButtons)
 		{
 			if (button.visible) {
@@ -1263,7 +1265,6 @@ static void DisplayPetButtons()
 				}
 			}
 		}
-		ImGui::PopStyleVar();
 		ImGui::EndTable();
 	}
 }
@@ -1355,11 +1356,13 @@ void DrawStatusEffects()
 * 
 * @param pMember CGroupMember Pointer to the Group Member
 */
-void DrawPlayerIcons(CGroupMember* pMember, ImVec2 iconSize = { 20.0f, 20.0f })
+void DrawPlayerIcons(CGroupMember* pMember, float iconX = 20.0f, float iconY = 20.0f)
 {
 	if (!pMember)
 		return;
-
+	
+	ImVec2 iconSize(iconX, iconY);
+	
 	if (pMember->IsMainTank())
 	{
 		m_pMainTankIcon = pSidlMgr->FindAnimation("A_Tank");
@@ -1402,9 +1405,10 @@ void DrawPlayerIcons(CGroupMember* pMember, ImVec2 iconSize = { 20.0f, 20.0f })
 * @brief Draws a combat state icon based on the current combat state
 * : In Combat, Debuffed, Timer, Standing, Regen
 */
-void DrawCombatStateIcon(ImVec2 iconSize = {20.0f, 20.0f})
+void DrawCombatStateIcon(float iconX = 20.0f, float iconY = 20.0f)
 {
 	int comState = GetCombatState();
+	ImVec2 iconSize(iconX, iconY);
 
 	switch (comState)
 	{
@@ -1590,6 +1594,8 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 
 			int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 			int midX = (sizeX / 2) - 8;
+			if (midX < 0)
+				midX = 1;
 
 			const char* nameLabel = pLocalPC->Name;
 			if (mq::IsAnonymized())
@@ -1597,7 +1603,6 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 
 			if (ImGui::BeginTable("##Player", 4))
 			{
-				ImVec2 iconSize = { s_NumSettings.buffIconSize * fontScale, s_NumSettings.buffIconSize * fontScale };
 				float roleColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
 				float nameCalcSize = ImGui::CalcTextSize(nameLabel).x;
 				ImGui::TableSetupColumn("##Name", ImGuiTableColumnFlags_WidthFixed, ceil(nameCalcSize));
@@ -1608,12 +1613,12 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::TableNextColumn();
 				ImGui::Text(nameLabel);
 				ImGui::TableNextColumn();
-				DrawCombatStateIcon(iconSize);
+				DrawCombatStateIcon(s_NumSettings.buffIconSize * fontScale, s_NumSettings.buffIconSize * fontScale);
 				if (GetCharInfo() && GetCharInfo()->pGroupInfo)
 				{
 					CGroupMember* pMember = GetCharInfo()->pGroupInfo->GetGroupMember(pLocalPlayer);
 					ImGui::SameLine(0.0f, 10.0f);
-					DrawPlayerIcons(pMember, iconSize);
+					DrawPlayerIcons(pMember, s_NumSettings.buffIconSize * fontScale, s_NumSettings.buffIconSize * fontScale);
 				}
 				ImGui::TableNextColumn();
 				ImGui::TextColored(ImVec4(GetMQColor(ColorName::Yellow).ToImColor()), s_CurrHeading);

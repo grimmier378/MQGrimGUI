@@ -267,7 +267,7 @@ void SpellPicker::DrawSpellTree()
 							ImGui::PushID(spell.ID);
 							ImGui::BeginGroup();
 
-							m_pSpellIcon->SetCurCell(spell.Icon);
+							m_pSpellIcon->SetCurCell(spell.IconID);
 							imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
 
 							ImGui::SameLine();
@@ -306,6 +306,96 @@ void SpellPicker::DrawSpellTree()
 	}
 }
 
+void SpellPicker::DrawSpellTable()
+{
+	// Initialize the spell icon animation if needed
+	if (!m_pSpellIcon)
+	{
+		m_pSpellIcon = new CTextureAnimation();
+		if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+			*m_pSpellIcon = *temp;
+	}
+
+	char buffer[256] = {};
+	strncpy_s(buffer, FilterTable.c_str(), sizeof(buffer));
+	if (ImGui::InputText("Search##SpellTable", buffer, sizeof(buffer)))
+		FilterTable = buffer;
+
+	if (ImGui::BeginTable("SpellTable", 7, ImGuiTableFlags_Reorderable |
+		ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
+		ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY))
+	{
+		// Table Headers
+		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Rank Name", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("SubCategory", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("SpellBookIndex", ImGuiTableColumnFlags_WidthFixed, 15.0f);
+		ImGui::TableHeadersRow();
+		for (const auto& spell : Spells)
+		{
+			if (!FilterTable.empty() && mq::ci_find_substr(spell.Name, FilterTable) == -1)
+				continue;
+
+			ImGui::TableNextRow();
+
+			ImGui::TableSetColumnIndex(0);
+			m_pSpellIcon->SetCurCell(spell.IconID);
+			imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", spell.Level);
+
+			ImGui::TableNextColumn();
+			ImGui::PushID(spell.ID); // Ensure unique ID
+			ImGui::Text(spell.Name.c_str());
+			// FIX ME: allow picking up gem from table as if it was the book. 
+
+			//if (ImGui::IsItemClicked(0))
+			//{
+			//	// 
+			//	// Sets selected spell to the spell clicked in the table
+			//	SelectedSpell = std::make_shared<SpellData>(spell);
+			//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LCLICKHOLD, (int*)spell.SpellBookIndex);
+			//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LBUTTONUPAFTERHELD, (int*)spell.SpellBookIndex);
+			//}
+			//
+			ImGui::PopID();
+
+			ImGui::TableNextColumn();
+			ImGui::Text(spell.RankName.c_str());
+
+			ImGui::TableNextColumn();
+			ImGui::Text(spell.Category.c_str());
+
+			ImGui::TableNextColumn();
+			ImGui::Text(spell.SubCategory.c_str());
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", spell.SpellBookIndex);
+
+
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::Text("Level: %d", spell.Level);
+				ImGui::Text("Name: %s", spell.Name.c_str());
+				ImGui::Text("Rank: %s", spell.RankName.c_str());
+				ImGui::Text("Category: %s", spell.Category.c_str());
+				ImGui::Text("SubCategory: %s", spell.SubCategory.c_str());
+				ImGui::Text("SpellBookIndex: %d", spell.SpellBookIndex);
+
+				ImGui::EndTooltip();
+			}
+		}
+
+		ImGui::EndTable();
+	}
+}
+
+
 
 /**
 * @fn PopulateSpellData
@@ -333,8 +423,8 @@ void SpellPicker::PopulateSpellData()
 			spellData.Name = pSpell->Name;
 			spellData.RankName = pSpell->SpellRank;
 			spellData.Level = pSpell->GetSpellLevelNeeded(pCharData->GetClass());
-			spellData.Icon = pSpell->SpellIcon;
-			spellData.TargetType = pSpell->TargetType;
+			spellData.IconID = pSpell->SpellIcon;
+			spellData.SpellBookIndex = i;
 
 			// Use Map to get the Names of the Category and SubCategory not SPELLCAT_SOMETHING
 			auto categoryIt = SpellCategoryMap.find(pSpell->Category);
