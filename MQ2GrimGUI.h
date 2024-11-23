@@ -1345,15 +1345,25 @@ void DrawStatusEffects()
 
 	bool efxflag = false;
 	CXSize iconSize(30, 30);
+	MQColor borderCol = MQColor(250, 0, 0, 255);
+	MQColor tintCol = MQColor(255, 255, 255, 255);
+
 
 	for (const auto& debuff : statusFXData)
 	{
 		int check = GetSelfBuff(SpellAffect(debuff.spaValue, debuff.positveFX));
 		if (check >= 0)
 		{
+			borderCol = MQColor(250, 0, 0, 255);
+
 			efxflag = true;
 			m_StatusIcon->SetCurCell(debuff.iconID);
-			imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+			if (debuff.positveFX)
+			{
+				borderCol = GetMQColor(ColorName::SoftBlue);
+			}
+			imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
+
 			ImGui::SetItemTooltip(debuff.tooltip.c_str());
 			ImGui::SameLine();
 		}
@@ -1361,45 +1371,50 @@ void DrawStatusEffects()
 
 	if (GetSelfBuff([](EQ_Spell* spell) { return SpellAffect(SPA_HP, false)(spell) && spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }) >= 0)
 	{
+		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(140);
-		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
 		ImGui::SameLine();
 		ImGui::SetItemTooltip("Dotted");
 	}
 
 	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage)) >= 0)
 	{
+		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(55);
-		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
 		ImGui::SameLine();
 		ImGui::SetItemTooltip("Malo");
 	}
 
 	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter)) >= 0)
 	{
+		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(72);
-		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
 		ImGui::SameLine();
 		ImGui::SetItemTooltip("Tash");
 	}
 
 	if (s_HasRezEfx)
 	{
+		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(164);
-		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
 		ImGui::SameLine();
 		ImGui::SetItemTooltip("Resurrection Sickness");
 	}
 
 	if (pLocalPlayer->StandState == STANDSTATE_FEIGN)
 	{
+		borderCol = MQColor(250, 0, 0, 255);
 		efxflag = true;
 		m_StatusIcon->SetCurCell(92);
-		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
 		ImGui::SetItemTooltip("Feign Death");
 		if (ImGui::IsItemClicked())
 			pLocalPlayer->StandState = STANDSTATE_STAND;
