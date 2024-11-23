@@ -322,18 +322,18 @@ void SpellPicker::DrawSpellTable()
 	if (ImGui::InputText("Search##SpellTable", buffer, sizeof(buffer)))
 		FilterTable = buffer;
 
-	if (ImGui::BeginTable("SpellTable", 7, ImGuiTableFlags_Reorderable |
+	if (ImGui::BeginTable("SpellTable##GrimGui", 7, ImGuiTableFlags_Reorderable |
 		ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
 		ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY))
 	{
 		// Table Headers
 		ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 40.0f);
-		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Rank Name", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("SubCategory", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("SpellBookIndex", ImGuiTableColumnFlags_WidthFixed, 15.0f);
+		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+		ImGui::TableSetupColumn("Name");
+		ImGui::TableSetupColumn("Rank Name");
+		ImGui::TableSetupColumn("Category");
+		ImGui::TableSetupColumn("SubCategory");
+		ImGui::TableSetupColumn("BookIndex", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 		ImGui::TableHeadersRow();
 		for (const auto& spell : Spells)
 		{

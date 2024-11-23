@@ -677,14 +677,18 @@ static void DrawCastingBarWindow()
 		ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 150, displayY * 0.3f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		int popCounts = PushTheme(s_WinTheme.spellsWinTheme);
+		ImGuiWindowFlags lockFlag = (s_WinSettings.lockCastingWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+
+		
 		if (ImGui::Begin("Casting##MQ2GrimGUI1", &s_IsCasting,
-			s_LockAllWin | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
+			lockFlag | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
-			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
 			EQ_Spell* pSpell = GetSpellByName(spellName);
 			if (pSpell)
 			{
+				ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 				auto now = std::chrono::steady_clock::now();
 				if (now - g_StartCastTime > std::chrono::milliseconds(pSpell->CastTime))
 				{
@@ -743,6 +747,19 @@ static void DrawCastingBarWindow()
 				}
 			}
 
+		}
+		if (ImGui::BeginPopupContextWindow("CastingContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+		{
+			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+
+			if (ImGui::MenuItem("Lock Casting Window", NULL, s_WinSettings.lockCastingWin))
+			{
+				s_WinSettings.lockCastingWin = !s_WinSettings.lockCastingWin;
+				SaveSetting(&s_WinSettings.lockCastingWin, &s_SettingsFile[0]);
+			}
+
+			ImGui::SetWindowFontScale(1.0f);
+			ImGui::EndPopup();
 		}
 
 		ImGui::SetWindowFontScale(1.0f);
@@ -828,23 +845,23 @@ static void DrawBuffWindow()
 		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
 
 		ImGui::Spacing();
-
-		if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
-		{
-			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
-			if (ImGui::MenuItem("Lock Buffs Window", NULL, s_WinSettings.lockBuffsWin))
-			{
-				s_WinSettings.lockBuffsWin = !s_WinSettings.lockBuffsWin;
-				SaveSetting(&s_WinSettings.lockBuffsWin, s_SettingsFile);
-			}
-
-			if (ImGui::MenuItem("Close Buffs Window", NULL, s_WinSettings.showBuffWindow))
-				s_WinSettings.showBuffWindow = false;
-
-			ImGui::SetWindowFontScale(1.0f);
-			ImGui::EndPopup();
-		}
 	}
+	if (ImGui::BeginPopupContextWindow("BuffContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
+	{
+		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+		if (ImGui::MenuItem("Lock Buffs Window", NULL, s_WinSettings.lockBuffsWin))
+		{
+			s_WinSettings.lockBuffsWin = !s_WinSettings.lockBuffsWin;
+			SaveSetting(&s_WinSettings.lockBuffsWin, s_SettingsFile);
+		}
+
+		if (ImGui::MenuItem("Close Buffs Window", NULL, s_WinSettings.showBuffWindow))
+			s_WinSettings.showBuffWindow = false;
+
+		ImGui::SetWindowFontScale(1.0f);
+		ImGui::EndPopup();
+	}
+
 	PopTheme(popCounts);
 	ImGui::End();
 
@@ -867,8 +884,6 @@ static void DrawSongWindow()
 	{
 		DrawMenu("Songs");
 
-		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true);
-
 		if (ImGui::BeginPopupContextWindow("SongContext##MQ2GrimGUI", ImGuiPopupFlags_MouseButtonRight))
 		{
 			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
@@ -879,13 +894,23 @@ static void DrawSongWindow()
 				SaveSetting(&s_WinSettings.lockSongWin, s_SettingsFile);
 			}
 
+			if (ImGui::MenuItem("Flash Song Timers", NULL, s_WinSettings.flashSongTimer))
+			{
+				s_WinSettings.flashSongTimer = !s_WinSettings.flashSongTimer;
+				SaveSetting(&s_WinSettings.flashSongTimer, s_SettingsFile);
+			}
+
 			if (ImGui::MenuItem("Close Songs Window", NULL, s_WinSettings.showSongWindow))
 				s_WinSettings.showSongWindow = false;
 
 			ImGui::SetWindowFontScale(1.0f);
 			ImGui::EndPopup();
 		}
+
+		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true, true);
+
 	}
+
 	PopTheme(popCounts);
 	ImGui::End();
 }
@@ -1370,6 +1395,7 @@ PLUGIN_API void OnUpdateImGui()
 			{
 				DrawTargetWindow(true);
 			}
+
 			if (ImGui::BeginPopupContextWindow("TarContext##GrimGui", ImGuiPopupFlags_MouseButtonRight))
 			{
 				ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale && s_WinSettings.showTargetWindow ? s_FontScaleSettings.targetWinScale : s_FontScaleSettings.playerWinScale);
@@ -1386,6 +1412,7 @@ PLUGIN_API void OnUpdateImGui()
 
 				ImGui::EndPopup();
 			}
+
 
 			PopTheme(popCountsTarg);
 			ImGui::End();
@@ -1426,8 +1453,8 @@ PLUGIN_API void OnUpdateImGui()
 
 		if (s_ShowSpellBook)
 		{
-
-			if (ImGui::Begin("Spell Book##GrimGui", &s_ShowSpellBook, s_WindowFlags | ImGuiWindowFlags_NoCollapse))
+			ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_Appearing);
+			if (ImGui::Begin("Spell Book Table##MQ2GrimGUI", &s_ShowSpellBook, ImGuiWindowFlags_None))
 			{
 				ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 				pSpellPicker->DrawSpellTable();

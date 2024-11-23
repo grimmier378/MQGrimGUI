@@ -21,6 +21,7 @@ bool s_MemSpell = false;
 bool s_DanNetEnabled = false;
 bool s_ShowSpellBook = false;
 bool s_SettingModified = false;
+bool s_HasRezEfx = false;
 std::string s_MemSpellName;
 
 int s_MemGemIndex = 0;
@@ -137,14 +138,15 @@ namespace grimgui {
 
 		template <typename T>
 		void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
-			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
+			bool petBuffs = false, bool playerBuffs = false, bool isSong = false, int baseIndex = 0)
 		{
+
 			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 			float sizeY = ImGui::GetContentRegionAvail().y;
 			sizeY = sizeY - 10 > 0 ? sizeY - 10 : 1;
 
 			if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable |
-				ImGuiTableFlags_Borders | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable,
+				ImGuiTableFlags_Borders | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY,
 				ImVec2(ImGui::GetContentRegionAvail().x, sizeY)))
 			{
 				int slotNum = 0;
@@ -188,17 +190,33 @@ namespace grimgui {
 						}
 
 						int secondsLeft = buffInfo.GetBuffTimer() / 1000;
-						if (secondsLeft < 18 && secondsLeft > 0 && !petBuffs)
+						if (!isSong || isSong && s_WinSettings.flashSongTimer)
 						{
-							if (s_WinSettings.flashTintFlag)
-								tintCol = MQColor(0, 0, 0, 255);
+							if (secondsLeft < 18 && secondsLeft > 0 && !petBuffs)
+							{
+								if (s_WinSettings.flashTintFlag)
+									tintCol = MQColor(0, 0, 0, 255);
 
+							}
 						}
 						ImGui::PushID(buffInfo.GetIndex());
 						imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
 						ImGui::PopID();
+						if (ImGui::IsItemHovered())
+						{
+							ImGui::BeginTooltip();
+							if (spell)
+							{
+								char timeLabel[64];
+								FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+								ImGui::Text("%s (%s)", spell->Name, timeLabel);
+								if (!petBuffs)
+									ImGui::Text("Caster: %s", buffInfo.GetCaster());
+							}
+							ImGui::EndTooltip();
+						}
 
-						if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str()))
+						if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str(), ImGuiPopupFlags_MouseButtonRight))
 						{
 							ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 
@@ -214,19 +232,6 @@ namespace grimgui {
 							ImGui::SetWindowFontScale(1.0f);
 							ImGui::EndPopup();
 						}
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::BeginTooltip();
-							if (spell)
-							{
-								char timeLabel[64];
-								FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-								ImGui::Text("%s (%s)", spell->Name, timeLabel);
-								if (!petBuffs)
-									ImGui::Text("Caster: %s", buffInfo.GetCaster());
-							}
-							ImGui::EndTooltip();
-						}
 
 						ImGui::TableNextColumn();
 						if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
@@ -239,6 +244,7 @@ namespace grimgui {
 
 						ImGui::Text("%s", spell->Name);
 
+						s_HasRezEfx = IsResEffectSpell(spell->ID);
 					}
 					slotNum++;
 				}
@@ -347,34 +353,36 @@ grimgui::SpellsInspector* pSpellInspector = nullptr;
 
 struct WinSettings
 {
-	bool showMainWindow			= true;
-	bool showConfigWindow		= false;
-	bool showPetWindow			= false;
-	bool showPlayerWindow		= false;
-	bool showGroupWindow		= false;
-	bool showSpellsWindow		= false;
-	bool showTargetWindow		= false;
-	bool showHud				= false;
-	bool showBuffWindow			= false;
-	bool showSongWindow			= false;
-	bool flashCombatFlag		= false;
-	bool flashTintFlag			= false;
-	bool showTitleBars			= true;
-	bool lockAllWin			= false;
-	bool lockPlayerWin = false;
-	bool lockTargetWin = false;
-	bool lockPetWin = false;
-	bool lockGroupWin = false;
-	bool lockSpellsWin = false;
-	bool lockBuffsWin = false;
-	bool lockSongWin = false;
-	bool lockHudWin = false;
-	bool hudClickThrough		= false;
-	bool showPetButtons			= true;
-	bool showTargetBuffs		= true;
-	bool showAggroMeter			= true;
-	bool showSelfOnGroup		= false;
-	bool showEmptyGroupSlot		= true;
+	bool showMainWindow     = true;
+	bool showConfigWindow   = false;
+	bool showPetWindow      = false;
+	bool showPlayerWindow   = false;
+	bool showGroupWindow    = false;
+	bool showSpellsWindow   = false;
+	bool showTargetWindow   = false;
+	bool showHud            = false;
+	bool showBuffWindow     = false;
+	bool showSongWindow     = false;
+	bool flashCombatFlag    = false;
+	bool flashTintFlag      = false;
+	bool showTitleBars      = true;
+	bool lockAllWin         = false;
+	bool lockPlayerWin      = false;
+	bool lockTargetWin      = false;
+	bool lockPetWin         = false;
+	bool lockGroupWin       = false;
+	bool lockSpellsWin      = false;
+	bool lockBuffsWin       = false;
+	bool lockSongWin        = false;
+	bool lockHudWin         = false;
+	bool lockCastingWin     = false;
+	bool hudClickThrough    = false;
+	bool showPetButtons     = true;
+	bool showTargetBuffs    = true;
+	bool showAggroMeter     = true;
+	bool showSelfOnGroup    = false;
+	bool showEmptyGroupSlot = true;
+	bool flashSongTimer		= true;
 } s_WinSettings;
 
 struct WinSetting
@@ -406,6 +414,7 @@ std::vector<WinSetting> winSettings = {
 	{"Group",		"ShowSelfOnGroup",		&s_WinSettings.showSelfOnGroup},
 	{"Group",		"ShowEmptyGroup",		&s_WinSettings.showEmptyGroupSlot},
 	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow},
+	{"Songs",		"FlashSongTimer",		&s_WinSettings.flashSongTimer},
 	{"Spells",		"ShowSpellsWindow",		&s_WinSettings.showSpellsWindow},
 	{"Buffs",		"ShowBuffWindow",		&s_WinSettings.showBuffWindow},
 	{"Hud",			"ShowHud",				&s_WinSettings.showHud},
@@ -815,6 +824,7 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		false,	"Aggro Meter: Show or Hide the aggro meter"},
 	{"Group Show Self",		&s_WinSettings.showSelfOnGroup,		false,	"Group Show Self: Show or Hide Yourself on the group window"},
 	{"Group Show Empty",	&s_WinSettings.showEmptyGroupSlot,	false,	"Group Show Empty: Show or Hide Empty Group Slots"},
+	{"Flash Song Timer",	&s_WinSettings.flashSongTimer,		false,	"Flash Song Timer: Flash the song timer when it is about to expire"},
 	{"Lock ALL",			&s_WinSettings.lockAllWin,			true,	"Lock Windows: Locks All Windows in place"},
 	{"Lock Group",			&s_WinSettings.lockGroupWin,		true,	"Lock Group: Toggle locking the Group Window"},
 	{"Lock Player",			&s_WinSettings.lockPlayerWin,		true,	"Lock Player: Toggle locking the Player Window"},
@@ -824,6 +834,7 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Lock Buffs",			&s_WinSettings.lockBuffsWin,		true,	"Lock Player: Toggle locking the Player Window"},
 	{"Lock Songs",			&s_WinSettings.lockSongWin,			true,	"Lock Target: Toggle locking the Target Window"},
 	{"Lock Hud",			&s_WinSettings.lockHudWin,			true,	"Lock Pet: Toggle locking the Pet Window"},
+	{"Lock Casting",		&s_WinSettings.lockCastingWin,		true,	"Lock Casting: Toggle locking the Casting Window"},
 
 };
 
@@ -860,9 +871,14 @@ std::vector<StatusFXData> statusFXData = {
 	{SPA_DISEASE,			41,		false,	"Diseased"},
 	{SPA_BLINDNESS,			200,	false,	"Blind"},
 	{SPA_ROOT,				117,	false,	"Rooted"},
-	{SPA_MOVEMENT_RATE,		5,		false,	"Movement Rate Buff"},
+	{SPA_CURSE,				159,	false,	"Cursed"},
+	{SPA_SLOW,				17,		false,	"Slowed"},
+	{SPA_CORRUPTION,		160,	false,	"Corrupted"},
+	{SPA_SILENCE,			95,		false,	"Silenced"},
+	{SPA_MOVEMENT_RATE,		5,		false,	"Snared"},
 	{SPA_FEAR,				164,	false,	"Feared"},
 	{SPA_STUN,				165,	false,	"Stunned"},
+	{SPA_FEIGN_DEATH,		92,		true,	"Feign Death"},
 	// invis effects
 	{SPA_INVISIBILITY,		18,		true,	"Invisible"},
 	{SPA_INVIS_VS_UNDEAD,	33,		true,	"Invis vs Undead"},
@@ -1371,8 +1387,17 @@ void DrawStatusEffects()
 		ImGui::SetItemTooltip("Tash");
 	}
 
+	if (s_HasRezEfx)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(164);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize);
+		ImGui::SameLine();
+		ImGui::SetItemTooltip("Resurrection Sickness");
+	}
+		
 	if (!efxflag)
-		ImGui::Dummy(iconSize);
+	ImGui::Dummy(iconSize);
 
 }
 
