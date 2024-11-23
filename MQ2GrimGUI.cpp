@@ -278,7 +278,7 @@ static void DrawTargetWindow(bool splitTar = false)
 				{
 
 					if (gTargetbuffs)
-						pSpellInspector->DrawBuffsIcons("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+						pSpellInspector->DrawBuffsIconList("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 				}
 				ImGui::EndChild();
 			}
@@ -647,7 +647,7 @@ static void DrawPetWindow()
 				if (ImGui::BeginChild("PetBuffs", ImVec2(childBuffWidth, childBuffHeight),
 					ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
 				{
-					pSpellInspector->DrawBuffsIcons("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+					pSpellInspector->DrawBuffsIconList("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 				}
 				ImGui::EndChild();
 
@@ -843,7 +843,7 @@ static void DrawBuffWindow()
 	{
 		DrawMenu("Buffs");
 
-		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
+		pSpellInspector->DrawBuffsTable("BuffTable", pBuffWnd->GetBuffRange(), false, true);
 
 		ImGui::Spacing();
 	}
@@ -908,7 +908,7 @@ static void DrawSongWindow()
 			ImGui::EndPopup();
 		}
 
-		pSpellInspector->DrawBuffsList("SongTable", pSongWnd->GetBuffRange(), false, true, true);
+		pSpellInspector->DrawBuffsTable("SongTable", pSongWnd->GetBuffRange(), false, true, true);
 
 	}
 

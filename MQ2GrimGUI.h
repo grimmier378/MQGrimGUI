@@ -144,7 +144,7 @@ namespace grimgui {
 		}
 
 		template <typename T>
-		void DrawBuffsList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 			bool petBuffs = false, bool playerBuffs = false, bool isSong = false, int baseIndex = 0)
 		{
 
@@ -261,7 +261,7 @@ namespace grimgui {
 		}
 
 		template <typename T>
-		void DrawBuffsIcons(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		void DrawBuffsIconList(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 			bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
 		{
 			int Index = -1;
@@ -893,10 +893,6 @@ std::vector<StatusFXData> statusFXData = {
 };
 
 #pragma endregion
-
-#pragma region Menu Bar
-
-
 
 #pragma region Utility Functions
 // Rut Roh Raggy!

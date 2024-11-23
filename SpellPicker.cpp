@@ -337,14 +337,33 @@ void SpellPicker::DrawSpellTable()
 		ImGui::TableHeadersRow();
 		for (const auto& spell : Spells)
 		{
-			if (!FilterTable.empty() && mq::ci_find_substr(spell.Name, FilterTable) == -1)
+			if (!(!FilterTable.empty() &&	(mq::ci_find_substr(spell.Name, FilterTable) > -1
+				|| mq::ci_find_substr(spell.Category, FilterTable) > -1
+				|| mq::ci_find_substr(spell.SubCategory, FilterTable) > -1
+				|| mq::ci_find_substr(spell.RankName, FilterTable) > -1
+				) 
+				|| FilterTable.empty()))
 				continue;
 
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
 			m_pSpellIcon->SetCurCell(spell.IconID);
+
+			ImGui::PushID(spell.ID + spell.IconID);
 			imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
+			if (ImGui::BeginPopupContextItem(("SpellContextMenu##"), ImGuiPopupFlags_MouseButtonRight))
+			{
+				std::string label = "Inspect##" + spell.Name;
+				if (ImGui::MenuItem(label.c_str()))
+					InspectSpell(spell.ID);
+
+				ImGui::EndPopup();
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetItemTooltip("IconID: %d", spell.IconID);
+			ImGui::PopID();
+
 
 			ImGui::TableNextColumn();
 			ImGui::Text("%d", spell.Level);
@@ -446,6 +465,7 @@ void SpellPicker::PopulateSpellData()
 		return a.Level > b.Level;
 	});
 }
+
 
 void SpellPicker::DrawSpellPicker()
 {
