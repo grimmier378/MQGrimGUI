@@ -578,7 +578,7 @@ static void DrawPetWindow()
 			if (ImGui::BeginTable("Pet", 2,
 				ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable ))
 			{
-				ImGui::TableSetupColumn(petName);
+				ImGui::TableSetupColumn(petName, ImGuiTableColumnFlags_NoHide);
 				ImGui::TableSetupColumn("Buffs");
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
@@ -824,6 +824,7 @@ static void DrawBuffWindow()
 	if (ImGui::Begin("Buffs##MQ2GrimGUI", &s_WinSettings.showBuffWindow, s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
 		DrawMenu("Buffs");
+
 		pSpellInspector->DrawBuffsList("BuffTable", pBuffWnd->GetBuffRange(), false, true);
 
 		ImGui::Spacing();

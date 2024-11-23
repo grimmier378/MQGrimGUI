@@ -144,8 +144,8 @@ namespace grimgui {
 			sizeY = sizeY - 10 > 0 ? sizeY - 10 : 1;
 
 			if (ImGui::BeginTable("Buffs", 3, ImGuiTableFlags_Hideable |
-				ImGuiTableFlags_Borders | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable |
-				ImGuiTableFlags_ScrollY, ImVec2(ImGui::GetContentRegionAvail().x, sizeY)))
+				ImGuiTableFlags_Borders | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Resizable,
+				ImVec2(ImGui::GetContentRegionAvail().x, sizeY)))
 			{
 				int slotNum = 0;
 				ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, static_cast<float>(s_NumSettings.buffIconSize));
@@ -1294,6 +1294,7 @@ static void DisplayPetButtons()
 	}
 }
 
+
 /**
 * @fn DrawLineOfSight
 *
@@ -1309,6 +1310,7 @@ void DrawLineOfSight(PSPAWNINFO pFrom, PSPAWNINFO pTo)
 	else
 		ImGui::TextColored(GetMQColor(ColorName::Red).ToImColor(), ICON_MD_VISIBILITY_OFF);
 }
+
 
 /**
 * @fn DrawStatusEffects
@@ -1374,6 +1376,7 @@ void DrawStatusEffects()
 
 }
 
+
 /**
 * @fn DrawPlayerIcons
 *
@@ -1423,6 +1426,7 @@ void DrawPlayerIcons(CGroupMember* pMember, float fontScale = 1.0f)
 
 	ImGui::Dummy(ImVec2(1.0f, 1.0f));
 }
+
 
 /**
 * @fn DrawCombatStateIcon
@@ -1496,6 +1500,8 @@ void DrawMenu(const char* winName)
 	ImVec4 lockLabelColor = s_WinSettings.lockAllWin ? GetMQColor(ColorName::Red).ToImColor() : GetMQColor(ColorName::Green).ToImColor();
 	if (ImGui::BeginMenuBar())
 	{
+
+		// Lock All Windows Icon
 		ImGui::TextColored(lockLabelColor, lockAllIcon);
 		if (ImGui::IsItemClicked())
 		{
@@ -1505,6 +1511,7 @@ void DrawMenu(const char* winName)
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("%s All Windows", s_WinSettings.lockAllWin ? "Unlock" : "Lock");
 
+		// lock Icon for winName
 		for (const auto& winLocks : settingToggleOptions)
 		{
 			if (winLocks.label && std::string(winLocks.label) == "Lock " + std::string(winName))
@@ -1532,6 +1539,7 @@ void DrawMenu(const char* winName)
 			}
 		}
 		
+		// Config Window Icon
 		ImGui::SameLine();
 		ImGui::Text(ICON_FA_COG);
 		if (ImGui::IsItemClicked())
@@ -1539,6 +1547,7 @@ void DrawMenu(const char* winName)
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Config Window");
 
+		// the main menu drop downs
 		if (ImGui::BeginMenu("Menu"))
 		{
 			if (ImGui::BeginMenu("Windows"))
@@ -1566,7 +1575,7 @@ void DrawMenu(const char* winName)
 						{
 							*lockWin.setting = !*lockWin.setting;
 
-							if (lockWin.label && strncmp(lockWin.label, "Lock All", 8) == 0)
+							if (lockWin.label && strncmp(lockWin.label, "Lock ALL", 9) == 0)
 								LockAll();
 						}
 					}
@@ -1610,6 +1619,7 @@ void DrawBar(const char* label, int current, int max, int height,
 		ImGui::SetItemTooltip("%s: %d / %d", tooltip, current, max);
 
 }
+
 
 void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 {
@@ -1682,7 +1692,8 @@ void DrawPetInfo(PSPAWNINFO petInfo, bool showAll = true)
 * @param drawCombatBorder bool Draw a combat border around the player bars
 * @param barHeight int Height of the player bars, Defaults to playerBarHeight but you can pass a different value
 */
-void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings.playerBarHeight, bool drawPet = false, float fontScale = 1.0f)
+void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings.playerBarHeight,
+	bool drawPet = false, float fontScale = 1.0f)
 {
 	if (!pLocalPC)
 		return;
@@ -1773,6 +1784,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 	ImGui::SetWindowFontScale(1.0f);
 	ImGui::EndChild();
 }
+
 
 void DrawEmptyMember(int slot)
 {

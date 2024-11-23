@@ -306,6 +306,7 @@ void SpellPicker::DrawSpellTree()
 	}
 }
 
+
 void SpellPicker::DrawSpellTable()
 {
 	// Initialize the spell icon animation if needed
@@ -394,7 +395,6 @@ void SpellPicker::DrawSpellTable()
 		ImGui::EndTable();
 	}
 }
-
 
 
 /**
