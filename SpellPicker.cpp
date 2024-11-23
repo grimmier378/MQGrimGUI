@@ -319,7 +319,7 @@ void SpellPicker::DrawSpellTable()
 
 	char buffer[256] = {};
 	strncpy_s(buffer, FilterTable.c_str(), sizeof(buffer));
-	if (ImGui::InputText("Search##SpellTable", buffer, sizeof(buffer)))
+	if (ImGui::InputTextWithHint("Search##SpellTable", "Filters, Name, Rank, Cat, or SubCat", buffer, sizeof(buffer)))
 		FilterTable = buffer;
 
 	if (ImGui::BeginTable("SpellTable##GrimGui", 7, ImGuiTableFlags_Reorderable |
@@ -337,52 +337,47 @@ void SpellPicker::DrawSpellTable()
 		ImGui::TableHeadersRow();
 		for (const auto& spell : Spells)
 		{
-			if (!(!FilterTable.empty() &&	(mq::ci_find_substr(spell.Name, FilterTable) > -1
+			if (!(FilterTable.empty() || !FilterTable.empty() &&
+				(mq::ci_find_substr(spell.Name, FilterTable) > -1
 				|| mq::ci_find_substr(spell.Category, FilterTable) > -1
 				|| mq::ci_find_substr(spell.SubCategory, FilterTable) > -1
-				|| mq::ci_find_substr(spell.RankName, FilterTable) > -1
-				) 
-				|| FilterTable.empty()))
+				|| mq::ci_find_substr(spell.RankName, FilterTable) > -1)				
+				))
 				continue;
 
 			ImGui::TableNextRow();
 
+			ImGui::PushID(spell.ID + spell.IconID);
+			ImGui::BeginGroup();
 			ImGui::TableSetColumnIndex(0);
 			m_pSpellIcon->SetCurCell(spell.IconID);
 
-			ImGui::PushID(spell.ID + spell.IconID);
 			imgui::DrawTextureAnimation(m_pSpellIcon, CXSize(20, 20));
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", spell.Level);
+
+			ImGui::TableNextColumn();
+			//ImGui::Text(spell.Name.c_str());
+			ImGui::Selectable(spell.Name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
 			if (ImGui::BeginPopupContextItem(("SpellContextMenu##"), ImGuiPopupFlags_MouseButtonRight))
 			{
 				std::string label = "Inspect##" + spell.Name;
 				if (ImGui::MenuItem(label.c_str()))
 					InspectSpell(spell.ID);
 
+				// TODO: Add a way to pick up the spell from the table
+				//
+				//std::string label2 = "PickUp##" + spell.Name;
+				//if (ImGui::MenuItem(label2.c_str()))
+				//{
+				//	//SelectedSpell = std::make_shared<SpellData>(spell);
+				//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LCLICKHOLD, (int*)spell.SpellBookIndex);
+				//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LBUTTONUPAFTERHELD, (int*)spell.SpellBookIndex);
+				//}
+
 				ImGui::EndPopup();
 			}
-			if (ImGui::IsItemHovered())
-				ImGui::SetItemTooltip("IconID: %d", spell.IconID);
-			ImGui::PopID();
-
-
-			ImGui::TableNextColumn();
-			ImGui::Text("%d", spell.Level);
-
-			ImGui::TableNextColumn();
-			ImGui::PushID(spell.ID); // Ensure unique ID
-			ImGui::Text(spell.Name.c_str());
-			// FIX ME: allow picking up gem from table as if it was the book. 
-
-			//if (ImGui::IsItemClicked(0))
-			//{
-			//	// 
-			//	// Sets selected spell to the spell clicked in the table
-			//	SelectedSpell = std::make_shared<SpellData>(spell);
-			//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LCLICKHOLD, (int*)spell.SpellBookIndex);
-			//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LBUTTONUPAFTERHELD, (int*)spell.SpellBookIndex);
-			//}
-			//
-			ImGui::PopID();
 
 			ImGui::TableNextColumn();
 			ImGui::Text(spell.RankName.c_str());
@@ -396,7 +391,9 @@ void SpellPicker::DrawSpellTable()
 			ImGui::TableNextColumn();
 			ImGui::Text("%d", spell.SpellBookIndex);
 
+			ImGui::EndGroup();
 
+			//ImGui::PopID();
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::BeginTooltip();
@@ -409,6 +406,8 @@ void SpellPicker::DrawSpellTable()
 
 				ImGui::EndTooltip();
 			}
+			ImGui::PopID();
+
 		}
 
 		ImGui::EndTable();

@@ -209,20 +209,18 @@ namespace grimgui {
 						ImGui::PushID(buffInfo.GetIndex());
 						imgui::DrawTextureAnimation(m_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
 						ImGui::PopID();
-						if (ImGui::IsItemHovered())
-						{
-							ImGui::BeginTooltip();
-							if (spell)
-							{
-								char timeLabel[64];
-								FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-								ImGui::Text("%s (%s)", spell->Name, timeLabel);
-								if (!petBuffs)
-									ImGui::Text("Caster: %s", buffInfo.GetCaster());
-							}
-							ImGui::EndTooltip();
-						}
 
+						ImGui::TableNextColumn();
+						if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
+						{
+							char timeLabel[64];
+							FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+							ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%s", timeLabel);
+						}
+						ImGui::TableNextColumn();
+
+						//ImGui::Text("%s", spell->Name);
+						ImGui::Selectable(spell->Name, false, ImGuiSelectableFlags_SpanAllColumns);
 						if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str(), ImGuiPopupFlags_MouseButtonRight))
 						{
 							ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
@@ -239,18 +237,21 @@ namespace grimgui {
 							ImGui::SetWindowFontScale(1.0f);
 							ImGui::EndPopup();
 						}
-
-						ImGui::TableNextColumn();
-						if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
+						if (ImGui::IsItemHovered())
 						{
-							char timeLabel[64];
-							FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-							ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), "%s", timeLabel);
+							ImGui::BeginTooltip();
+							if (spell)
+							{
+								char timeLabel[64];
+								FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+								ImGui::Text("%s (%s)", spell->Name, timeLabel);
+								if (!petBuffs)
+									ImGui::Text("Caster: %s", buffInfo.GetCaster());
+
+								ImGui::Text("Right Click for Options");
+							}
+							ImGui::EndTooltip();
 						}
-						ImGui::TableNextColumn();
-
-						ImGui::Text("%s", spell->Name);
-
 						s_HasRezEfx = IsResEffectSpell(spell->ID);
 					}
 					slotNum++;
