@@ -1361,6 +1361,20 @@ void DrawStatusEffects()
 	MQColor borderCol = DEF_DET_BORDER_COL;
 	MQColor tintCol = DEF_TINT_COL;
 
+	if (pLocalPlayer->StandState == STANDSTATE_SIT)
+	{
+		efxflag = true;
+		//m_StatusIcon->SetCurCell(93);
+		//imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
+		ImGui::SetWindowFontScale(2.0f);
+		ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), ICON_FA_MOON_O);
+		ImGui::SetWindowFontScale(1.0f);
+		if (ImGui::IsItemClicked())
+			pLocalPlayer->StandState = STANDSTATE_STAND;
+
+		ImGui::SetItemTooltip("Sitting");
+		ImGui::SameLine();
+	}
 
 	for (const auto& debuff : statusFXData)
 	{
