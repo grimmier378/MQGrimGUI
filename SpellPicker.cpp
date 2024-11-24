@@ -360,24 +360,31 @@ void SpellPicker::DrawSpellTable()
 			ImGui::TableNextColumn();
 			//ImGui::Text(spell.Name.c_str());
 			ImGui::Selectable(spell.Name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
-			if (ImGui::BeginPopupContextItem(("SpellContextMenu##"), ImGuiPopupFlags_MouseButtonRight))
+			if (ImGui::IsItemClicked(0))
 			{
-				std::string label = "Inspect##" + spell.Name;
-				if (ImGui::MenuItem(label.c_str()))
-					InspectSpell(spell.ID);
+				InspectSpell(spell.ID);
 
-				// TODO: Add a way to pick up the spell from the table
-				//
-				//std::string label2 = "PickUp##" + spell.Name;
-				//if (ImGui::MenuItem(label2.c_str()))
-				//{
-				//	//SelectedSpell = std::make_shared<SpellData>(spell);
-				//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LCLICKHOLD, (int*)spell.SpellBookIndex);
-				//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LBUTTONUPAFTERHELD, (int*)spell.SpellBookIndex);
-				//}
-
-				ImGui::EndPopup();
+				//SelectedSpell = std::make_shared<SpellData>(spell);
+				//Open = false;
 			}
+			//if (ImGui::BeginPopupContextItem(("SpellContextMenu##"), ImGuiPopupFlags_MouseButtonRight))
+			//{
+			//	std::string label = "Inspect##" + spell.Name;
+			//	if (ImGui::MenuItem(label.c_str()))
+			//		InspectSpell(spell.ID);
+
+			//	// TODO: Add a way to pick up the spell from the table
+			//	//
+			//	//std::string label2 = "PickUp##" + spell.Name;
+			//	//if (ImGui::MenuItem(label2.c_str()))
+			//	//{
+			//	//	//SelectedSpell = std::make_shared<SpellData>(spell);
+			//	//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LCLICKHOLD, (int*)spell.SpellBookIndex);
+			//	//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LBUTTONUPAFTERHELD, (int*)spell.SpellBookIndex);
+			//	//}
+
+			//	ImGui::EndPopup();
+			//}
 
 			ImGui::TableNextColumn();
 			ImGui::Text(spell.RankName.c_str());

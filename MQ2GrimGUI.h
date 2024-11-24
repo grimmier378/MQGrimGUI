@@ -966,8 +966,8 @@ void LockAll()
 
 void GetHeading()
 {
-	static PSPAWNINFO pSelfInfo = pLocalPlayer;
-	s_CurrHeading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
+	if (PSPAWNINFO pSelfInfo = pLocalPlayer)
+		s_CurrHeading = szHeadingShort[static_cast<int>((pSelfInfo->Heading / 32.0f) + 8.5f) % 16];
 }
 
 bool CheckCaster()
@@ -1375,12 +1375,10 @@ void DrawStatusEffects()
 				borderCol = GetMQColor(ColorName::SoftBlue);
 			}
 			imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
-
 			ImGui::SetItemTooltip(debuff.tooltip.c_str());
 			ImGui::SameLine();
 		}
 		borderCol = DEF_DET_BORDER_COL;
-
 	}
 
 	if (GetSelfBuff([](EQ_Spell* spell) { return SpellAffect(SPA_HP, false)(spell) && spell->IsDetrimentalSpell() && spell->IsDoTSpell(); }) >= 0)
@@ -1388,8 +1386,9 @@ void DrawStatusEffects()
 		efxflag = true;
 		m_StatusIcon->SetCurCell(140);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
-		ImGui::SameLine();
 		ImGui::SetItemTooltip("Dotted");
+		ImGui::SameLine();
+
 	}
 
 	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Shaman, Mage)) >= 0)
@@ -1397,8 +1396,8 @@ void DrawStatusEffects()
 		efxflag = true;
 		m_StatusIcon->SetCurCell(55);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
-		ImGui::SameLine();
 		ImGui::SetItemTooltip("Malo");
+		ImGui::SameLine();
 	}
 
 	if (GetSelfBuff(SpellSubCat(SPELLCAT_RESIST_DEBUFFS) && SpellClassMask(Enchanter)) >= 0)
@@ -1406,8 +1405,8 @@ void DrawStatusEffects()
 		efxflag = true;
 		m_StatusIcon->SetCurCell(72);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
-		ImGui::SameLine();
 		ImGui::SetItemTooltip("Tash");
+		ImGui::SameLine();
 	}
 
 	if (s_HasRezEfx)
@@ -1415,8 +1414,9 @@ void DrawStatusEffects()
 		efxflag = true;
 		m_StatusIcon->SetCurCell(154);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
-		ImGui::SameLine();
 		ImGui::SetItemTooltip("Resurrection Sickness");
+		ImGui::SameLine();
+
 	}
 
 	if (pLocalPlayer->StandState == STANDSTATE_FEIGN)
@@ -1896,10 +1896,9 @@ void DrawMemberInfo(CGroupMember* pMember, float fontScale = 1.0f)
 		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
 			distToMember = GetDistance(pLocalPlayer, pSpawn);
 
-		float rolColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, (ImGui::CalcTextSize("%s %s",nameLabel, ICON_FA_MOON_O).x) + 100);
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, (ImGui::CalcTextSize(nameLabel).x + ImGui::CalcTextSize(ICON_MD_VISIBILITY_OFF).x));
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(ICON_MD_VISIBILITY_OFF).x);
-		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
+		ImGui::TableSetupColumn("Roles");
 		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
 		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
 		ImGui::TableNextRow();

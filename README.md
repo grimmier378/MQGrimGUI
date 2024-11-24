@@ -16,6 +16,7 @@ _Current Windows:_
 * Spell Window (Shows your spells and allows you to click to cast, right click to forget and Alt Click to Inspect, Right clicking an empty spell gem will bring up a spell picker)
 * Pet Window (Shows your pet You can customize which buttons you want on the window. Drop an item onto the pet health bar to trade.)
 * Config Window For Setting All the Things.
+* Hud Window (Shows Debuff effects and Invis Status)
 
 _Window Settings:_
 
@@ -30,17 +31,26 @@ _Theme Support built-in:_
 * Currently there are 6 themes included beyond Default.
 * Custom themes may be added at a future date.
 
-### Getting Started
+_Hud Efx Shown_
 
-```txt
-/plugin MQ2GrimGUI
-```
-
-The first time you load this you should get a Main Window with all the toggles on it on the screen.
-If this does not show up try `/grimgui show` to toggle it.
-From this window you can toggle the other windows on or off and set up your settings and colors.
-
-### Commands
+* Invis
+* Invis vs Undead
+* Invis vs Animals
+* Feign Death (Click Icon to Stand up)
+* Poisioned
+* Diseased
+* Rooted
+* Blind
+* Cursed
+* Snared
+* Slowed
+* Corrupted
+* Silenced
+* Feared
+* Maloed
+* Tashed
+* Rez Efx
+* Stunned
 
 ```txt
 
