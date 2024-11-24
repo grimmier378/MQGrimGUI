@@ -1873,14 +1873,26 @@ void DrawMemberInfo(CGroupMember* pMember, float fontScale = 1.0f)
 			distToMember = GetDistance(pLocalPlayer, pSpawn);
 
 		float rolColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(nameLabel).x);
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("%s %s",nameLabel, ICON_FA_MOON_O).x);
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(ICON_MD_VISIBILITY_OFF).x);
 		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
 		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
 		ImGui::TableSetupColumn("Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
-		ImGui::Text(nameLabel);
+				
+		ImGui::Text( nameLabel);
+
+		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
+		{
+			if (pSpawn->StandState && pSpawn->StandState == STANDSTATE_SIT)
+			{
+				ImGui::SameLine();
+				ImGui::TextColored(GetMQColor(ColorName::Tangerine).ToImColor(), ICON_FA_MOON_O);
+				ImGui::SetItemTooltip("Sitting");
+			}
+		}
+
 		ImGui::TableNextColumn();
 		if (SPAWNINFO* pSpawn = pMember->GetPlayer())
 		{
