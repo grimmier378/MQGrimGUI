@@ -143,11 +143,13 @@ namespace grimgui {
 			}
 		}
 
+
 		template <typename T>
 		void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
 			bool petBuffs = false, bool playerBuffs = false, bool isSong = false, int baseIndex = 0)
 		{
 
+			bool sickFound = false;
 			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 			float sizeY = ImGui::GetContentRegionAvail().y;
 			sizeY = sizeY - 10 > 0 ? sizeY - 10 : 1;
@@ -162,7 +164,7 @@ namespace grimgui {
 				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
-				bool sickFound = false;
+				sickFound = false;
 				for (const auto& buffInfo : Buffs)
 				{
 					ImGui::TableNextRow();
@@ -253,12 +255,17 @@ namespace grimgui {
 							}
 							ImGui::EndTooltip();
 						}
-						if (IsResEffectSpell(spell->ID), s_HasRezEfx || spell->ID == 757)
-							sickFound = true;
+
+						if (!sickFound)
+						{
+							if (eqlib::IsResEffectSpell(spell->ID) || spell->ID == 757)
+								sickFound = true;
+						}
 					}
 					slotNum++;
+					s_HasRezEfx = sickFound;
 				}
-				s_HasRezEfx = sickFound;
+
 				ImGui::EndTable();
 				ImGui::SetWindowFontScale(1.0f);
 			}
@@ -889,7 +896,6 @@ std::vector<StatusFXData> statusFXData = {
 	{SPA_SILENCE,			95,		false,	"Silenced"},
 	{SPA_MOVEMENT_RATE,		5,		false,	"Snared"},
 	{SPA_FEAR,				164,	false,	"Feared"},
-	{SPA_STUN,				165,	false,	"Stunned"},
 	// invis effects
 	{SPA_INVISIBILITY,		18,		true,	"Invisible"},
 	{SPA_INVIS_VS_UNDEAD,	33,		true,	"Invis vs Undead"},
@@ -1424,7 +1430,25 @@ void DrawStatusEffects()
 
 		ImGui::SameLine();
 	}
-		
+
+	if (pLocalPC->Stunned)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(25);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
+		ImGui::SetItemTooltip("Stunned");
+		ImGui::SameLine();
+	}
+	
+	if (pLocalPC->bIsCorrupted)
+	{
+		efxflag = true;
+		m_StatusIcon->SetCurCell(160);
+		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
+		ImGui::SetItemTooltip("Corrupted");
+		ImGui::SameLine();
+	}
+
 	if (!efxflag)
 	ImGui::Dummy(iconSize);
 
@@ -1873,7 +1897,7 @@ void DrawMemberInfo(CGroupMember* pMember, float fontScale = 1.0f)
 			distToMember = GetDistance(pLocalPlayer, pSpawn);
 
 		float rolColSize = ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(nameLabel).x + 100);
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("%s %s",nameLabel, ICON_FA_MOON_O).x);
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, (ImGui::CalcTextSize("%s %s",nameLabel, ICON_FA_MOON_O).x) + 100);
 		ImGui::TableSetupColumn("Vis", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize(ICON_MD_VISIBILITY_OFF).x);
 		ImGui::TableSetupColumn("Roles", ImGuiTableColumnFlags_WidthStretch, rolColSize);
 		ImGui::TableSetupColumn("Dist", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 30 * s_FontScaleSettings.groupWinScale);
