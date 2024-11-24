@@ -162,6 +162,7 @@ namespace grimgui {
 				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
+				bool sickFound = false;
 				for (const auto& buffInfo : Buffs)
 				{
 					ImGui::TableNextRow();
@@ -252,10 +253,12 @@ namespace grimgui {
 							}
 							ImGui::EndTooltip();
 						}
-						s_HasRezEfx = IsResEffectSpell(spell->ID);
+						if (IsResEffectSpell(spell->ID), s_HasRezEfx || spell->ID == 757)
+							sickFound = true;
 					}
 					slotNum++;
 				}
+				s_HasRezEfx = sickFound;
 				ImGui::EndTable();
 				ImGui::SetWindowFontScale(1.0f);
 			}
@@ -1404,7 +1407,7 @@ void DrawStatusEffects()
 	if (s_HasRezEfx)
 	{
 		efxflag = true;
-		m_StatusIcon->SetCurCell(164);
+		m_StatusIcon->SetCurCell(154);
 		imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
 		ImGui::SameLine();
 		ImGui::SetItemTooltip("Resurrection Sickness");
