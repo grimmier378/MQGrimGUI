@@ -19,7 +19,7 @@ class SpellPicker
 	CTextureAnimation* m_pSpellIcon = nullptr;
 
 public:
-
+public:
 	void DrawSpellPicker();
 	void DrawSpellTree();
 	void DrawSpellTable();
@@ -50,9 +50,32 @@ public:
 		SelectedSpell.reset();
 	}
 
+	void PickUpSpell()
+	{
+		// TODO: Pick up spell
+		// 
+		// FIXME: This is not working, and causes a crash.
+		//if (!m_NeedSpellPickup)
+		//	return;
+
+		// tried this passing spell ID
+		// 
+		//pCursorAttachment->AttachSpellToCursor(m_SpellID);
+		// 
+		// also tried this passing the icon and book index.
+		// 
+		////pCursorAttachment->AttachToCursor(m_pSpellIcon, nullptr, eCursorAttachment_MemorizeSpell, m_SpellBookIndex, nullptr, nullptr);
+		//m_NeedSpellPickup = false;
+		//m_SpellID = -1;
+		//m_SpellBookIndex = -1;
+		//m_SpellBookIcon = nullptr;
+	}
 
 	// Selected spell
 	std::shared_ptr<SpellData> SelectedSpell;
+
+	// Pick Up a Spell from the book?
+	bool m_NeedSpellPickup = false;
 
 private:
 	void PopulateSpellData();
@@ -68,8 +91,10 @@ private:
 	std::vector<SpellData> Spells;
 
 	bool Open = false;
-	std::string Filter;
-	std::string FilterTable;
+	int m_SpellBookIndex = -1;
+	CTextureAnimation* m_SpellBookIcon = nullptr;
+	std::string m_PickerFilter;
+	std::string m_TableFilter;
 
 private:
 	static void InspectSpell(int spellId)

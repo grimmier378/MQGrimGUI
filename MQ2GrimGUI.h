@@ -105,32 +105,20 @@ namespace grimgui {
 				if (hours > 0)
 				{
 					if (minutes > 0 && seconds > 0)
-					{
 						sprintf_s(timeLabel, size, "%dh %dm %ds", hours, minutes, seconds);
-					}
 					else if (minutes > 0)
-					{
 						sprintf_s(timeLabel, size, "%dh %dm", hours, minutes);
-					}
 					else if (seconds > 0)
-					{
 						sprintf_s(timeLabel, size, "%dh %ds", hours, seconds);
-					}
 					else
-					{
 						sprintf_s(timeLabel, size, "%dh", hours);
-					}
 				}
 				else if (minutes > 0)
 				{
 					if (seconds > 0)
-					{
 						sprintf_s(timeLabel, size, "%dm %ds", minutes, seconds);
-					}
 					else
-					{
 						sprintf_s(timeLabel, size, "%dm", minutes);
-					}
 				}
 				else
 				{

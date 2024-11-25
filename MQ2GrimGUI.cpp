@@ -303,42 +303,6 @@ static void DrawPlayerWindow()
 
 			DrawMenu("Player");
 
-
-			//if (ImGui::BeginMenuBar())
-			//{
-			//	ImGui::Text(ICON_FA_COG);
-			//	if (ImGui::IsItemClicked())
-			//		s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
-
-			//	if (ImGui::BeginMenu("Main"))
-			//	{
-			//		if (ImGui::MenuItem("Lock All Windows", NULL, s_WinSettings.lockAllWin))
-			//		{
-			//			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
-			//			SaveSetting(&s_WinSettings.lockAllWin, &s_SettingsFile[0]);
-			//		}
-
-			//		if (ImGui::MenuItem("Split Target", NULL, s_WinSettings.showTargetWindow))
-			//		{
-			//			s_WinSettings.showTargetWindow = !s_WinSettings.showTargetWindow;
-			//			SaveSetting(&s_WinSettings.showTargetWindow, &s_SettingsFile[0]);
-			//		}
-
-			//		if (ImGui::MenuItem("Show Config", NULL, s_WinSettings.showConfigWindow))
-			//			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
-
-			//		if (ImGui::MenuItem("Show Main", NULL, s_WinSettings.showMainWindow))
-			//		{
-			//			s_WinSettings.showMainWindow = !s_WinSettings.showMainWindow;
-			//			SaveSetting(&s_WinSettings.showMainWindow, &s_SettingsFile[0]);
-			//		}
-
-			//		ImGui::EndMenu();
-			//	}
-			//	
-			//	ImGui::EndMenuBar();
-			//}
-
 			ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
 			DrawPlayerBars(true,s_NumSettings.playerBarHeight,false,s_FontScaleSettings.playerWinScale);
 
@@ -427,7 +391,6 @@ static void DrawGroupWindow()
 			{
 				for (int i = 1; i < MAX_GROUP_SIZE; i++)
 				{
-
 					DrawEmptyMember(i);
 				}
 			}
@@ -1314,6 +1277,9 @@ PLUGIN_API void OnPulse()
 			pSpellPicker->ClearSelection();
 			s_MemGemIndex = 0;
 		}
+
+		if (pSpellPicker->m_NeedSpellPickup)
+			pSpellPicker->PickUpSpell();
 	}
 	else
 	{
@@ -1380,7 +1346,7 @@ PLUGIN_API void OnUpdateImGui()
 			if (!s_WinSettings.showSongWindow)
 				SaveSetting(&s_WinSettings.showSongWindow, &s_SettingsFile[0]);
 		}
-		
+
 		// Split Target Window
 		if (s_WinSettings.showTargetWindow && pTarget)
 		{
@@ -1464,7 +1430,7 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::End();
 		}
 	}
-	
+
 }
 
 /**

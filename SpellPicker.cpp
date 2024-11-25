@@ -248,7 +248,7 @@ void SpellPicker::DrawSpellTree()
 
 		for (const auto& spell : Spells)
 		{
-			if (!Filter.empty() && mq::ci_find_substr(spell.Name, Filter) == -1)
+			if (!m_PickerFilter.empty() && mq::ci_find_substr(spell.Name, m_PickerFilter) == -1)
 				continue;
 
 			categorizedSpells[spell.Category][spell.SubCategory].push_back(spell);
@@ -318,9 +318,9 @@ void SpellPicker::DrawSpellTable()
 	}
 
 	char buffer[256] = {};
-	strncpy_s(buffer, FilterTable.c_str(), sizeof(buffer));
+	strncpy_s(buffer, m_TableFilter.c_str(), sizeof(buffer));
 	if (ImGui::InputTextWithHint("Search##SpellTable", "Filters, Name, Rank, Cat, or SubCat", buffer, sizeof(buffer)))
-		FilterTable = buffer;
+		m_TableFilter = buffer;
 
 	if (ImGui::BeginTable("SpellTable##GrimGui", 7, ImGuiTableFlags_Reorderable |
 		ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
@@ -337,11 +337,11 @@ void SpellPicker::DrawSpellTable()
 		ImGui::TableHeadersRow();
 		for (const auto& spell : Spells)
 		{
-			if (!(FilterTable.empty() || !FilterTable.empty() &&
-				(mq::ci_find_substr(spell.Name, FilterTable) > -1
-				|| mq::ci_find_substr(spell.Category, FilterTable) > -1
-				|| mq::ci_find_substr(spell.SubCategory, FilterTable) > -1
-				|| mq::ci_find_substr(spell.RankName, FilterTable) > -1)				
+			if (!(m_TableFilter.empty() || !m_TableFilter.empty() &&
+				(mq::ci_find_substr(spell.Name, m_TableFilter) > -1
+				|| mq::ci_find_substr(spell.Category, m_TableFilter) > -1
+				|| mq::ci_find_substr(spell.SubCategory, m_TableFilter) > -1
+				|| mq::ci_find_substr(spell.RankName, m_TableFilter) > -1)				
 				))
 				continue;
 
@@ -364,26 +364,20 @@ void SpellPicker::DrawSpellTable()
 			{
 				InspectSpell(spell.ID);
 
-				//SelectedSpell = std::make_shared<SpellData>(spell);
-				//Open = false;
+				// NOTE:
+				// incase i decide to add this as an option for the picker instead of the tree.
+				// 
+				// SelectedSpell = std::make_shared<SpellData>(spell);
+				// Open = false;
 			}
-			//if (ImGui::BeginPopupContextItem(("SpellContextMenu##"), ImGuiPopupFlags_MouseButtonRight))
+
+			// FIXME: See notes in header.
+			// 
+			//if (ImGui::IsItemClicked(1))
 			//{
-			//	std::string label = "Inspect##" + spell.Name;
-			//	if (ImGui::MenuItem(label.c_str()))
-			//		InspectSpell(spell.ID);
-
-			//	// TODO: Add a way to pick up the spell from the table
-			//	//
-			//	//std::string label2 = "PickUp##" + spell.Name;
-			//	//if (ImGui::MenuItem(label2.c_str()))
-			//	//{
-			//	//	//SelectedSpell = std::make_shared<SpellData>(spell);
-			//	//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LCLICKHOLD, (int*)spell.SpellBookIndex);
-			//	//	pSpellBookWnd->ParentWndNotification(pSpellBookWnd, XWM_LBUTTONUPAFTERHELD, (int*)spell.SpellBookIndex);
-			//	//}
-
-			//	ImGui::EndPopup();
+			//	m_NeedSpellPickup = true;
+			//	m_SpellBookIndex = spell.ID;
+			//	m_SpellBookIcon = m_pSpellIcon;
 			//}
 
 			ImGui::TableNextColumn();
@@ -481,9 +475,9 @@ void SpellPicker::DrawSpellPicker()
 	if (ImGui::Begin("Spell Picker", &Open, ImGuiWindowFlags_NoDocking))
 	{
 		char buffer[256] = {};
-		strncpy_s(buffer, Filter.c_str(), sizeof(buffer));
+		strncpy_s(buffer, m_PickerFilter.c_str(), sizeof(buffer));
 		if (ImGui::InputText("Search##SpellPicker", buffer, sizeof(buffer)))
-			Filter = buffer;
+			m_PickerFilter = buffer;
 
 		ImGui::SameLine();
 		if (ImGui::Button("Refresh##SpellPicker"))
