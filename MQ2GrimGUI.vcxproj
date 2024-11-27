@@ -73,9 +73,13 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="SpellPicker.cpp" />
     <ClCompile Include="MQ2GrimGUI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="SpellPicker.h" />
+    <ClInclude Include="Theme.h" />
+    <ClInclude Include="MQ2GrimGUI.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
