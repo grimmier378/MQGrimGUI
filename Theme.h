@@ -1,10 +1,8 @@
 #pragma once
 #include <vector>
-#include <variant>
-#include <string>
-#include <unordered_map>
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "mq/base/String.h"
 
 constexpr int ThemeCount = 7;
 
@@ -457,6 +455,7 @@ inline void ApplyTheme(std::string_view themeName)
 			return;
 		}
 	}
+	ThemeFunctions[static_cast<int>(Theme::Default)]();
 }
 
 /**
