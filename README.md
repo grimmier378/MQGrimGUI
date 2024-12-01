@@ -1,4 +1,4 @@
-# MQ2GrimGUI
+# MQGrimGUI
 
 Converting MyUI Lua into a Plugin. 
 
@@ -72,9 +72,9 @@ Command  | Option	  | Description
 
 ### Configuration File
 
-Your Settings will default to MQ2GrimGUI.ini while you are not logged into a character.
+Your Settings will default to MQGrimGUI.ini while you are not logged into a character.
 
-Once you Log in we will Load MQ2GrimGUI_Server name_CharName.ini file or create one from the defaults if it is missing.
+Once you Log in we will Load MQGrimGUI_Server name_CharName.ini file or create one from the defaults if it is missing.
 
 This will revert back after you camp to charecter select. 
 
@@ -142,7 +142,6 @@ BuffTimerThreshold=0
 Theme=Default
 [Hud]
 ShowHud=0
-HudClickThrough=0
 HudAlpha=120
 [Colors]
 MinColorHP=4292827135

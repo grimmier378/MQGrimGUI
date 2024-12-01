@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectGuid>{567F1165-B6AB-40B4-A645-90C11B2BCD40}</ProjectGuid>
+    <ProjectGuid>{73D5C694-6A9A-4EC0-B1A5-FF0BE5A2AAE0}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -73,17 +73,16 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="MQGrimGUI.cpp" />
     <ClCompile Include="SpellPicker.cpp" />
-    <ClCompile Include="MQ2GrimGUI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SpellPicker.h" />
     <ClInclude Include="Theme.h" />
-    <ClInclude Include="MQ2GrimGUI.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MQ2GrimGUI.rc" />
+    <ResourceCompile Include="MQGrimGUI.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
