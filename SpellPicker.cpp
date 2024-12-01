@@ -63,15 +63,12 @@ void SpellPicker::DrawSpellTree()
 								ImGui::EndTooltip();
 							}
 						}
-
 						ImGui::TreePop(); 
 					}
 				}
-
 				ImGui::TreePop(); 
 			}
 		}
-
 		ImGui::TreePop();
 	}
 }
@@ -79,7 +76,6 @@ void SpellPicker::DrawSpellTree()
 
 void SpellPicker::DrawSpellTable()
 {
-
 	char buffer[256] = {};
 	strncpy_s(buffer, m_filterString.c_str(), sizeof(buffer));
 	if (ImGui::InputTextWithHint("Search##SpellTable", "Filters, Name, Rank, Cat, or SubCat", buffer, sizeof(buffer)))
@@ -170,13 +166,10 @@ void SpellPicker::DrawSpellTable()
 				ImGui::Text("Category: %s", spell.Category);
 				ImGui::Text("SubCategory: %s", spell.SubCategory);
 				ImGui::Text("SpellBookIndex: %d", spell.SpellBookIndex);
-
 				ImGui::EndTooltip();
 			}
 			ImGui::PopID();
-
 		}
-
 		ImGui::EndTable();
 	}
 }
