@@ -256,21 +256,21 @@ std::vector<ThemeSetting> themeSettings = {
 
 struct ColorSettings
 {
-	mq::MQColor minColorHP   = (223, 87, 255, 255);
-	mq::MQColor maxColorHP   = (216, 39, 39, 255);
-	mq::MQColor minColorMP   = (66, 29, 131, 255);
-	mq::MQColor maxColorMP   = (20, 119, 216, 255);
-	mq::MQColor minColorEnd  = (255, 111, 5, 255);
-	mq::MQColor maxColorEnd  = (178, 153, 26, 178);
-	mq::MQColor minColorCast = (216, 39, 39, 255);
-	mq::MQColor maxColorCast = (20, 119, 216, 255);
+	MQColor minColorHP   = MQColor(223, 87, 255, 255);
+	MQColor maxColorHP   = MQColor(216, 39, 39, 255);
+	MQColor minColorMP   = MQColor(66, 29, 131, 255);
+	MQColor maxColorMP   = MQColor(20, 119, 216, 255);
+	MQColor minColorEnd  = MQColor(255, 111, 5, 255);
+	MQColor maxColorEnd  = MQColor(178, 153, 26, 178);
+	MQColor minColorCast = MQColor(216, 39, 39, 255);
+	MQColor maxColorCast = MQColor(20, 119, 216, 255);
 } s_BarColors;
 
 struct ColorSetting
 {
 	const char* section;
 	const char* key;
-	mq::MQColor* value;
+	MQColor* value;
 	const char* label;
 	const char* helpText;
 };
@@ -581,7 +581,7 @@ void SaveSetting(std::string* theme, const char* settingsFile)
 		WritePrivateProfileString(it->section, it->key, *theme, settingsFile);
 }
 
-void SaveSetting(mq::MQColor* color, const char* settingsFile)
+void SaveSetting(MQColor* color, const char* settingsFile)
 {
 	auto it = std::find_if(colorSettings.begin(), colorSettings.end(),
 		[color](const ColorSetting& cs) { return cs.value == color; });
@@ -1839,7 +1839,7 @@ void DrawMenu(const char* winName)
 *  @param tooltip const char* Tooltip text to display when hovering over the progress bar
 */
 void DrawBar(const char* label, int current, int max, int height,
-	const mq::MQColor minColor, const mq::MQColor maxColor, const char* tooltip)
+	const MQColor minColor, const MQColor maxColor, const char* tooltip)
 {
 	float percentage = static_cast<float>(current) / max;
 	int percentageInt = static_cast<int>(percentage * 100);
