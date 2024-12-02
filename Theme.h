@@ -9,13 +9,9 @@ constexpr int ThemeCount = 7;
 #pragma region Themes Set Functions
 
 // Default Theme Calls ImGui::StyleColorsDark() to reset the theme back to the MQ default.
-inline void StyleColorsDefault()
-{
-	ImGui::StyleColorsDark();
-}
 
 inline void StyleColorsGrape()
-	{
+{
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
 	ImVec4*                                colors = style-> Colors;
 
@@ -74,10 +70,10 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_NavWindowingHighlight]        = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-	}
+}
 
-	inline                                 void StyleColorRed()
-	{
+inline void StyleColorRed()
+{
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
 	ImVec4*                                colors = style-> Colors;
 
@@ -134,10 +130,10 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_NavWindowingHighlight]        = ImVec4(1.0000f, 1.0000f, 1.0000f, 0.7000f);
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.8000f, 0.8000f, 0.8000f, 0.2000f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.8000f, 0.8000f, 0.8000f, 0.3500f);
-	}
+}
 
-	inline                                 void StyleColorBurnt()
-	{
+inline void StyleColorBurnt()
+{
 
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
 	ImVec4*                                colors = style-> Colors;
@@ -198,10 +194,10 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-	}
+}
 
-	inline                                 void StyleColorMono()
-	{
+inline void StyleColorMono()
+{
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
 	ImVec4*                                colors = style-> Colors;
 
@@ -261,10 +257,10 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-	}
+}
 
-	inline                                 void StyleColorLime()
-	{
+inline void StyleColorLime()
+{
 
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
 	ImVec4*                                colors = style-> Colors;
@@ -325,10 +321,10 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-	}
+}
 
-	inline                                 void StyleColorNight()
-	{
+inline void StyleColorNight()
+{
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
 	ImVec4*                                colors = style-> Colors;
 	colors[ImGuiCol_Text]                         = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
@@ -367,35 +363,34 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_PlotHistogramHovered]         = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
 	colors[ImGuiCol_TextSelectedBg]               = ImVec4(0.25f, 1.00f, 0.00f, 0.43f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(1.00f, 0.98f, 0.95f, 0.73f);
-	}
+}
 
 #pragma endregion
 
 
 enum class Theme
 {
-	Default,
 	Grape,
 	Red,
 	Burnt,
 	Monochrome,
 	Lime,
 	Night,
+	Default, // keep default at the end of the list
 };
 
 static const std::vector<char*> ThemeNames
 {
-	"Default",
 	"Grape",
 	"Red",
 	"Burnt",
 	"Monochrome",
 	"Lime",
 	"Night",
+	"Default", // keep default at the end of the list
 };
 
 inline void (*ThemeFunctions[])(void) = {
-	StyleColorsDefault,
 	StyleColorsGrape,
 	StyleColorRed,
 	StyleColorBurnt,
@@ -441,14 +436,18 @@ inline const char* DrawThemePicker(std::string_view currentThemeName, const char
 }
 
 /**
-* @brief Apply a theme by name
+* @brief Apply a theme to the window and Backup the Original to replace when done
+* 
 * @param std::string_view themeName The name of the theme to apply
-* @return ImGuiStyle The old style of the window
+* 
+* @return ImGuiStyle The old style of the window so you can replace it later
 */
 inline ImGuiStyle ApplyTheme(std::string_view themeName)
 {
 	ImGuiStyle oldStyle = ImGui::GetStyle();
-	
+	if (ci_equals(themeName, "Default"))
+		return oldStyle;
+
 	for (int i = 0; i < ThemeCount; ++i)
 	{
 		if (ci_equals(themeName, ThemeNames[i]))
@@ -462,11 +461,11 @@ inline ImGuiStyle ApplyTheme(std::string_view themeName)
 }
 
 /**
-* @brief Reset the theme to default. 
-* Remember to call this after ImGui::End() on the window you are applying the theme to.
+* @brief Reset the theme to the original style
+* 
 * @param ImGuiStyle oldStyle The old style of the window
 */
-inline void ResetTheme(ImGuiStyle oldStyle)
+inline void ResetTheme(ImGuiStyle &oldStyle)
 {
 	ImGui::GetStyle() = oldStyle;
 }
