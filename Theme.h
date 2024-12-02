@@ -8,8 +8,6 @@ constexpr int ThemeCount = 7;
 
 #pragma region Themes Set Functions
 
-// Default Theme Calls ImGui::StyleColorsDark() to reset the theme back to the MQ default.
-
 inline void StyleColorsGrape()
 {
 	ImGuiStyle*                            style  = &ImGui::GetStyle();
@@ -329,15 +327,15 @@ inline void StyleColorNight()
 	ImVec4*                                colors = style-> Colors;
 	colors[ImGuiCol_Text]                         = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
 	colors[ImGuiCol_TextDisabled]                 = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
-	colors[ImGuiCol_WindowBg]                     = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
-	colors[ImGuiCol_ChildBg]                      = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+	colors[ImGuiCol_WindowBg]                     = ImVec4(0.03f, 0.02f, 0.04f, 1.00f);
+	colors[ImGuiCol_ChildBg]                      = ImVec4(0.03f, 0.03f, 0.05f, 1.00f);
 	colors[ImGuiCol_PopupBg]                      = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
 	colors[ImGuiCol_Border]                       = ImVec4(0.80f, 0.80f, 0.83f, 0.88f);
 	colors[ImGuiCol_BorderShadow]                 = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
 	colors[ImGuiCol_FrameBg]                      = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
 	colors[ImGuiCol_FrameBgHovered]               = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
 	colors[ImGuiCol_FrameBgActive]                = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
-	colors[ImGuiCol_TitleBg]                      = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+	colors[ImGuiCol_TitleBg]                      = ImVec4(0.07f, 0.06f, 0.09f, 1.00f);
 	colors[ImGuiCol_TitleBgCollapsed]             = ImVec4(1.00f, 0.98f, 0.95f, 0.75f);
 	colors[ImGuiCol_TitleBgActive]                = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
 	colors[ImGuiCol_MenuBarBg]                    = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
@@ -357,6 +355,9 @@ inline void StyleColorNight()
 	colors[ImGuiCol_ResizeGrip]                   = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 	colors[ImGuiCol_ResizeGripHovered]            = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
 	colors[ImGuiCol_ResizeGripActive]             = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+	colors[ImGuiCol_TableHeaderBg]				  = ImVec4(0.07f, 0.10f, 0.15f, 1.00f);
+	colors[ImGuiCol_TableRowBg]					  = ImVec4(0.05f, 0.05f, 0.08f, 1.00f);
+	colors[ImGuiCol_TableRowBgAlt]				  = ImVec4(0.06f, 0.08f, 0.11f, 1.00f);
 	colors[ImGuiCol_PlotLines]                    = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
 	colors[ImGuiCol_PlotLinesHovered]             = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
 	colors[ImGuiCol_PlotHistogram]                = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
