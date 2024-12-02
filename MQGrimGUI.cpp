@@ -590,7 +590,6 @@ void SaveSetting(MQColor* color, const char* settingsFile)
 }
 
 
-
 /**
 * @brief Updates the settings file based on the current game state
 *		 between the character specific and default settings file
@@ -647,6 +646,7 @@ static void UpdateSettingFile()
 					else 
 						pSpellPicker->InitializeSpells();
 				}
+				s_DefaultLoaded = false;
 			}
 		}
 	}
@@ -656,11 +656,12 @@ static void UpdateSettingFile()
 		{
 			s_CharIniLoaded = false;
 
-			if (ci_equals(s_SettingsFile, DEFAULT_INI))
-			{
-				memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
-				strcpy_s(s_SettingsFile, DEFAULT_INI.c_str());
-			}
+			memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
+			strcpy_s(s_SettingsFile, DEFAULT_INI.c_str());
+			std::error_code ec;
+			if (!std::filesystem::exists(DEFAULT_INI, ec))
+				SaveSettings();
+
 			LoadSettings();
 
 			s_DefaultLoaded = true;
