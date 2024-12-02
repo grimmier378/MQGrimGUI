@@ -51,7 +51,7 @@ constexpr          MQColor DEF_SELF_CAST_BORDER_COL(250, 250, 0, 255);
 constexpr          MQColor DEF_TINT_COL(255, 255, 255, 255);
 
 
-ImGuiWindowFlags   s_WindowFlags            = ImGuiWindowFlags_None;
+ImGuiWindowFlags   s_WindowFlags            = ImGuiWindowFlags_None | ImGuiWindowFlags_NoFocusOnAppearing;
 ImGuiWindowFlags   s_LockAllWin             = ImGuiWindowFlags_None;
 ImGuiChildFlags    s_ChildFlags             = ImGuiChildFlags_None;
 
@@ -2689,9 +2689,8 @@ static void DrawCastingBarWindow()
 		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
 		
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockCastingWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
-
 		if (ImGui::Begin("Casting1", &s_IsCasting,
-			lockFlag | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
+			lockFlag | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
 			EQ_Spell* pSpell = GetSpellByName(spellName);
@@ -3238,7 +3237,7 @@ PLUGIN_API void OnPulse()
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
 		s_LockAllWin = s_WinSettings.lockAllWin ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
-		s_WindowFlags = s_WinSettings.showTitleBars ? ImGuiWindowFlags_None : ImGuiWindowFlags_NoTitleBar;
+		s_WindowFlags = s_WinSettings.showTitleBars ? ImGuiWindowFlags_None | ImGuiWindowFlags_NoFocusOnAppearing : ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar;
 
 		if (s_ShowOutOfGame)
 			s_ShowOutOfGame = false; // reset incase we logged back in. =)
@@ -3517,7 +3516,7 @@ PLUGIN_API void InitializePlugin()
 	s_DanNetEnabled = mq::IsPluginLoaded("MQ2DanNet");
 
 	if (!s_WinSettings.showTitleBars)
-		s_WindowFlags = ImGuiWindowFlags_NoTitleBar;
+		s_WindowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing;
 
 	if (s_WinSettings.lockAllWin)
 		s_LockAllWin = ImGuiWindowFlags_NoMove;

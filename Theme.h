@@ -60,8 +60,8 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_TableHeaderBg]                = ImVec4(0.2259f, 0.1795f, 0.2559f, 1.00f);
 	colors[ImGuiCol_TableBorderStrong]            = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);   // Prefer using Alpha=1.0 here
 	colors[ImGuiCol_TableBorderLight]             = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);   // Prefer using Alpha=1.0 here
-	colors[ImGuiCol_TableRowBg]                   = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);   // Background of odd rows
-	colors[ImGuiCol_TableRowBgAlt]                = ImVec4(0.20f, 0.22f, 0.27f, 0.00f);   // Background of even rows
+	colors[ImGuiCol_TableRowBg]                   = ImVec4(0.00f, 0.00f, 0.00f, 0.70f);   // Background of odd rows
+	colors[ImGuiCol_TableRowBgAlt]                = ImVec4(0.20f, 0.22f, 0.27f, 0.80f);   // Background of even rows
 	colors[ImGuiCol_TextSelectedBg]               = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
 	colors[ImGuiCol_DragDropTarget]               = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
 	colors[ImGuiCol_NavHighlight]                 = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
@@ -344,6 +344,7 @@ inline void StyleColorNight()
 	colors[ImGuiCol_ScrollbarGrabHovered]         = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
 	colors[ImGuiCol_ScrollbarGrabActive]          = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
 	colors[ImGuiCol_CheckMark]                    = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+	colors[ImGuiCol_Separator]			          = colors[ImGuiCol_Border];
 	colors[ImGuiCol_SliderGrab]                   = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
 	colors[ImGuiCol_SliderGrabActive]             = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
 	colors[ImGuiCol_Button]                       = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
@@ -358,6 +359,12 @@ inline void StyleColorNight()
 	colors[ImGuiCol_TableHeaderBg]				  = ImVec4(0.07f, 0.10f, 0.15f, 1.00f);
 	colors[ImGuiCol_TableRowBg]					  = ImVec4(0.05f, 0.05f, 0.08f, 1.00f);
 	colors[ImGuiCol_TableRowBgAlt]				  = ImVec4(0.06f, 0.08f, 0.11f, 1.00f);
+	colors[ImGuiCol_Tab]						  = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
+	colors[ImGuiCol_TabHovered]					  = colors[ImGuiCol_HeaderHovered];
+	colors[ImGuiCol_TabActive]					  = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
+	colors[ImGuiCol_TabUnfocused]				  = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
+	colors[ImGuiCol_TabUnfocusedActive]			  = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
+	colors[ImGuiCol_DockingPreview]				  = colors[ImGuiCol_HeaderActive] * ImVec4(1.0f, 1.0f, 1.0f, 0.70f);
 	colors[ImGuiCol_PlotLines]                    = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
 	colors[ImGuiCol_PlotLinesHovered]             = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
 	colors[ImGuiCol_PlotHistogram]                = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
