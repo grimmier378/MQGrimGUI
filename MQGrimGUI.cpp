@@ -2361,7 +2361,7 @@ static void DrawPlayerWindow()
 	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 0), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 290), ImGuiCond_FirstUseEver);
 	
-	ApplyTheme(s_WinTheme.playerWinTheme);
+	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.playerWinTheme);
 
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar ;
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockPlayerWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
@@ -2408,7 +2408,7 @@ static void DrawPlayerWindow()
 	}
 
 	ImGui::End();
-	ResetTheme();
+	ResetTheme(originalStyle);
 }
 
 static void DrawGroupWindow()
@@ -2420,7 +2420,7 @@ static void DrawGroupWindow()
 	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 300), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 
-	ApplyTheme(s_WinTheme.groupWinTheme);
+	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.groupWinTheme);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockGroupWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -2538,7 +2538,7 @@ static void DrawGroupWindow()
 		ImGui::EndPopup();
 	}
 
-	ResetTheme();
+	ResetTheme(originalStyle);
 	ImGui::End();
 }
 
@@ -2554,7 +2554,7 @@ static void DrawPetWindow()
 		ImGui::SetNextWindowPos(ImVec2(displayX * 0.75f, displayY * 0.5f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 283), ImGuiCond_FirstUseEver);
 		
-		ApplyTheme(s_WinTheme.petWinTheme);
+		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.petWinTheme);
 		
 		ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
@@ -2665,7 +2665,7 @@ static void DrawPetWindow()
 			}
 		}
 
-		ResetTheme();
+		ResetTheme(originalStyle);
 		ImGui::End();
 	}
 }
@@ -2685,7 +2685,7 @@ static void DrawCastingBarWindow()
 		ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 150, displayY * 0.3f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		
-		ApplyTheme(s_WinTheme.spellsWinTheme);
+		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
 		
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockCastingWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
@@ -2766,7 +2766,7 @@ static void DrawCastingBarWindow()
 			ImGui::EndPopup();
 		}
 		//ImGui::SetWindowFontScale(1.0f);
-		ResetTheme();
+		ResetTheme(originalStyle);
 		ImGui::End();
 	}
 	else
@@ -2785,7 +2785,7 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowPos(ImVec2(230,80), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(79, 662), ImGuiCond_FirstUseEver);
 
-		ApplyTheme(s_WinTheme.spellsWinTheme);
+		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
 
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockSpellsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
@@ -2821,7 +2821,7 @@ static void DrawSpellWindow()
 			ImGui::EndPopup();
 		}
 
-		ResetTheme();
+		ResetTheme(originalStyle);
 		ImGui::End();
 
 	}
@@ -2835,7 +2835,7 @@ static void DrawBuffWindow()
 	ImGui::SetNextWindowPos(ImVec2(15,10), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 
-	ApplyTheme(s_WinTheme.buffsWinTheme);
+	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.buffsWinTheme);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockBuffsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -2863,7 +2863,7 @@ static void DrawBuffWindow()
 		ImGui::EndPopup();
 	}
 
-	ResetTheme();
+	ResetTheme(originalStyle);
 	ImGui::End();
 }
 
@@ -2875,7 +2875,7 @@ static void DrawSongWindow()
 	ImGui::SetNextWindowPos(ImVec2(15, 310), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 
-	ApplyTheme(s_WinTheme.songWinTheme);
+	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.songWinTheme);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockSongWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -2907,7 +2907,7 @@ static void DrawSongWindow()
 		DrawBuffsTable("SongTable", pSongWnd->GetBuffRange(), false, true, true);
 	}
 
-	ResetTheme();
+	ResetTheme(originalStyle);
 	ImGui::End();
 }
 
@@ -3388,7 +3388,7 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
 
-			ApplyTheme(s_WinTheme.playerWinTheme);
+			ImGuiStyle oldStyle = ApplyTheme(s_WinTheme.playerWinTheme);
 
 			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
@@ -3413,7 +3413,7 @@ PLUGIN_API void OnUpdateImGui()
 				ImGui::EndPopup();
 			}
 
-			ResetTheme();
+			ResetTheme(oldStyle);
 			ImGui::End();
 
 			if (!s_WinSettings.showTargetWindow)

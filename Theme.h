@@ -443,28 +443,32 @@ inline const char* DrawThemePicker(std::string_view currentThemeName, const char
 /**
 * @brief Apply a theme by name
 * @param std::string_view themeName The name of the theme to apply
+* @return ImGuiStyle The old style of the window
 */
-inline void ApplyTheme(std::string_view themeName)
+inline ImGuiStyle ApplyTheme(std::string_view themeName)
 {
+	ImGuiStyle oldStyle = ImGui::GetStyle();
+	
 	for (int i = 0; i < ThemeCount; ++i)
 	{
 		if (ci_equals(themeName, ThemeNames[i]))
 		{
 			if (ThemeFunctions[i])
 				ThemeFunctions[i]();
-			return;
+			break;
 		}
 	}
-	ThemeFunctions[static_cast<int>(Theme::Default)]();
+	return oldStyle;
 }
 
 /**
 * @brief Reset the theme to default. 
 * Remember to call this after ImGui::End() on the window you are applying the theme to.
+* @param ImGuiStyle oldStyle The old style of the window
 */
-inline void ResetTheme()
+inline void ResetTheme(ImGuiStyle oldStyle)
 {
-	ThemeFunctions[static_cast<int>(Theme::Default)]();
+	ImGui::GetStyle() = oldStyle;
 }
 
 #pragma endregion
