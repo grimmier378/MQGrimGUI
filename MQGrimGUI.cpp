@@ -3311,7 +3311,7 @@ PLUGIN_API void OnPulse()
 			if (pSpellPicker->m_needFilter)
 				pSpellPicker->FilterSpells();
 
-			if (pSpellPicker->m_NeedSpellPickup)
+			if (pSpellPicker->m_needSpellPickup)
 				pSpellPicker->PickUpSpell();
 		}
 	}

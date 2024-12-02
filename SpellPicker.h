@@ -19,7 +19,7 @@ public:
 	};
 
 	bool m_pickerOpen      = false;
-	bool m_NeedSpellPickup = false;
+	bool m_needSpellPickup = false;
 	bool m_needFilter      = false;
 	bool m_useFilter       = false;
 
@@ -30,7 +30,7 @@ public:
 	CTextureAnimation*         m_pSpellBookIcon = nullptr;
 	CTextureAnimation*         m_pSpellIcon     = nullptr;
 
-	int                        m_SpellBookIndex = -1;
+	int                        m_spellBookIndex = -1;
 
 	std::string m_filterString;
 private:
