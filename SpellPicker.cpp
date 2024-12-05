@@ -317,7 +317,7 @@ void SpellPicker::InspectSpell(int spellId)
 			pSpellDisplayManager->ShowSpell(pSpell->ID, true, true, SpellDisplayType_SpellBookWnd);
 #else
 		char buffer[512] = { 0 };
-		FormatSpellLink(buffer, 512, spell);
+		FormatSpellLink(buffer, 512, pSpell);
 		TextTagInfo info = ExtractLink(buffer);
 		ExecuteTextLink(info);
 #endif

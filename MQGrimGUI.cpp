@@ -187,11 +187,11 @@ struct WinSizeSettings
 	float petWinX          = 20.0f;
 	float petWinY          = 20.0f;
 	float groupWinX        = 200.0f;
-	float groupWinY        = 400.0f;
+	float groupWinY        = 200.0f;
 	float castingWinX      = 300.0f;
 	float castingWinY      = 300.0f;
 	float spellsWinX       = 20.0f;
-	float spellsWinY       = 20.0f;
+	float spellsWinY       = 220.0f;
 	float buffsWinX        = 15.0f;
 	float buffsWinY        = 10.0f;
 	float songWinX         = 15.0f;
@@ -1590,13 +1590,13 @@ static void DisplayPetButtons()
 static bool CheckWinPos(float &x, float &y, float& w, float& h, ImVec2 curPos, ImVec2 curSize)
 {
 	bool changed = false;
-	if (x != curPos.x && y != curPos.y)
+	if (x != curPos.x || y != curPos.y)
 	{
 		x = curPos.x;
 		y = curPos.y;
 		changed = true;
 	}
-	if (w != curSize.x && h != curSize.y)
+	if (w != curSize.x || h != curSize.y)
 	{
 		w = curSize.x;
 		h = curSize.y;
