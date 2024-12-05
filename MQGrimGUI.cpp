@@ -39,6 +39,7 @@ bool               s_DanNetEnabled          = false;
 bool               s_ShowSpellBook          = false;
 bool               s_SettingModified        = false;
 bool               s_HasRezEfx              = false;
+bool               s_DoSavePosition			= false;
 
 int                s_MemGemIndex            = 0;
 int                s_TarBuffLineSize        = 0;
@@ -98,6 +99,7 @@ struct WinSettings
 	bool flashCombatFlag    = false;
 	bool flashTintFlag      = false;
 	bool showTitleBars      = true;
+	bool savePosition		= false;
 	bool lockAllWin         = false;
 	bool lockPlayerWin      = false;
 	bool lockTargetWin      = false;
@@ -123,15 +125,17 @@ struct WinSetting
 	bool* setting;
 };
 
-std::vector<WinSetting> winSettings = {
+static std::vector<WinSetting> winSettings = {
 	{"Settings",	"ShowMainGui",			&s_WinSettings.showMainWindow},
 	{"Settings",	"ShowTitleBars",		&s_WinSettings.showTitleBars},
+	{"Settings",    "SaveWinPos",			&s_WinSettings.savePosition},
 	{"LockWindows",	"LockAllWindows",		&s_WinSettings.lockAllWin},
 	{"LockWindows",	"LockPlayerWin",		&s_WinSettings.lockPlayerWin},
 	{"LockWindows",	"LockTargetWin",		&s_WinSettings.lockTargetWin},
 	{"LockWindows",	"LockPetWin",			&s_WinSettings.lockPetWin},
 	{"LockWindows",	"LockGroupWin",			&s_WinSettings.lockGroupWin},
 	{"LockWindows",	"LockSpellsWin",		&s_WinSettings.lockSpellsWin},
+	{"LockWindows", "LockCastingWin",		&s_WinSettings.lockCastingWin},
 	{"LockWindows",	"LockBuffsWin",			&s_WinSettings.lockBuffsWin},
 	{"LockWindows",	"LockSongWin",			&s_WinSettings.lockSongWin},
 	{"LockWindows",	"LockHudWin",			&s_WinSettings.lockHudWin},
@@ -152,6 +156,95 @@ std::vector<WinSetting> winSettings = {
 };
 
 #pragma endregion
+
+#pragma region Window Size and Position Settings
+
+struct WinSizeSettings
+{
+	float playerWinWidth   = 300.0f;
+	float playerWinHeight  = 290.0f;
+	float targetWinWidth   = 300.0f;
+	float targetWinHeight  = 250.0f;
+	float petWinWidth      = 300.0f;
+	float petWinHeight     = 283.0f;
+	float groupWinWidth    = 300.0f;
+	float groupWinHeight   = 200.0f;
+	float castingWinWidth = 300.0f;
+	float castingWinHeight = 70.0f;
+	float spellsWinWidth   = 79.0f;
+	float spellsWinHeight  = 662.0f;
+	float buffsWinWidth    = 210.0f;
+	float buffsWinHeight   = 300.0f;
+	float songWinWidth     = 210.0f;
+	float songWinHeight    = 300.0f;
+	float hudWinWidth      = 30.0f;
+	float hudWinHeight     = 30.0f;
+	// positions
+	float playerWinX       = 200.0f;
+	float playerWinY       = 20.0f;
+	float targetWinX       = 20.0f;
+	float targetWinY       = 20.0f;
+	float petWinX          = 20.0f;
+	float petWinY          = 20.0f;
+	float groupWinX        = 200.0f;
+	float groupWinY        = 400.0f;
+	float castingWinX      = 300.0f;
+	float castingWinY      = 300.0f;
+	float spellsWinX       = 20.0f;
+	float spellsWinY       = 20.0f;
+	float buffsWinX        = 15.0f;
+	float buffsWinY        = 10.0f;
+	float songWinX         = 15.0f;
+	float songWinY         = 310.0f;
+	float hudWinX          = 300.0f;
+	float hudWinY          = 10.0f;
+} s_WinSizeSettings;
+
+struct WinSizeSetting
+{
+	const char* section;
+	const char* key;
+	float* value;
+};
+
+std::vector<WinSizeSetting> winSizeSettings = {
+	{"WinSizePosition",		"PlayerWinWidth",		&s_WinSizeSettings.playerWinWidth},
+	{"WinSizePosition",		"PlayerWinHeight",		&s_WinSizeSettings.playerWinHeight},
+	{"WinSizePosition",		"TargetWinWidth",		&s_WinSizeSettings.targetWinWidth},
+	{"WinSizePosition",		"TargetWinHeight",		&s_WinSizeSettings.targetWinHeight},
+	{"WinSizePosition",		"PetWinWidth",			&s_WinSizeSettings.petWinWidth},
+	{"WinSizePosition",		"PetWinHeight",			&s_WinSizeSettings.petWinHeight},
+	{"WinSizePosition",		"GroupWinWidth",		&s_WinSizeSettings.groupWinWidth},
+	{"WinSizePosition",		"GroupWinHeight",		&s_WinSizeSettings.groupWinHeight},
+	{"WinSizePosition",		"SpellsWinWidth",		&s_WinSizeSettings.spellsWinWidth},
+	{"WinSizePosition",		"SpellsWinHeight",		&s_WinSizeSettings.spellsWinHeight},
+	{"WinSizePosition",		"BuffWinWidth",			&s_WinSizeSettings.buffsWinWidth},
+	{"WinSizePosition",		"BuffWinHeight",		&s_WinSizeSettings.buffsWinHeight},
+	{"WinSizePosition",		"SongWinWidth",			&s_WinSizeSettings.songWinWidth},
+	{"WinSizePosition",		"SongWinHeight",		&s_WinSizeSettings.songWinHeight},
+	{"WinSizePosition",		"HudWinWidth",			&s_WinSizeSettings.hudWinWidth},
+	{"WinSizePosition",		"HudWinHeight",			&s_WinSizeSettings.hudWinHeight},
+	{"WinSizePosition",		"PlayerWinX",			&s_WinSizeSettings.playerWinX},
+	{"WinSizePosition",		"PlayerWinY",			&s_WinSizeSettings.playerWinY},
+	{"WinSizePosition",		"TargetWinX",			&s_WinSizeSettings.targetWinX},
+	{"WinSizePosition",		"TargetWinY",			&s_WinSizeSettings.targetWinY},
+	{"WinSizePosition",		"PetWinX",				&s_WinSizeSettings.petWinX},
+	{"WinSizePosition",		"PetWinY",				&s_WinSizeSettings.petWinY},
+	{"WinSizePosition",		"GroupWinX",			&s_WinSizeSettings.groupWinX},
+	{"WinSizePosition",		"GroupWinY",			&s_WinSizeSettings.groupWinY},
+	{"WinSizePosition",		"SpellsWinX",			&s_WinSizeSettings.spellsWinX},
+	{"WinSizePosition",		"SpellsWinY",			&s_WinSizeSettings.spellsWinY},
+	{"WinSizePosition",		"BuffWinX",				&s_WinSizeSettings.buffsWinX},
+	{"WinSizePosition",		"BuffWinY",				&s_WinSizeSettings.buffsWinY},
+	{"WinSizePosition",		"SongWinX",				&s_WinSizeSettings.songWinX},
+	{"WinSizePosition",		"SongWinY",				&s_WinSizeSettings.songWinY},
+	{"WinSizePosition",		"HudWinX",				&s_WinSizeSettings.hudWinX},
+	{"WinSizePosition",		"HudWinY",				&s_WinSizeSettings.hudWinY},
+	{"WinSizePosition",		"CastingWinWidth",		&s_WinSizeSettings.castingWinWidth},
+	{"WinSizePosition",		"CastingWinHeight",		&s_WinSizeSettings.castingWinHeight},
+	{"WinSizePosition",		"CastingWinX",			&s_WinSizeSettings.castingWinX},
+	{"WinSizePosition",		"CastingWinY",			&s_WinSizeSettings.castingWinY},
+};
 
 #pragma region Numeric Settings
 
@@ -359,6 +452,7 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Lock Songs",			&s_WinSettings.lockSongWin,			true,	"Lock Target: Toggle locking the Target Window"},
 	{"Lock Hud",			&s_WinSettings.lockHudWin,			true,	"Lock Pet: Toggle locking the Pet Window"},
 	{"Lock Casting",		&s_WinSettings.lockCastingWin,		true,	"Lock Casting: Toggle locking the Casting Window"},
+	{"Saved Position",		&s_WinSettings.savePosition,		true,	"Saved Position: Use local Stored saved Size and Positions. Docked windows will not redock."},
 
 };
 
@@ -522,13 +616,19 @@ static void LoadSettings()
 		*scale.value = GetPrivateProfileFloat("FontScale", scale.key,
 			*scale.value, s_SettingsFile);
 	}
+
+	for (const auto& winsizes : winSizeSettings)
+	{
+		*winsizes.value = GetPrivateProfileFloat(winsizes.section, winsizes.key,
+			*winsizes.value, s_SettingsFile);
+	}
 }
 
 static void SaveSettings()
 {
 	for (const auto& setting : winSettings)
 	{
-		WritePrivateProfileBool(setting.section, setting.key, setting.setting, s_SettingsFile);
+		WritePrivateProfileBool(setting.section, setting.key, *setting.setting, s_SettingsFile);
 	}
 
 	for (const auto& setting : numericSettings)
@@ -538,7 +638,7 @@ static void SaveSettings()
 
 	for (const auto& setting : themeSettings)
 	{
-		WritePrivateProfileString(setting.section, setting.key, setting.theme->c_str(), s_SettingsFile);
+		WritePrivateProfileString(setting.section, setting.key, *setting.theme, s_SettingsFile);
 	}
 
 	for (const auto& setting : colorSettings)
@@ -555,9 +655,14 @@ static void SaveSettings()
 	{
 		WritePrivateProfileFloat("FontScale", scale.key, *scale.value, s_SettingsFile);
 	}
+
+	for (const auto& winsizes : winSizeSettings)
+	{
+		WritePrivateProfileFloat(winsizes.section, winsizes.key, *winsizes.value, s_SettingsFile);
+	}
 }
 
-void SaveSetting(bool* setting, const char* settingsFile)
+static void SaveSetting(bool* setting, const char* settingsFile)
 {
 	auto it = std::find_if(winSettings.begin(), winSettings.end(),
 		[setting](const WinSetting& ws) { return ws.setting == setting; });
@@ -565,7 +670,7 @@ void SaveSetting(bool* setting, const char* settingsFile)
 		WritePrivateProfileBool(it->section, it->key, *setting, settingsFile);
 }
 
-void SaveSetting(int* value, const char* settingsFile)
+static void SaveSetting(int* value, const char* settingsFile)
 {
 	auto it = std::find_if(numericSettings.begin(), numericSettings.end(),
 		[value](const NumericSetting& ns) { return ns.value == value; });
@@ -573,7 +678,7 @@ void SaveSetting(int* value, const char* settingsFile)
 		WritePrivateProfileInt(it->section, it->key, *value, settingsFile);
 }
 
-void SaveSetting(std::string* theme, const char* settingsFile)
+static void SaveSetting(std::string* theme, const char* settingsFile)
 {
 	auto it = std::find_if(themeSettings.begin(), themeSettings.end(),
 		[theme](const ThemeSetting& ts) { return ts.theme == theme; });
@@ -581,7 +686,7 @@ void SaveSetting(std::string* theme, const char* settingsFile)
 		WritePrivateProfileString(it->section, it->key, *theme, settingsFile);
 }
 
-void SaveSetting(MQColor* color, const char* settingsFile)
+static void SaveSetting(MQColor* color, const char* settingsFile)
 {
 	auto it = std::find_if(colorSettings.begin(), colorSettings.end(),
 		[color](const ColorSetting& cs) { return cs.value == color; });
@@ -610,7 +715,7 @@ static void UpdateSettingFile()
 				if (!std::filesystem::exists(CharIniFile, ec))
 				{
 
-					// Check for character-specific file if missing then check for the default file to copy from incase edited at char select
+					// Check for character-specific file if missing then check for the default file to copy from in case edited at char select
 					// this way we can copy their settings over. 
 					// This allows you to set up the settings once and all characters can use that for a base.
 					if (std::filesystem::exists(DEFAULT_INI, ec))
@@ -1482,6 +1587,25 @@ static void DisplayPetButtons()
 	}
 }
 
+static bool CheckWinPos(float &x, float &y, float& w, float& h, ImVec2 curPos, ImVec2 curSize)
+{
+	bool changed = false;
+	if (x != curPos.x && y != curPos.y)
+	{
+		x = curPos.x;
+		y = curPos.y;
+		changed = true;
+	}
+	if (w != curSize.x && h != curSize.y)
+	{
+		w = curSize.x;
+		h = curSize.y;
+		changed = true;
+	}
+	return changed;
+}
+
+
 
 /**
 * @fn DrawLineOfSight
@@ -1914,7 +2038,7 @@ void DrawPetInfo(PlayerClient* petInfo, bool showAll = true)
 		ImGui::SetItemTooltip("%s  %d%", petName, petInfo->HPCurrent);
 
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-			GiveItem(GetSpawnByID(pLocalPlayer->PetID));
+			GiveItem(GetSpawnByID(petInfo->GetId()));
 	}
 }
 
@@ -2362,6 +2486,12 @@ static void DrawPlayerWindow()
 	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 0), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 290), ImGuiCond_FirstUseEver);
 	
+	if (s_WinSettings.savePosition)
+	{
+		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.playerWinX, s_WinSizeSettings.playerWinY), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.playerWinWidth, s_WinSizeSettings.playerWinHeight), ImGuiCond_Appearing);
+	}
+
 	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.playerWinTheme);
 
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar ;
@@ -2408,6 +2538,12 @@ static void DrawPlayerWindow()
 		ImGui::EndPopup();
 	}
 
+
+	bool checkTest = CheckWinPos(s_WinSizeSettings.playerWinX, s_WinSizeSettings.playerWinY, s_WinSizeSettings.playerWinWidth, s_WinSizeSettings.playerWinHeight,
+		ImGui::GetWindowPos(), ImGui::GetWindowSize());
+	if (checkTest)
+		s_DoSavePosition = true;
+
 	ImGui::End();
 	ResetTheme(originalStyle);
 }
@@ -2420,6 +2556,12 @@ static void DrawGroupWindow()
 	float displayX = ImGui::GetIO().DisplaySize.x;
 	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 300), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+
+	if (s_WinSettings.savePosition)
+	{
+		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.groupWinX, s_WinSizeSettings.groupWinY), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.groupWinWidth, s_WinSizeSettings.groupWinHeight), ImGuiCond_Appearing);
+	}
 
 	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.groupWinTheme);
 
@@ -2539,6 +2681,12 @@ static void DrawGroupWindow()
 		ImGui::EndPopup();
 	}
 
+
+	bool checkTest = CheckWinPos(s_WinSizeSettings.groupWinX, s_WinSizeSettings.groupWinY, s_WinSizeSettings.groupWinWidth, s_WinSizeSettings.groupWinHeight,
+		ImGui::GetWindowPos(), ImGui::GetWindowSize());
+	if (checkTest)
+		s_DoSavePosition = true;
+
 	ResetTheme(originalStyle);
 	ImGui::End();
 }
@@ -2555,6 +2703,12 @@ static void DrawPetWindow()
 		ImGui::SetNextWindowPos(ImVec2(displayX * 0.75f, displayY * 0.5f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 283), ImGuiCond_FirstUseEver);
 		
+		if (s_WinSettings.savePosition)
+		{
+			ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.petWinX, s_WinSizeSettings.petWinY), ImGuiCond_Appearing);
+			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.petWinWidth, s_WinSizeSettings.petWinHeight), ImGuiCond_Appearing);
+		}
+
 		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.petWinTheme);
 		
 		ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -2666,6 +2820,11 @@ static void DrawPetWindow()
 			}
 		}
 
+		bool checkTest = CheckWinPos(s_WinSizeSettings.petWinX, s_WinSizeSettings.petWinY, s_WinSizeSettings.petWinWidth, s_WinSizeSettings.petWinHeight,
+			ImGui::GetWindowPos(), ImGui::GetWindowSize());
+		if (checkTest)
+			s_DoSavePosition = true;
+
 		ResetTheme(originalStyle);
 		ImGui::End();
 	}
@@ -2686,6 +2845,12 @@ static void DrawCastingBarWindow()
 		ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 150, displayY * 0.3f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		
+		if (s_WinSettings.savePosition)
+		{
+			ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.castingWinX, s_WinSizeSettings.castingWinY), ImGuiCond_Appearing);
+			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.castingWinWidth, s_WinSizeSettings.castingWinHeight), ImGuiCond_Appearing);
+		}
+
 		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
 		
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockCastingWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
@@ -2752,6 +2917,12 @@ static void DrawCastingBarWindow()
 					}
 				}
 			}
+
+			bool checkTest = CheckWinPos(s_WinSizeSettings.castingWinX, s_WinSizeSettings.castingWinY, s_WinSizeSettings.castingWinWidth, s_WinSizeSettings.castingWinHeight,
+				ImGui::GetWindowPos(), ImGui::GetWindowSize());
+			if (checkTest)
+				s_DoSavePosition = true;
+			
 		}
 		if (ImGui::BeginPopupContextWindow("CastingContext", ImGuiPopupFlags_MouseButtonRight))
 		{
@@ -2765,7 +2936,8 @@ static void DrawCastingBarWindow()
 
 			ImGui::EndPopup();
 		}
-		//ImGui::SetWindowFontScale(1.0f);
+
+
 		ResetTheme(originalStyle);
 		ImGui::End();
 	}
@@ -2784,6 +2956,12 @@ static void DrawSpellWindow()
 		float displayY = ImGui::GetIO().DisplaySize.y;
 		ImGui::SetNextWindowPos(ImVec2(230,80), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(79, 662), ImGuiCond_FirstUseEver);
+
+		if (s_WinSettings.savePosition)
+		{
+			ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.spellsWinX, s_WinSizeSettings.spellsWinY), ImGuiCond_Appearing);
+			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.spellsWinWidth, s_WinSizeSettings.spellsWinHeight), ImGuiCond_Appearing);
+		}
 
 		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
 
@@ -2819,6 +2997,12 @@ static void DrawSpellWindow()
 				s_WinSettings.showSpellsWindow = false;
 
 			ImGui::EndPopup();
+
+			bool checkTest = CheckWinPos(s_WinSizeSettings.spellsWinX, s_WinSizeSettings.spellsWinY, s_WinSizeSettings.spellsWinWidth, s_WinSizeSettings.spellsWinHeight,
+				ImGui::GetWindowPos(), ImGui::GetWindowSize());
+			if (checkTest)
+				s_DoSavePosition = true;
+			
 		}
 
 		ResetTheme(originalStyle);
@@ -2839,6 +3023,12 @@ static void DrawBuffWindow()
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockBuffsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
+
+	if (s_WinSettings.savePosition)
+	{
+		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.buffsWinX, s_WinSizeSettings.buffsWinY), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.buffsWinWidth, s_WinSizeSettings.buffsWinHeight), ImGuiCond_Appearing);
+	}
 
 	if (ImGui::Begin("Buffs", &s_WinSettings.showBuffWindow, s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
@@ -2861,6 +3051,13 @@ static void DrawBuffWindow()
 			s_WinSettings.showBuffWindow = false;
 
 		ImGui::EndPopup();
+
+
+		bool checkTest = CheckWinPos(s_WinSizeSettings.buffsWinX, s_WinSizeSettings.buffsWinY, s_WinSizeSettings.buffsWinWidth, s_WinSizeSettings.buffsWinHeight,
+			ImGui::GetWindowPos(), ImGui::GetWindowSize());
+		if (checkTest)
+			s_DoSavePosition = true;
+
 	}
 
 	ResetTheme(originalStyle);
@@ -2874,6 +3071,12 @@ static void DrawSongWindow()
 
 	ImGui::SetNextWindowPos(ImVec2(15, 310), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
+
+	if (s_WinSettings.savePosition)
+	{
+		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.songWinX, s_WinSizeSettings.songWinY), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.songWinWidth, s_WinSizeSettings.songWinHeight), ImGuiCond_Appearing);
+	}
 
 	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.songWinTheme);
 
@@ -2905,6 +3108,12 @@ static void DrawSongWindow()
 		}
 
 		DrawBuffsTable("SongTable", pSongWnd->GetBuffRange(), false, true, true);
+
+		bool checkTest = CheckWinPos(s_WinSizeSettings.songWinX, s_WinSizeSettings.songWinY, s_WinSizeSettings.songWinWidth, s_WinSizeSettings.songWinHeight,
+			ImGui::GetWindowPos(), ImGui::GetWindowSize());
+		if (checkTest)
+			s_DoSavePosition = true;
+		
 	}
 
 	ResetTheme(originalStyle);
@@ -2920,6 +3129,12 @@ static void DrawHudWindow()
 	ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 15, 0), ImGuiCond_FirstUseEver);
 	float alpha = (s_NumSettings.hudAlpha / 255.0f);
 	ImGui::SetNextWindowBgAlpha(alpha); // Transparent background
+
+	if (s_WinSettings.savePosition)
+	{
+		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.hudWinX, s_WinSizeSettings.hudWinY), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.hudWinWidth, s_WinSizeSettings.hudWinHeight), ImGuiCond_Appearing);
+	}
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockHudWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
@@ -2941,7 +3156,14 @@ static void DrawHudWindow()
 
 			ImGui::EndPopup();
 		}
+
+
+		bool checkTest = CheckWinPos(s_WinSizeSettings.hudWinX, s_WinSizeSettings.hudWinY, s_WinSizeSettings.hudWinWidth, s_WinSizeSettings.hudWinHeight,
+			ImGui::GetWindowPos(), ImGui::GetWindowSize());
+		if (checkTest)
+			s_DoSavePosition = true;
 	}
+
 	ImGui::End();
 }
 
@@ -3088,7 +3310,7 @@ static void DrawConfigWindow()
 						ImGui::TableNextColumn();
 						if (ImGui::Checkbox(toggle.label, toggle.setting))
 						{
-							SaveSetting(toggle.setting, s_SettingsFile);
+							s_SettingModified = true;
 							
 							if (toggle.label && strncmp(toggle.label, "Lock All", 8) == 0)
 								LockAll();
@@ -3121,7 +3343,7 @@ static void DrawConfigWindow()
 					{
 						ImGui::TableNextColumn();
 						if (ImGui::Checkbox(toggle.label, toggle.setting))
-							SaveSetting(toggle.setting, s_SettingsFile);
+							s_SettingModified = true;
 
 						ImGui::SameLine();
 						mq::imgui::HelpMarker(toggle.helpText);
@@ -3169,10 +3391,11 @@ static void DrawConfigWindow()
 			// If they close the window and don't click the button the settings will not be saved and only be temporary.
 			s_WinSettings.showConfigWindow = false;
 			s_SettingModified = false;
+			s_DoSavePosition = false;
 			SaveSettings();
 		}
 
-		if (s_SettingModified)
+		if (s_SettingModified || s_DoSavePosition)
 		{
 			ImGui::SameLine();
 			if (ImGui::Button("Revert"))
@@ -3313,6 +3536,7 @@ PLUGIN_API void OnPulse()
 			if (pSpellPicker->m_needSpellPickup)
 				pSpellPicker->PickUpSpell();
 		}
+
 	}
 	else
 	{
@@ -3388,8 +3612,13 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
 
-			ImGuiStyle oldStyle = ApplyTheme(s_WinTheme.playerWinTheme);
+			if (s_WinSettings.savePosition)
+			{
+				ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.targetWinX, s_WinSizeSettings.targetWinY), ImGuiCond_Appearing);
+				ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.targetWinWidth, s_WinSizeSettings.targetWinHeight), ImGuiCond_Appearing);
+			}
 
+			ImGuiStyle oldStyle = ApplyTheme(s_WinTheme.playerWinTheme);
 			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
 			if (ImGui::Begin("Target", &s_WinSettings.showTargetWindow, s_WindowFlags | lockFlag | s_LockAllWin))
@@ -3412,6 +3641,10 @@ PLUGIN_API void OnUpdateImGui()
 
 				ImGui::EndPopup();
 			}
+
+			if (CheckWinPos(s_WinSizeSettings.targetWinX, s_WinSizeSettings.targetWinY, s_WinSizeSettings.targetWinWidth, s_WinSizeSettings.targetWinHeight,
+				ImGui::GetWindowPos(), ImGui::GetWindowSize()))
+				SaveSettings();
 
 			ResetTheme(oldStyle);
 			ImGui::End();
