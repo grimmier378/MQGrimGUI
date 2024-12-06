@@ -116,6 +116,15 @@ struct WinSettings
 	bool showSelfOnGroup    = false;
 	bool showEmptyGroupSlot = true;
 	bool flashSongTimer     = true;
+	bool dockedPlayerWin = false;
+	bool dockedTargetWin = false;
+	bool dockedPetWin = false;
+	bool dockedGroupWin = false;
+	bool dockedSpellsWin = false;
+	bool dockedBuffsWin = false;
+	bool dockedSongWin = false;
+	bool dockedHudWin = false;
+	bool dockedCastingWin = false;
 	}    s_WinSettings;
 
 struct WinSetting
@@ -153,6 +162,15 @@ static std::vector<WinSetting> winSettings = {
 	{"Spells",		"ShowSpellsWindow",		&s_WinSettings.showSpellsWindow},
 	{"Buffs",		"ShowBuffWindow",		&s_WinSettings.showBuffWindow},
 	{"Hud",			"ShowHud",				&s_WinSettings.showHud},
+	{"Docked",      "PlayerWinDocked",		&s_WinSettings.dockedPlayerWin},
+	{"Docked",      "TargetWinDocked",		&s_WinSettings.dockedTargetWin},
+	{"Docked",      "PetWinDocked",			&s_WinSettings.dockedPetWin},
+	{"Docked",      "GroupWinDocked",		&s_WinSettings.dockedGroupWin},
+	{"Docked",      "SpellsWinDocked",		&s_WinSettings.dockedSpellsWin},
+	{"Docked",      "BuffsWinDocked",		&s_WinSettings.dockedBuffsWin},
+	{"Docked",      "SongWinDocked",		&s_WinSettings.dockedSongWin},
+	{"Docked",      "HudWinDocked",			&s_WinSettings.dockedHudWin},
+	{"Docked",      "CastingWinDocked",		&s_WinSettings.dockedCastingWin},
 };
 
 #pragma endregion
@@ -452,7 +470,7 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Lock Songs",			&s_WinSettings.lockSongWin,			true,	"Lock Target: Toggle locking the Target Window"},
 	{"Lock Hud",			&s_WinSettings.lockHudWin,			true,	"Lock Pet: Toggle locking the Pet Window"},
 	{"Lock Casting",		&s_WinSettings.lockCastingWin,		true,	"Lock Casting: Toggle locking the Casting Window"},
-	{"Saved Position",		&s_WinSettings.savePosition,		true,	"Saved Position: Use local Stored saved Size and Positions. Docked windows will not redock."},
+	{"Saved Position",		&s_WinSettings.savePosition,		true,	"Saved Position: Use local Stored saved Size and Positions. Does not Affect Docked Windows."},
 
 };
 
@@ -660,6 +678,7 @@ static void SaveSettings()
 	{
 		WritePrivateProfileFloat(winsizes.section, winsizes.key, *winsizes.value, s_SettingsFile);
 	}
+
 }
 
 static void SaveSetting(bool* setting, const char* settingsFile)
@@ -2485,8 +2504,7 @@ static void DrawPlayerWindow()
 	float displayX = ImGui::GetIO().DisplaySize.x;
 	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 0), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 290), ImGuiCond_FirstUseEver);
-	
-	if (s_WinSettings.savePosition)
+	if (s_WinSettings.savePosition && !s_WinSettings.dockedPlayerWin)
 	{
 		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.playerWinX, s_WinSizeSettings.playerWinY), ImGuiCond_Appearing);
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.playerWinWidth, s_WinSizeSettings.playerWinHeight), ImGuiCond_Appearing);
@@ -2499,6 +2517,13 @@ static void DrawPlayerWindow()
 	
 	if (ImGui::Begin("Player", &s_WinSettings.showPlayerWindow, s_WindowFlags | lockFlag | menuFlag | ImGuiWindowFlags_NoScrollbar))
 	{
+		bool isDocked = ImGui::IsWindowDocked();
+		if (isDocked != s_WinSettings.dockedPlayerWin)
+		{
+			s_WinSettings.dockedPlayerWin = isDocked;
+			SaveSetting(&s_WinSettings.dockedPlayerWin, s_SettingsFile);
+		}
+
 		int sizeX = static_cast<int>(ImGui::GetWindowWidth());
 		int midX = (sizeX / 2) - 8;
 
@@ -2557,7 +2582,7 @@ static void DrawGroupWindow()
 	ImGui::SetNextWindowPos(ImVec2(displayX - 310, 300), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 
-	if (s_WinSettings.savePosition)
+	if (s_WinSettings.savePosition && !s_WinSettings.dockedGroupWin)
 	{
 		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.groupWinX, s_WinSizeSettings.groupWinY), ImGuiCond_Appearing);
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.groupWinWidth, s_WinSizeSettings.groupWinHeight), ImGuiCond_Appearing);
@@ -2571,6 +2596,12 @@ static void DrawGroupWindow()
 	if (ImGui::Begin("Group", &s_WinSettings.showGroupWindow,
 		s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
+		bool isDocked = ImGui::IsWindowDocked();
+		if (isDocked != s_WinSettings.dockedGroupWin)
+		{
+			s_WinSettings.dockedGroupWin = isDocked;
+			SaveSetting(&s_WinSettings.dockedGroupWin, s_SettingsFile);
+		}
 
 		DrawMenu("Group");
 
@@ -2703,7 +2734,7 @@ static void DrawPetWindow()
 		ImGui::SetNextWindowPos(ImVec2(displayX * 0.75f, displayY * 0.5f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 283), ImGuiCond_FirstUseEver);
 		
-		if (s_WinSettings.savePosition)
+		if (s_WinSettings.savePosition && !s_WinSettings.dockedPetWin)
 		{
 			ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.petWinX, s_WinSizeSettings.petWinY), ImGuiCond_Appearing);
 			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.petWinWidth, s_WinSizeSettings.petWinHeight), ImGuiCond_Appearing);
@@ -2716,6 +2747,13 @@ static void DrawPetWindow()
 
 		if (ImGui::Begin("Pet", &s_WinSettings.showPetWindow, s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 		{
+			bool isDocked = ImGui::IsWindowDocked();
+			if (isDocked != s_WinSettings.dockedPetWin)
+			{
+				s_WinSettings.dockedPetWin = isDocked;
+				SaveSetting(&s_WinSettings.dockedPetWin, s_SettingsFile);
+			}
+
 			DrawMenu("Pet");
 
 			if (ImGui::BeginPopupContextWindow("PetContext", ImGuiPopupFlags_MouseButtonRight))
@@ -2845,7 +2883,7 @@ static void DrawCastingBarWindow()
 		ImGui::SetNextWindowPos(ImVec2((displayX * 0.5f) - 150, displayY * 0.3f), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_FirstUseEver);
 		
-		if (s_WinSettings.savePosition)
+		if (s_WinSettings.savePosition && !s_WinSettings.dockedCastingWin)
 		{
 			ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.castingWinX, s_WinSizeSettings.castingWinY), ImGuiCond_Appearing);
 			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.castingWinWidth, s_WinSizeSettings.castingWinHeight), ImGuiCond_Appearing);
@@ -2857,6 +2895,13 @@ static void DrawCastingBarWindow()
 		if (ImGui::Begin("Casting1", &s_IsCasting,
 			lockFlag | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		{
+			bool isDocked = ImGui::IsWindowDocked();
+			if (isDocked != s_WinSettings.dockedCastingWin)
+			{
+				s_WinSettings.dockedCastingWin = isDocked;
+				SaveSetting(&s_WinSettings.dockedCastingWin, s_SettingsFile);
+			}
+
 			const char* spellName = pCastingWnd->GetChildItem("Casting_SpellName")->WindowText.c_str();
 			EQ_Spell* pSpell = GetSpellByName(spellName);
 			if (pSpell)
@@ -2957,7 +3002,7 @@ static void DrawSpellWindow()
 		ImGui::SetNextWindowPos(ImVec2(230,80), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(79, 662), ImGuiCond_FirstUseEver);
 
-		if (s_WinSettings.savePosition)
+		if (s_WinSettings.savePosition && !s_WinSettings.dockedSpellsWin)
 		{
 			ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.spellsWinX, s_WinSizeSettings.spellsWinY), ImGuiCond_Appearing);
 			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.spellsWinWidth, s_WinSizeSettings.spellsWinHeight), ImGuiCond_Appearing);
@@ -2970,6 +3015,13 @@ static void DrawSpellWindow()
 		if (ImGui::Begin("Spells", &s_WinSettings.showSpellsWindow,
 			s_WindowFlags | lockFlag | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			bool isDocked = ImGui::IsWindowDocked();
+			if (isDocked != s_WinSettings.dockedSpellsWin)
+			{
+				s_WinSettings.dockedSpellsWin = isDocked;
+				SaveSetting(&s_WinSettings.dockedSpellsWin, s_SettingsFile);
+			}
+
 			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 
@@ -3024,7 +3076,7 @@ static void DrawBuffWindow()
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockBuffsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 
-	if (s_WinSettings.savePosition)
+	if (s_WinSettings.savePosition && !s_WinSettings.dockedBuffsWin)
 	{
 		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.buffsWinX, s_WinSizeSettings.buffsWinY), ImGuiCond_Appearing);
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.buffsWinWidth, s_WinSizeSettings.buffsWinHeight), ImGuiCond_Appearing);
@@ -3032,6 +3084,13 @@ static void DrawBuffWindow()
 
 	if (ImGui::Begin("Buffs", &s_WinSettings.showBuffWindow, s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
+		bool isDocked = ImGui::IsWindowDocked();
+		if (isDocked != s_WinSettings.dockedBuffsWin)
+		{
+			s_WinSettings.dockedBuffsWin = isDocked;
+			SaveSetting(&s_WinSettings.dockedBuffsWin, s_SettingsFile);
+		}
+
 		DrawMenu("Buffs");
 
 		DrawBuffsTable("BuffTable", pBuffWnd->GetBuffRange(), false, true);
@@ -3072,7 +3131,7 @@ static void DrawSongWindow()
 	ImGui::SetNextWindowPos(ImVec2(15, 310), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 
-	if (s_WinSettings.savePosition)
+	if (s_WinSettings.savePosition && !s_WinSettings.dockedSongWin)
 	{
 		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.songWinX, s_WinSizeSettings.songWinY), ImGuiCond_Appearing);
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.songWinWidth, s_WinSizeSettings.songWinHeight), ImGuiCond_Appearing);
@@ -3086,6 +3145,13 @@ static void DrawSongWindow()
 	if (ImGui::Begin("Songs", &s_WinSettings.showSongWindow,
 		s_WindowFlags | menuFlag | lockFlag | ImGuiWindowFlags_NoScrollbar))
 	{
+		bool isDocked = ImGui::IsWindowDocked();
+		if (isDocked != s_WinSettings.dockedSongWin)
+		{
+			s_WinSettings.dockedSongWin = isDocked;
+			SaveSetting(&s_WinSettings.dockedSongWin, s_SettingsFile);
+		}
+
 		DrawMenu("Songs");
 
 		if (ImGui::BeginPopupContextWindow("SongContext", ImGuiPopupFlags_MouseButtonRight))
@@ -3130,7 +3196,7 @@ static void DrawHudWindow()
 	float alpha = (s_NumSettings.hudAlpha / 255.0f);
 	ImGui::SetNextWindowBgAlpha(alpha); // Transparent background
 
-	if (s_WinSettings.savePosition)
+	if (s_WinSettings.savePosition && !s_WinSettings.dockedHudWin)
 	{
 		ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.hudWinX, s_WinSizeSettings.hudWinY), ImGuiCond_Appearing);
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.hudWinWidth, s_WinSizeSettings.hudWinHeight), ImGuiCond_Appearing);
@@ -3140,6 +3206,13 @@ static void DrawHudWindow()
 
 	if (ImGui::Begin("Hud##GrimGui", &s_WinSettings.showHud, lockFlag | window_flags))
 	{
+		bool isDocked = ImGui::IsWindowDocked();
+		if (isDocked != s_WinSettings.dockedHudWin)
+		{
+			s_WinSettings.dockedHudWin = isDocked;
+			SaveSetting(&s_WinSettings.dockedHudWin, s_SettingsFile);
+		}
+
 		DrawStatusEffects();
 
 		if (ImGui::BeginPopupContextWindow("HudContext##GrimGui",ImGuiPopupFlags_MouseButtonRight))
@@ -3612,7 +3685,7 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::SetNextWindowPos(ImVec2(displayX - 620, 0), ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowSize(ImVec2(300, 185), ImGuiCond_FirstUseEver);
 
-			if (s_WinSettings.savePosition)
+			if (s_WinSettings.savePosition && !s_WinSettings.dockedTargetWin)
 			{
 				ImGui::SetNextWindowPos(ImVec2(s_WinSizeSettings.targetWinX, s_WinSizeSettings.targetWinY), ImGuiCond_Appearing);
 				ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.targetWinWidth, s_WinSizeSettings.targetWinHeight), ImGuiCond_Appearing);
@@ -3623,6 +3696,13 @@ PLUGIN_API void OnUpdateImGui()
 
 			if (ImGui::Begin("Target", &s_WinSettings.showTargetWindow, s_WindowFlags | lockFlag | s_LockAllWin))
 			{
+				bool isDocked = ImGui::IsWindowDocked();
+				if (isDocked != s_WinSettings.dockedTargetWin)
+				{
+					s_WinSettings.dockedTargetWin = isDocked;
+					SaveSetting(&s_WinSettings.dockedTargetWin, s_SettingsFile);
+				}
+
 				DrawTargetWindow(true);
 			}
 

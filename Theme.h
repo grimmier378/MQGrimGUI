@@ -68,6 +68,14 @@ inline void StyleColorsGrape()
 	colors[ImGuiCol_NavWindowingHighlight]        = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+	style->FrameRounding     = 9.0f;
+	style->GrabRounding      = 12.0f;
+	style->PopupRounding     = 10.0f;
+	style->ScrollbarRounding = 12.0f;
+	style->TabRounding       = 10.0f;
+	style->WindowRounding    = 10.0f;
+	style->ChildRounding     = 8.0f;
+
 }
 
 inline void StyleColorRed()
@@ -191,6 +199,13 @@ inline void StyleColorBurnt()
 	colors[ImGuiCol_NavWindowingHighlight]        = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+	style->FrameRounding     = 9.0f;
+	style->GrabRounding      = 12.0f;
+	style->PopupRounding     = 10.0f;
+	style->ScrollbarRounding = 12.0f;
+	style->TabRounding       = 10.0f;
+	style->WindowRounding    = 10.0f;
+	style->ChildRounding     = 8.0f;
 
 }
 
@@ -254,6 +269,13 @@ inline void StyleColorMono()
 	colors[ImGuiCol_NavWindowingHighlight]        = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg]            = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+	style->FrameRounding     = 9.0f;
+	style->GrabRounding      = 12.0f;
+	style->PopupRounding     = 10.0f;
+	style->ScrollbarRounding = 12.0f;
+	style->TabRounding       = 10.0f;
+	style->WindowRounding    = 10.0f;
+	style->ChildRounding     = 8.0f;
 
 }
 
@@ -371,6 +393,14 @@ inline void StyleColorNight()
 	colors[ImGuiCol_PlotHistogramHovered]         = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
 	colors[ImGuiCol_TextSelectedBg]               = ImVec4(0.25f, 1.00f, 0.00f, 0.43f);
 	colors[ImGuiCol_ModalWindowDimBg]             = ImVec4(1.00f, 0.98f, 0.95f, 0.73f);
+	style->FrameRounding     = 9.0f;
+	style->GrabRounding      = 12.0f;
+	style->PopupRounding     = 10.0f;
+	style->ScrollbarRounding = 12.0f;
+	style->TabRounding       = 10.0f;
+	style->WindowRounding    = 10.0f;
+	style->ChildRounding     = 8.0f;
+
 }
 
 #pragma endregion
