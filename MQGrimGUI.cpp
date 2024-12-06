@@ -981,6 +981,14 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 							ImGui::Text("Right Click for Options");
 						}
 						ImGui::EndTooltip();
+						if (ImGui::IsMouseClicked(0))
+						{
+							if (ci_equals(buffInfo.GetCaster(), pLocalPC->Name))
+							{
+								DoCommandf("/cast \"%s\"", spell->Name);
+							}
+						}
+							
 					}
 
 					if (!sickFound)
@@ -1951,12 +1959,25 @@ void DrawMenu(const char* winName)
 			{
 				for (const auto& lockWin : settingToggleOptions)
 				{
-					if (lockWin.label && starts_with(lockWin.label, "Lock ") == 0)
+					if (lockWin.lockSetting)
+					{
+						if (ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting))
+						{
+							if (lockWin.label && ci_equals(lockWin.label, "Lock ALL"))
+								LockAll();
+						}
+					}
+				}
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Other"))
+			{
+				for (const auto& lockWin : settingToggleOptions)
+				{
+					if (!lockWin.lockSetting)
 					{
 						ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting);
-
-						if (lockWin.label && ci_equals(lockWin.label, "Lock ALL"))
-							LockAll();
 					}
 				}
 				ImGui::EndMenu();
@@ -2159,6 +2180,26 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 	}
 	//ImGui::SetWindowFontScale(1.0f);
 	ImGui::EndChild();
+	if (pLocalPC->pGroupInfo && pLocalPC->Name == pLocalPC->pGroupInfo->GetGroupLeader()->Name)
+	{
+		if (ImGui::BeginPopupContextItem(("##%s", pLocalPC->Name)))
+		{
+			if (ImGui::BeginMenu("Roles"))
+			{
+				if (ImGui::MenuItem("Main Assist"))
+					DoCommandf("/grouproles set %s 2", pLocalPC->Name);
+
+				if (ImGui::MenuItem("Main Tank"))
+					DoCommandf("/grouproles set %s 1", pLocalPC->Name);
+
+				if (ImGui::MenuItem("Puller"))
+					DoCommandf("/grouproles set %s 3", pLocalPC->Name);
+
+				ImGui::EndMenu();
+			}
+			ImGui::EndPopup();
+		}
+	}
 }
 
 
