@@ -1109,6 +1109,15 @@ const char* MaskName(const char* name)
 	return anonymizedName;
 }
 
+const SettingToggleOption* FindToggleOption(const std::vector<SettingToggleOption>& options, const char* targetLabel) {
+	for (const auto& option : options) {
+		if (option.label && ci_equals(option.label, targetLabel)) {
+			return &option;
+		}
+	}
+	return nullptr;
+}
+
 void CleanUpIcons()
 {
 
@@ -1571,6 +1580,31 @@ static void DrawSpellBarIcons(int gemHeight)
 	}
 }
 
+static void DrawLockOption(const char* winName) {
+	if (!winName) return;
+
+	const std::string targetLabel = fmt::format("Lock {}", winName);
+	const SettingToggleOption* option = FindToggleOption(settingToggleOptions, targetLabel.c_str());
+
+	if (option) {
+		const char* lockIcon = *option->setting ? ICON_FA_LOCK : ICON_FA_UNLOCK;
+
+		ImGui::Text(lockIcon);
+		if (ImGui::IsItemClicked()) {
+			if (*option->setting && s_WinSettings.lockAllWin) {
+				s_WinSettings.lockAllWin = false;
+				SaveSetting(&s_WinSettings.lockAllWin, s_SettingsFile);
+			}
+
+			*option->setting = !*option->setting;
+			SaveSetting(option->setting, s_SettingsFile);
+		}
+
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetItemTooltip("%s %s Window", *option->setting ? "Unlock" : "Lock", winName);
+		}
+	}
+}
 
 static void DisplayPetButtons()
 {
@@ -1894,42 +1928,8 @@ void DrawMenu(const char* winName)
 	if (ImGui::BeginMenuBar())
 	{
 
-		// Lock All Windows Icon
-		ImGui::Text(lockAllIcon);
-		if (ImGui::IsItemClicked())
-		{
-			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
-			LockAll();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetItemTooltip("%s All Windows", s_WinSettings.lockAllWin ? "Unlock" : "Lock");
-
 		// lock Icon for winName
-		for (const auto& winLocks : settingToggleOptions)
-		{
-			if (winLocks.label && ci_equals(winLocks.label, fmt::format("Lock {}", winName)))
-			{
-				const char* lockIcon = *winLocks.setting ? ICON_FA_LOCK : ICON_FA_UNLOCK;
-
-				ImGui::SameLine();
-				ImGui::Text(lockIcon);
-				if (ImGui::IsItemClicked())
-				{
-					if (*winLocks.setting && s_WinSettings.lockAllWin)
-					{
-						s_WinSettings.lockAllWin = false;
-						SaveSetting(&s_WinSettings.lockAllWin, s_SettingsFile);
-					}
-
-					*winLocks.setting = !*winLocks.setting;
-					SaveSetting(winLocks.setting, s_SettingsFile);
-				}
-				if (ImGui::IsItemHovered())
-					ImGui::SetItemTooltip("%s %s Window", *winLocks.setting ? "Unlock" : "Lock", winName);
-
-				break;
-			}
-		}
+		DrawLockOption(winName);
 
 		// Config Window Icon
 		ImGui::SameLine();
@@ -1961,7 +1961,7 @@ void DrawMenu(const char* winName)
 				{
 					if (lockWin.lockSetting)
 					{
-						if (ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting))
+						if (ImGui::MenuItem(lockWin.label, nullptr, lockWin.setting))
 						{
 							if (lockWin.label && ci_equals(lockWin.label, "Lock ALL"))
 								LockAll();
@@ -1977,7 +1977,7 @@ void DrawMenu(const char* winName)
 				{
 					if (!lockWin.lockSetting)
 					{
-						ImGui::MenuItem(lockWin.label, nullptr, *lockWin.setting);
+						ImGui::MenuItem(lockWin.label, nullptr, lockWin.setting);
 					}
 				}
 				ImGui::EndMenu();
@@ -1985,6 +1985,24 @@ void DrawMenu(const char* winName)
 
 			ImGui::EndMenu();
 		}
+		
+		// Lock All Windows Icon
+		ImGui::SameLine();
+		
+		float winWidth = ImGui::GetWindowWidth();
+		if (winWidth > 140)
+		{
+			ImGui::SetCursorPosX(winWidth - 40);
+		}
+		ImGui::Text(lockAllIcon);
+		if (ImGui::IsItemClicked())
+		{
+			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
+			LockAll();
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetItemTooltip("%s All Windows", s_WinSettings.lockAllWin ? "Unlock" : "Lock");
+		
 		ImGui::EndMenuBar();
 	}
 }
