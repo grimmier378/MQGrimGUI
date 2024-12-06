@@ -1109,11 +1109,12 @@ const char* MaskName(const char* name)
 	return anonymizedName;
 }
 
-const SettingToggleOption* FindToggleOption(const std::vector<SettingToggleOption>& options, const char* targetLabel) {
-	for (const auto& option : options) {
-		if (option.label && ci_equals(option.label, targetLabel)) {
+const SettingToggleOption* FindToggleOption(const std::vector<SettingToggleOption>& options, const char* targetLabel)
+{
+	for (const auto& option : options)
+	{
+		if (option.label && ci_equals(option.label, targetLabel))
 			return &option;
-		}
 	}
 	return nullptr;
 }
@@ -1580,18 +1581,21 @@ static void DrawSpellBarIcons(int gemHeight)
 	}
 }
 
-static void DrawLockOption(const char* winName) {
+static void DrawLockOption(const char* winName)
+{
 	if (!winName) return;
 
 	const std::string targetLabel = fmt::format("Lock {}", winName);
 	const SettingToggleOption* option = FindToggleOption(settingToggleOptions, targetLabel.c_str());
 
-	if (option) {
+	if (option)
+	{
 		const char* lockIcon = *option->setting ? ICON_FA_LOCK : ICON_FA_UNLOCK;
 
-		ImGui::Text(lockIcon);
-		if (ImGui::IsItemClicked()) {
-			if (*option->setting && s_WinSettings.lockAllWin) {
+		if(ImGui::SmallButton(fmt::format("{}##{}",lockIcon, winName).c_str()))
+		{
+			if (*option->setting && s_WinSettings.lockAllWin)
+			{
 				s_WinSettings.lockAllWin = false;
 				SaveSetting(&s_WinSettings.lockAllWin, s_SettingsFile);
 			}
@@ -1600,9 +1604,8 @@ static void DrawLockOption(const char* winName) {
 			SaveSetting(option->setting, s_SettingsFile);
 		}
 
-		if (ImGui::IsItemHovered()) {
+		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("%s %s Window", *option->setting ? "Unlock" : "Lock", winName);
-		}
 	}
 }
 
@@ -1924,7 +1927,7 @@ void DrawCombatStateIcon(float fontScale = 1.0f)
 
 void DrawMenu(const char* winName)
 {
-	const char* lockAllIcon = s_WinSettings.lockAllWin ? ICON_MD_LOCK : ICON_FA_UNLOCK_ALT;
+	const char* lockAllIcon = s_WinSettings.lockAllWin ? ICON_MD_LOCK : ICON_FA_UNLOCK;
 	if (ImGui::BeginMenuBar())
 	{
 
@@ -1994,8 +1997,7 @@ void DrawMenu(const char* winName)
 		{
 			ImGui::SetCursorPosX(winWidth - 40);
 		}
-		ImGui::Text(lockAllIcon);
-		if (ImGui::IsItemClicked())
+		if (ImGui::SmallButton(lockAllIcon))
 		{
 			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
 			LockAll();
