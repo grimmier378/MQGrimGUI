@@ -937,21 +937,8 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 
 						}
 					}
-					ImGui::PushID(buffInfo.GetIndex());
-					imgui::DrawTextureAnimation(s_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
-					ImGui::PopID();
-
-					ImGui::TableNextColumn();
-					if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
-					{
-						char timeLabel[64];
-						FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
-						ImGui::TextColored(COLOR_TANGERINE.ToImColor(), "%s", timeLabel);
-					}
-					ImGui::TableNextColumn();
-
-					//ImGui::Text("%s", spell->Name);
-					ImGui::Selectable(spell->Name, false, ImGuiSelectableFlags_SpanAllColumns);
+					ImGui::PushID(spell->ID);
+					ImGui::Selectable("##", false, ImGuiSelectableFlags_SpanAllColumns);
 					if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str(), ImGuiPopupFlags_MouseButtonRight))
 					{
 						ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
@@ -960,7 +947,7 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 							RemoveBuffByName(spell->Name);
 
 						if (ImGui::MenuItem(("Block##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
-							DoCommandf("/blockspell add me %d" , spell->ID);
+							DoCommandf("/blockspell add me %d", spell->ID);
 
 						if (ImGui::MenuItem(("Inspect##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
 							DoInspectSpell(spell->ID);
@@ -988,8 +975,23 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 								DoCommandf("/cast \"%s\"", spell->Name);
 							}
 						}
-							
+
 					}
+					ImGui::SameLine(0.0f, 0.0f);
+					imgui::DrawTextureAnimation(s_pTASpellIcon, CXSize(s_NumSettings.buffIconSize, s_NumSettings.buffIconSize), tintCol, borderCol);
+
+					ImGui::TableNextColumn();
+					if (secondsLeft < s_NumSettings.buffTimerThreshold || s_NumSettings.buffTimerThreshold == 0)
+					{
+						char timeLabel[64];
+						FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+						ImGui::TextColored(COLOR_TANGERINE.ToImColor(), "%s", timeLabel);
+					}
+					ImGui::TableNextColumn();
+
+					ImGui::Text("%s", spell->Name);
+
+					ImGui::PopID();
 
 					if (!sickFound)
 					{
@@ -1383,7 +1385,7 @@ constexpr MQColor COLOR_PINK(230, 102, 102, 204);
 constexpr MQColor COLOR_ORANGE(199, 51, 13, 204);
 constexpr MQColor COLOR_TANGERINE(255, 142, 0, 255);
 constexpr MQColor COLOR_YELLOW(255, 255, 0, 255);
-constexpr MQColor COLOR_YELLOW2(178, 153, 26, 178);
+constexpr MQColor COLOR_YELLOW2(135, 135, 8, 253);
 constexpr MQColor COLOR_WHITE(255, 255, 255, 255);
 constexpr MQColor COLOR_BLUE(0, 0, 255, 255);
 constexpr MQColor COLOR_SOFT_BLUE(94, 180, 255);
@@ -1936,9 +1938,9 @@ void DrawMenu(const char* winName)
 
 		// Config Window Icon
 		ImGui::SameLine();
-		ImGui::Text(ICON_FA_COG);
-		if (ImGui::IsItemClicked())
+		if(ImGui::SmallButton(ICON_FA_COG))
 			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
+
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Config Window");
 
@@ -1997,11 +1999,13 @@ void DrawMenu(const char* winName)
 		{
 			ImGui::SetCursorPosX(winWidth - 40);
 		}
+		ImGui::PushStyleColor(ImGuiCol_Button, COLOR_BTN_RED.ToImU32());
 		if (ImGui::SmallButton(lockAllIcon))
 		{
 			s_WinSettings.lockAllWin = !s_WinSettings.lockAllWin;
 			LockAll();
 		}
+		ImGui::PopStyleColor();
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("%s All Windows", s_WinSettings.lockAllWin ? "Unlock" : "Lock");
 		
