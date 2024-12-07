@@ -116,15 +116,25 @@ struct WinSettings
 	bool showSelfOnGroup    = false;
 	bool showEmptyGroupSlot = true;
 	bool flashSongTimer     = true;
-	bool dockedPlayerWin = false;
-	bool dockedTargetWin = false;
-	bool dockedPetWin = false;
-	bool dockedGroupWin = false;
-	bool dockedSpellsWin = false;
-	bool dockedBuffsWin = false;
-	bool dockedSongWin = false;
-	bool dockedHudWin = false;
-	bool dockedCastingWin = false;
+	bool dockedPlayerWin    = false;
+	bool dockedTargetWin    = false;
+	bool dockedPetWin       = false;
+	bool dockedGroupWin     = false;
+	bool dockedSpellsWin    = false;
+	bool dockedBuffsWin     = false;
+	bool dockedSongWin      = false;
+	bool dockedHudWin       = false;
+	bool dockedCastingWin   = false;
+	bool roundPlayerWin     = false;
+	bool roundTargetWin     = false;
+	bool roundPetWin        = false;
+	bool roundGroupWin      = false;
+	bool roundSpellsWin     = false;
+	bool roundBuffsWin      = false;
+	bool roundSongWin       = false;
+	bool roundHudWin        = false;
+	bool roundCastingWin    = false;
+
 	}    s_WinSettings;
 
 struct WinSetting
@@ -171,6 +181,15 @@ static std::vector<WinSetting> winSettings = {
 	{"Docked",      "SongWinDocked",		&s_WinSettings.dockedSongWin},
 	{"Docked",      "HudWinDocked",			&s_WinSettings.dockedHudWin},
 	{"Docked",      "CastingWinDocked",		&s_WinSettings.dockedCastingWin},
+	{"Rounded",     "PlayerWinRounded",		&s_WinSettings.roundPlayerWin},
+	{"Rounded",     "TargetWinRounded",		&s_WinSettings.roundTargetWin},
+	{"Rounded",     "PetWinRounded",		&s_WinSettings.roundPetWin},
+	{"Rounded",     "GroupWinRounded",		&s_WinSettings.roundGroupWin},
+	{"Rounded",     "SpellsWinRounded",		&s_WinSettings.roundSpellsWin},
+	{"Rounded",     "BuffsWinRounded",		&s_WinSettings.roundBuffsWin},
+	{"Rounded",     "SongWinRounded",		&s_WinSettings.roundSongWin},
+	{"Rounded",     "HudWinRounded",		&s_WinSettings.roundHudWin},
+	{"Rounded",     "CastingWinRounded",	&s_WinSettings.roundCastingWin}
 };
 
 #pragma endregion
@@ -340,28 +359,28 @@ std::vector<FontScaleSetting> fontScaleSettings = {
 
 struct ThemeSettings
 {
-	std::string playerWinTheme = "Default";
-	std::string petWinTheme    = "Default";
-	std::string groupWinTheme  = "Default";
-	std::string spellsWinTheme = "Default";
-	std::string buffsWinTheme  = "Default";
-	std::string songWinTheme   = "Default";
+	int playerWinThemeId = 8;
+	int petWinThemeId = 8;
+	int groupWinThemeId = 8;
+	int spellsWinThemeId = 8;
+	int buffsWinThemeId = 8;
+	int songWinThemeId = 8;
 } s_WinTheme;
 
 struct ThemeSetting
 {
 	const char* section;
 	const char* key;
-	std::string* theme;
+	int* themeId;
 };
 
 std::vector<ThemeSetting> themeSettings = {
-	{"PlayerTarg",	"Theme",	&s_WinTheme.playerWinTheme},
-	{"Pet",			"Theme",	&s_WinTheme.petWinTheme},
-	{"Group",		"Theme",	&s_WinTheme.groupWinTheme},
-	{"Spells",		"Theme",	&s_WinTheme.spellsWinTheme},
-	{"Buffs",		"Theme",	&s_WinTheme.buffsWinTheme},
-	{"Songs",		"Theme",	&s_WinTheme.songWinTheme}
+	{"PlayerTarg",	"ThemeId",	&s_WinTheme.playerWinThemeId},
+	{"Pet",			"ThemeId",	&s_WinTheme.petWinThemeId},
+	{"Group",		"ThemeId",	&s_WinTheme.groupWinThemeId},
+	{"Spells",		"ThemeId",	&s_WinTheme.spellsWinThemeId},
+	{"Buffs",		"ThemeId",	&s_WinTheme.buffsWinThemeId},
+	{"Songs",		"ThemeId",	&s_WinTheme.songWinThemeId}
 };
 
 
@@ -472,21 +491,43 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Lock Casting",		&s_WinSettings.lockCastingWin,		true,	"Lock Casting: Toggle locking the Casting Window"},
 	{"Saved Position",		&s_WinSettings.savePosition,		true,	"Saved Position: Use local Stored saved Size and Positions. Does not Affect Docked Windows."},
 
+
+};
+
+struct ThemeRoundingOption
+{
+	const char* label;
+	bool* setting;
+	const char* section;
+	const char* key;
+	const char* helpText;
+};
+
+std::vector<ThemeRoundingOption> themeRoundingOptions = {
+	{"Player Win",	&s_WinSettings.roundPlayerWin,	"Rounded",	"PlayerWinRounded",	"Player Window Rounded Corners"},
+	{"Target Win",	&s_WinSettings.roundTargetWin,	"Rounded",	"TargetWinRounded",	"Target Window Rounded Corners"},
+	{"Pet Win",		&s_WinSettings.roundPetWin,		"Rounded",	"PetWinRounded",	"Pet Window Rounded Corners"},
+	{"Group Win",	&s_WinSettings.roundGroupWin,	"Rounded",	"GroupWinRounded",	"Group Window Rounded Corners"},
+	{"Spells Win",	&s_WinSettings.roundSpellsWin,	"Rounded",	"SpellsWinRounded",	"Spells Window Rounded Corners"},
+	{"Buffs Win",	&s_WinSettings.roundBuffsWin,	"Rounded",	"BuffsWinRounded",	"Buffs Window Rounded Corners"},
+	{"Song Win",	&s_WinSettings.roundSongWin,	"Rounded",	"SongWinRounded",	"Song Window Rounded Corners"},
+	{"Hud Win",		&s_WinSettings.roundHudWin,		"Rounded",	"HudWinRounded",	"Hud Window Rounded Corners"},
+	{"Casting Win",	&s_WinSettings.roundCastingWin,	"Rounded",	"CastingWinRounded",	"Casting Window Rounded Corners"},
 };
 
 struct ThemeOption
 {
 	const char* winName;
-	std::string* themeName;
+	int* themeIndex;
 };
 
 std::vector<ThemeOption> themeOptions = {
-	{"PlayerWin",	&s_WinTheme.playerWinTheme},
-	{"PetWin",		&s_WinTheme.petWinTheme},
-	{"GroupWin",	&s_WinTheme.groupWinTheme},
-	{"SpellsWin",	&s_WinTheme.spellsWinTheme},
-	{"BuffsWin",	&s_WinTheme.buffsWinTheme},
-	{"SongWin",		&s_WinTheme.songWinTheme}
+	{"PlayerWin",	&s_WinTheme.playerWinThemeId},
+	{"PetWin",		&s_WinTheme.petWinThemeId},
+	{"GroupWin",	&s_WinTheme.groupWinThemeId},
+	{"SpellsWin",	&s_WinTheme.spellsWinThemeId},
+	{"BuffsWin",	&s_WinTheme.buffsWinThemeId},
+	{"SongWin",		&s_WinTheme.songWinThemeId}
 };
 
 #pragma endregion
@@ -613,8 +654,8 @@ static void LoadSettings()
 
 	for (const auto& setting : themeSettings)
 	{
-		*setting.theme = GetPrivateProfileString(setting.section, setting.key,
-			"Default", s_SettingsFile);
+		*setting.themeId = GetPrivateProfileInt(setting.section, setting.key,
+			*setting.themeId, s_SettingsFile);
 	}
 
 	for (const auto& setting : colorSettings)
@@ -656,7 +697,7 @@ static void SaveSettings()
 
 	for (const auto& setting : themeSettings)
 	{
-		WritePrivateProfileString(setting.section, setting.key, *setting.theme, s_SettingsFile);
+		WritePrivateProfileInt(setting.section, setting.key, *setting.themeId, s_SettingsFile);
 	}
 
 	for (const auto& setting : colorSettings)
@@ -695,14 +736,6 @@ static void SaveSetting(int* value, const char* settingsFile)
 		[value](const NumericSetting& ns) { return ns.value == value; });
 	if (it != numericSettings.end())
 		WritePrivateProfileInt(it->section, it->key, *value, settingsFile);
-}
-
-static void SaveSetting(std::string* theme, const char* settingsFile)
-{
-	auto it = std::find_if(themeSettings.begin(), themeSettings.end(),
-		[theme](const ThemeSetting& ts) { return ts.theme == theme; });
-	if (it != themeSettings.end())
-		WritePrivateProfileString(it->section, it->key, *theme, settingsFile);
 }
 
 static void SaveSetting(MQColor* color, const char* settingsFile)
@@ -2582,7 +2615,7 @@ static void DrawPlayerWindow()
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.playerWinWidth, s_WinSizeSettings.playerWinHeight), ImGuiCond_Appearing);
 	}
 
-	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.playerWinTheme);
+	ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.playerWinThemeId, s_WinSettings.roundPlayerWin);
 
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar ;
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockPlayerWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
@@ -2642,7 +2675,7 @@ static void DrawPlayerWindow()
 		s_DoSavePosition = true;
 
 	ImGui::End();
-	ResetTheme(originalStyle);
+	ImGuiTheme::ResetTheme(originalStyle);
 }
 
 static void DrawGroupWindow()
@@ -2660,7 +2693,7 @@ static void DrawGroupWindow()
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.groupWinWidth, s_WinSizeSettings.groupWinHeight), ImGuiCond_Appearing);
 	}
 
-	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.groupWinTheme);
+	ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.groupWinThemeId, s_WinSettings.roundGroupWin);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockGroupWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -2790,7 +2823,7 @@ static void DrawGroupWindow()
 	if (checkTest)
 		s_DoSavePosition = true;
 
-	ResetTheme(originalStyle);
+	ImGuiTheme::ResetTheme(originalStyle);
 	ImGui::End();
 }
 
@@ -2812,7 +2845,7 @@ static void DrawPetWindow()
 			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.petWinWidth, s_WinSizeSettings.petWinHeight), ImGuiCond_Appearing);
 		}
 
-		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.petWinTheme);
+		ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.petWinThemeId, s_WinSettings.roundPetWin);
 		
 		ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockPetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
@@ -2935,7 +2968,7 @@ static void DrawPetWindow()
 		if (checkTest)
 			s_DoSavePosition = true;
 
-		ResetTheme(originalStyle);
+		ImGuiTheme::ResetTheme(originalStyle);
 		ImGui::End();
 	}
 }
@@ -2961,7 +2994,7 @@ static void DrawCastingBarWindow()
 			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.castingWinWidth, s_WinSizeSettings.castingWinHeight), ImGuiCond_Appearing);
 		}
 
-		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
+		ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.spellsWinThemeId, s_WinSettings.roundCastingWin);
 		
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockCastingWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 		if (ImGui::Begin("Casting1", &s_IsCasting,
@@ -3055,7 +3088,7 @@ static void DrawCastingBarWindow()
 		}
 
 
-		ResetTheme(originalStyle);
+		ImGuiTheme::ResetTheme(originalStyle);
 		ImGui::End();
 	}
 	else
@@ -3080,7 +3113,7 @@ static void DrawSpellWindow()
 			ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.spellsWinWidth, s_WinSizeSettings.spellsWinHeight), ImGuiCond_Appearing);
 		}
 
-		ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.spellsWinTheme);
+		ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.spellsWinThemeId, s_WinSettings.roundSpellsWin);
 
 		ImGuiWindowFlags lockFlag = (s_WinSettings.lockSpellsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
@@ -3129,7 +3162,7 @@ static void DrawSpellWindow()
 			
 		}
 
-		ResetTheme(originalStyle);
+		ImGuiTheme::ResetTheme(originalStyle);
 		ImGui::End();
 
 	}
@@ -3143,7 +3176,7 @@ static void DrawBuffWindow()
 	ImGui::SetNextWindowPos(ImVec2(15,10), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(210, 300), ImGuiCond_FirstUseEver);
 
-	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.buffsWinTheme);
+	ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.buffsWinThemeId, s_WinSettings.roundBuffsWin);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockBuffsWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -3196,7 +3229,7 @@ static void DrawBuffWindow()
 	if (checkTest)
 		s_DoSavePosition = true;
 
-	ResetTheme(originalStyle);
+	ImGuiTheme::ResetTheme(originalStyle);
 	ImGui::End();
 }
 
@@ -3214,7 +3247,7 @@ static void DrawSongWindow()
 		ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.songWinWidth, s_WinSizeSettings.songWinHeight), ImGuiCond_Appearing);
 	}
 
-	ImGuiStyle originalStyle = ApplyTheme(s_WinTheme.songWinTheme);
+	ImGuiStyle originalStyle = ImGuiTheme::ApplyTheme(s_WinTheme.songWinThemeId, s_WinSettings.roundSongWin);
 
 	ImGuiWindowFlags lockFlag = (s_WinSettings.lockSongWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 	ImGuiWindowFlags menuFlag = ImGuiWindowFlags_MenuBar;
@@ -3259,7 +3292,7 @@ static void DrawSongWindow()
 		
 	}
 
-	ResetTheme(originalStyle);
+	ImGuiTheme::ResetTheme(originalStyle);
 	ImGui::End();
 }
 
@@ -3461,9 +3494,6 @@ static void DrawConfigWindow()
 						if (ImGui::Checkbox(toggle.label, toggle.setting))
 						{
 							s_SettingModified = true;
-							
-							if (toggle.label && strncmp(toggle.label, "Lock All", 8) == 0)
-								LockAll();
 						}
 
 						ImGui::SameLine();
@@ -3493,10 +3523,16 @@ static void DrawConfigWindow()
 					{
 						ImGui::TableNextColumn();
 						if (ImGui::Checkbox(toggle.label, toggle.setting))
+						{
+							if (ci_equals(toggle.label, "Lock ALL"))
+								LockAll();
+
 							s_SettingModified = true;
+						}
 
 						ImGui::SameLine();
 						mq::imgui::HelpMarker(toggle.helpText);
+
 					}
 				}
 
@@ -3518,16 +3554,35 @@ static void DrawConfigWindow()
 				for (const auto& theme : themeOptions)
 				{
 					ImGui::TableNextColumn();
-					std::string temp = *theme.themeName;
+					int* temp = theme.themeIndex;
 					ImGui::SetNextItemWidth(100);
-					*theme.themeName = DrawThemePicker(*theme.themeName, theme.winName);
-					if (temp != *theme.themeName)
+					*theme.themeIndex = ImGuiTheme::DrawThemePicker(*theme.themeIndex, theme.winName);
+					if (temp != theme.themeIndex)
 						s_SettingModified = true;
 
 				}
 				ImGui::EndTable();
 			}
+			
+			ImGui::SeparatorText("Theme Rounding");
+
+			if (ImGui::BeginTable("Rounding List", col))
+			{
+				ImGui::TableNextRow();
+				for (const auto& roundWin : themeRoundingOptions)
+				{
+					ImGui::TableNextColumn();
+					if (ImGui::Checkbox(roundWin.label, roundWin.setting))
+						s_SettingModified = true;
+
+					ImGui::SameLine();
+
+					mq::imgui::HelpMarker(roundWin.helpText);
+				}
+				ImGui::EndTable();
+			}
 		}
+
 		ImGui::Spacing();
 
 		if (ImGui::CollapsingHeader("Pet Buttons"))
@@ -3768,7 +3823,7 @@ PLUGIN_API void OnUpdateImGui()
 				ImGui::SetNextWindowSize(ImVec2(s_WinSizeSettings.targetWinWidth, s_WinSizeSettings.targetWinHeight), ImGuiCond_Appearing);
 			}
 
-			ImGuiStyle oldStyle = ApplyTheme(s_WinTheme.playerWinTheme);
+			ImGuiStyle oldStyle = ImGuiTheme::ApplyTheme(s_WinTheme.playerWinThemeId, s_WinSettings.roundPlayerWin);
 			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
 
 			if (ImGui::Begin("Target", &s_WinSettings.showTargetWindow, s_WindowFlags | lockFlag | s_LockAllWin))
@@ -3803,7 +3858,7 @@ PLUGIN_API void OnUpdateImGui()
 				ImGui::GetWindowPos(), ImGui::GetWindowSize()))
 				SaveSettings();
 
-			ResetTheme(oldStyle);
+			ImGuiTheme::ResetTheme(oldStyle);
 			ImGui::End();
 
 			if (!s_WinSettings.showTargetWindow)
