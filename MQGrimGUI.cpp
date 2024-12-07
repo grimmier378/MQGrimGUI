@@ -1866,13 +1866,6 @@ void DrawPlayerIcons(CGroupMember* pMember, float fontScale = 1.0f)
 		if (ImGui::IsItemHovered())
 			ImGui::SetItemTooltip("Puller");
 	}
-	if (pMember == pLocalPC->pGroupInfo->GetGroupLeader())
-	{
-		ImGui::TextColored(COLOR_TEAL.ToImColor(), ICON_MD_STAR);
-		ImGui::SameLine(0.0f, 1.0f);
-		if (ImGui::IsItemHovered())
-			ImGui::SetItemTooltip("Group Leader");
-	}
 
 	ImGui::Dummy(ImVec2(1.0f, 1.0f));
 }
@@ -2163,7 +2156,17 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::TableSetupColumn("##Lvl", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed, 60);
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				ImGui::Text(nameLabel);
+				if (pLocalPC->pGroupInfo)
+				{
+					if (pLocalPC->Name == pLocalPC->pGroupInfo->GetGroupLeader()->Name)
+						ImGui::TextColored(COLOR_TEAL.ToImColor(), nameLabel);
+					else
+						ImGui::Text(nameLabel);
+				}
+				else
+				{
+						ImGui::Text(nameLabel);
+				}
 				ImGui::TableNextColumn();
 				DrawCombatStateIcon(fontScale);
 				if (pLocalPC->pGroupInfo)
@@ -2269,7 +2272,10 @@ void DrawMemberInfo(CGroupMember* pMember, float fontScale = 1.0f)
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
-		ImGui::Text(nameLabel);
+		if (pMember == pLocalPC->pGroupInfo->GetGroupLeader())
+			ImGui::TextColored(COLOR_TEAL.ToImColor(), nameLabel);
+		else
+			ImGui::Text(nameLabel);
 
 		if (PlayerClient* pSpawn = pMember->GetPlayer())
 		{
