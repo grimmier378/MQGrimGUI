@@ -2178,7 +2178,8 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::TableNextColumn();
 				ImGui::TextColored(COLOR_YELLOW.ToImColor(), s_CurrHeading);
 				ImGui::TableNextColumn();
-				ImGui::Text("Lvl: %d", pLocalPC->GetLevel());
+				MQColor lvlLblCol = pLocalPlayer->StandState == STANDSTATE_SIT ? COLOR_TANGERINE : COLOR_WHITE;
+				ImGui::TextColored(lvlLblCol.ToImColor(), "Lvl: %d", pLocalPC->GetLevel());
 				ImGui::EndTable();
 			}
 		}
@@ -3189,6 +3190,11 @@ static void DrawBuffWindow()
 			s_DoSavePosition = true;
 
 	}
+
+	bool checkTest = CheckWinPos(s_WinSizeSettings.buffsWinX, s_WinSizeSettings.buffsWinY, s_WinSizeSettings.buffsWinWidth, s_WinSizeSettings.buffsWinHeight,
+		ImGui::GetWindowPos(), ImGui::GetWindowSize());
+	if (checkTest)
+		s_DoSavePosition = true;
 
 	ResetTheme(originalStyle);
 	ImGui::End();
