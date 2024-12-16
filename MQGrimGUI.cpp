@@ -3020,7 +3020,7 @@ static void DrawCastingBarWindow()
 				else
 				{
 					int spellTimer = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(now - g_StartCastTime).count());
-					float castingTime = static_cast<float>(pSpell->CastTime - GetCastingTimeModifier(pSpell));
+					float castingTime = static_cast<float>(pSpell->CastTime + GetCastingTimeModifier(pSpell));
 					float spellProgress = 1.0f - static_cast<float>(spellTimer / castingTime);
 					ImVec4 colorCastBar = CalculateProgressiveColor(s_BarColors.minColorCast, s_BarColors.maxColorCast, static_cast<int>(spellProgress * 100));
 
