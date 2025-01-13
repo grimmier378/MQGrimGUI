@@ -26,6 +26,7 @@ static const char* PLUGIN_NAME              = "MQGrimGUI";
 static std::string DEFAULT_INI              = fmt::format( "{}/{}.ini", gPathConfig, PLUGIN_NAME);
 
 char               s_SettingsFile[MAX_PATH] = { 0 };
+//char               s_SpellSetFile[MAX_PATH] = { 0 }; TODO: Implement Spell Set File for saving and loading spell sets
 const char*        s_SecondAggroName        = "Unknown";
 const char*        s_CurrHeading            = "N";
 const char*        HELP_TEXT_MIN            = "Color you progress down to from Max";
@@ -282,6 +283,8 @@ std::vector<WinSizeSetting> winSizeSettings = {
 	{"WinSizePosition",		"CastingWinX",			&s_WinSizeSettings.castingWinX},
 	{"WinSizePosition",		"CastingWinY",			&s_WinSizeSettings.castingWinY},
 };
+
+#pragma endregion
 
 #pragma region Numeric Settings
 
@@ -785,6 +788,15 @@ static void UpdateSettingFile()
 
 				}
 
+				// TODO: Load spell sets file
+				//memset(s_SpellSetFile, 0, sizeof(s_SpellSetFile));
+				//fmt::format_to(s_SpellSetFile, "{}/SpellSets_{}_{}.ini", gPathConfig, GetServerShortName(), pLocalPC->Name);
+
+				//if (std::filesystem::exists(s_SpellSetFile, ec))
+				//{
+				//	// load spell sets file
+				//}
+
 				if (!s_CharIniLoaded)
 				{
 					memset(s_SettingsFile, 0, sizeof(s_SettingsFile));
@@ -1198,7 +1210,6 @@ void GetHeading()
 		s_CurrHeading = szHeadingShort[static_cast<int>((pLocalPlayer->Heading / 32.0f) + 8.5f) % 16];
 }
 
-
 void PrintGrimHelp()
 {
 	for (const auto& cmdInfo : commandList)
@@ -1596,13 +1607,15 @@ static void DrawSpellBarIcons(int gemHeight)
 					}
 					else if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 					{
+
 						pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
 						pSpellGem->ParentWndNotification(pSpellGem, XWM_LBUTTONUPAFTERHELD, nullptr);
 					}
 					else if (ImGui::IsMouseClicked(0))
 					{
-						if (spellId != -1)
-							Cast(pLocalPlayer, spell->Name);
+						pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
+						//if (spellId != -1)
+						//	Cast(pLocalPlayer, spell->Name);
 					}
 					else if (ImGui::IsMouseClicked(1))
 					{
@@ -1686,7 +1699,7 @@ static void DisplayPetButtons()
 	}
 }
 
-static bool CheckWinPos(float &x, float &y, float& w, float& h, ImVec2 curPos, ImVec2 curSize)
+static bool CheckWinPos(float &x, float &y, float &w, float &h, ImVec2 curPos, ImVec2 curSize)
 {
 	bool changed = false;
 	if (x != curPos.x || y != curPos.y)
@@ -1695,15 +1708,16 @@ static bool CheckWinPos(float &x, float &y, float& w, float& h, ImVec2 curPos, I
 		y = curPos.y;
 		changed = true;
 	}
+
 	if (w != curSize.x || h != curSize.y)
 	{
 		w = curSize.x;
 		h = curSize.y;
 		changed = true;
 	}
+
 	return changed;
 }
-
 
 
 /**
@@ -1963,7 +1977,6 @@ void DrawMenu(const char* winName)
 		DrawLockOption(winName);
 
 		// Config Window Icon
-		ImGui::SameLine();
 		if(ImGui::SmallButton(ICON_FA_COG))
 			s_WinSettings.showConfigWindow = !s_WinSettings.showConfigWindow;
 
@@ -2018,7 +2031,6 @@ void DrawMenu(const char* winName)
 		}
 		
 		// Lock All Windows Icon
-		ImGui::SameLine();
 		
 		float winWidth = ImGui::GetWindowWidth();
 		if (winWidth > 140)
@@ -2516,6 +2528,12 @@ static void DrawTargetWindow(bool splitTar = false)
 				tarName = MaskName(tarName);
 		}
 
+		if (pTarget->Type == SPAWN_CORPSE)
+		{
+			std::string corpseName = std::string(tarName) + "'s Corpse";
+			tarName = corpseName.c_str();
+		}
+
 		float sizeX = ImGui::GetWindowWidth();
 		float yPos = ImGui::GetCursorPosY();
 		float midX = (sizeX / 2);
@@ -2764,7 +2782,7 @@ static void DrawGroupWindow()
 
 		if (mq::IsPluginLoaded("MQ2DanNet"))
 		{
-			ImVec2 MaxBtnSize = CalcButtonSize("Follow Me", 1.0f, s_FontScaleSettings.groupWinScale);
+			ImVec2 MaxBtnSize = CalcButtonSize("Follow Me##", 1.0f, s_FontScaleSettings.groupWinScale);
 			float posX = (ImGui::GetWindowWidth() * 0.5f) - MaxBtnSize.x;
 			if (posX < 0)
 				posX = 0;
@@ -2774,13 +2792,13 @@ static void DrawGroupWindow()
 			int myID = pLocalPlayer->GetId();
 			const char* followLabel = "Follow Me";
 			if (s_FollowClicked)
-				followLabel = "Stop Follow##";
+				followLabel = "Stop Follow";
 
 			if (ImGui::Button(followLabel, MaxBtnSize))
 			{
 				if (!s_FollowClicked)
 				{
-					DoCommandf("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /dgge /afollow spawn %d", myID);
+					DoCommandf("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /afollow spawn %d", myID);
 					s_FollowClicked = true;
 				}
 				else
@@ -2792,7 +2810,7 @@ static void DrawGroupWindow()
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Come Here##", MaxBtnSize))
+			if (ImGui::Button("Come Here", MaxBtnSize))
 				DoCommandf("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /nav id %d", myID);
 
 		}	
@@ -3087,7 +3105,6 @@ static void DrawCastingBarWindow()
 			ImGui::EndPopup();
 		}
 
-
 		ImGuiTheme::ResetTheme(originalStyle);
 		ImGui::End();
 	}
@@ -3215,7 +3232,6 @@ static void DrawBuffWindow()
 			s_WinSettings.showBuffWindow = false;
 
 		ImGui::EndPopup();
-
 
 		bool checkTest = CheckWinPos(s_WinSizeSettings.buffsWinX, s_WinSizeSettings.buffsWinY, s_WinSizeSettings.buffsWinWidth, s_WinSizeSettings.buffsWinHeight,
 			ImGui::GetWindowPos(), ImGui::GetWindowSize());

@@ -59,7 +59,7 @@ void SpellPicker::DrawSpellTree()
 								ImGui::BeginTooltip();
 								ImGui::Text("Name: %s", spell.Name);
 								ImGui::Text("Level: %d", spell.Level);
-								ImGui::Text("Rank: %s", spell.RankNum);
+								ImGui::Text("Rank: %d", spell.RankNum);
 								ImGui::EndTooltip();
 							}
 						}
@@ -218,12 +218,14 @@ void SpellPicker::PopulateSpellData()
 			SpellData spellData{};
 			spellData.ID = spellId;
 			spellData.Name = pSpell->Name;
-			spellData.RankNum = pSpell->SpellRank;
+			spellData.RankNum = pSpell->SpellRank ? pSpell->SpellRank : 0;
 			spellData.Level = pSpell->GetSpellLevelNeeded(pCharData->GetClass());
 			spellData.IconID = pSpell->SpellIcon;
 			spellData.SpellBookIndex = i;
-			spellData.Category = pCDBStr->GetString(pSpell->Category, eSpellCategory);
-			spellData.SubCategory = pCDBStr->GetString(pSpell->Subcategory, eSpellCategory);
+			spellData.Category = pCDBStr->GetString(pSpell->Category, eSpellCategory) ? pCDBStr->GetString(pSpell->Category, eSpellCategory) : 
+				"NONE";
+			spellData.SubCategory = pCDBStr->GetString(pSpell->Subcategory, eSpellCategory) ? pCDBStr->GetString(pSpell->Subcategory, eSpellCategory) :
+				"NONE";
 
 			m_mySpells.push_back(spellData);
 		}
@@ -238,6 +240,7 @@ void SpellPicker::PopulateSpellData()
 		return a.Level > b.Level;
 	});
 	
+	categorizedSpells.clear();
 	for (const auto& spell : m_mySpells)
 		categorizedSpells[spell.Category][spell.SubCategory].push_back(spell);
 }

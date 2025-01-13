@@ -754,9 +754,7 @@ namespace ImGuiTheme
 		}
 	}
 
-
 #pragma endregion
-
 
 	enum class Theme
 	{
@@ -867,5 +865,4 @@ namespace ImGuiTheme
 		ImGui::GetStyle() = oldStyle;
 	}
 
-#pragma endregion
 }
