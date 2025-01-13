@@ -12,7 +12,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MQ2GrimGUI.cpp">
+    <ClCompile Include="MQGrimGUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SpellPicker.cpp">
@@ -23,9 +23,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2GrimGUI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Theme.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -34,7 +31,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MQ2GrimGUI.rc">
+    <ResourceCompile Include="MQGrimGUI.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

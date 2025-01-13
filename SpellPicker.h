@@ -1,53 +1,59 @@
 #pragma once
 #include "eqlib/Spells.h"
-
-struct SpellData
-{
-	int ID;
-	int Level;
-	int IconID;
-	int SpellBookIndex;
-	std::string Name;
-	std::string RankName;
-	std::string TargetType;
-	std::string Category;
-	std::string SubCategory;
-};
+#include <mq/Plugin.h>
 
 class SpellPicker
 {
+public:
+	struct SpellData
+	{
+		int ID;
+		int Level;
+		int IconID;
+		int RankNum;
+		int SpellBookIndex;
+		char* Name;
+		char* TargetType;
+		const char* Category;
+		const char* SubCategory;
+	};
+
+	bool m_pickerOpen = false;
+	bool m_NeedSpellPickup = false;
+	bool m_needFilter = false;
+	bool m_useFilter = false;
+
+	std::shared_ptr<SpellData> m_selectedSpell;
+	std::vector<SpellData> m_mySpells;
+	std::vector<SpellData> m_filteredSpells;
+
+	CTextureAnimation* m_pSpellBookIcon = nullptr;
 	CTextureAnimation* m_pSpellIcon = nullptr;
 
-public:
+	int m_SpellBookIndex = -1;
+
+	std::string m_filterString;
+private:
+	std::unordered_map<const char*, std::unordered_map<const char*, std::vector<SpellData>>> categorizedSpells;
+
 public:
 	void DrawSpellPicker();
 	void DrawSpellTree();
 	void DrawSpellTable();
+	void InitializeSpells();
+	void FilterSpells();
 
-	SpellPicker()
-	{
-		InitializeSpells();
-	}
-
-	~SpellPicker()
-	{
-		CleanupIcons();
-	}
-
-	void InitializeSpells()
-	{
-		Spells.clear();
-		PopulateSpellData();
-	}
+	SpellPicker();
+	~SpellPicker();
 
 	void SetOpen(bool open)
 	{
-		Open = open;
+		m_pickerOpen = open;
 	}
 
 	void ClearSelection()
 	{
-		SelectedSpell.reset();
+		m_selectedSpell.reset();
 	}
 
 	void PickUpSpell()
@@ -71,47 +77,10 @@ public:
 		//m_SpellBookIcon = nullptr;
 	}
 
-	// Selected spell
-	std::shared_ptr<SpellData> SelectedSpell;
-
-	// Pick Up a Spell from the book?
-	bool m_NeedSpellPickup = false;
-
 private:
+
 	void PopulateSpellData();
-	void CleanupIcons()
-	{
-		if (m_pSpellIcon)
-		{
-			delete m_pSpellIcon;
-			m_pSpellIcon = nullptr;
-		}
-	}
 
-	std::vector<SpellData> Spells;
-
-	bool Open = false;
-	int m_SpellBookIndex = -1;
-	CTextureAnimation* m_SpellBookIcon = nullptr;
-	std::string m_PickerFilter;
-	std::string m_TableFilter;
-
-private:
-	static void InspectSpell(int spellId)
-	{
-		EQ_Spell* spell = GetSpellByID(spellId);
-		if (spell)
-		{
-#if defined(CSpellDisplayManager__ShowSpell_x)
-			if (pSpellDisplayManager)
-				pSpellDisplayManager->ShowSpell(spell->ID, true, true, SpellDisplayType_SpellBookWnd);
-#else
-			char buffer[512] = { 0 };
-			FormatSpellLink(buffer, 512, spell);
-			TextTagInfo info = ExtractLink(buffer);
-			ExecuteTextLink(info);
-#endif
-		}
-	}
+	void InspectSpell(int spellId);
 
 };
