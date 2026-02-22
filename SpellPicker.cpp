@@ -203,12 +203,12 @@ void SpellPicker::InitializeSpells()
 */
 void SpellPicker::PopulateSpellData()
 {
-	if (!pCharData)
+	if (!pLocalPC)
 		return;
 
 	for (int i = 0; i < NUM_BOOK_SLOTS; ++i)
 	{
-		int spellId = pCharData->GetSpellBook(i);
+		int spellId = pLocalPC->GetSpellBook(i);
 		if (spellId == -1)
 			continue; // Empty Slot
 
@@ -219,7 +219,7 @@ void SpellPicker::PopulateSpellData()
 			spellData.ID = spellId;
 			spellData.Name = pSpell->Name;
 			spellData.RankNum = pSpell->SpellRank ? pSpell->SpellRank : 0;
-			spellData.Level = pSpell->GetSpellLevelNeeded(pCharData->GetClass());
+			spellData.Level = pSpell->GetSpellLevelNeeded(pLocalPC->GetClass());
 			spellData.IconID = pSpell->SpellIcon;
 			spellData.SpellBookIndex = i;
 			spellData.Category = pCDBStr->GetString(pSpell->Category, eSpellCategory) ? pCDBStr->GetString(pSpell->Category, eSpellCategory) : 

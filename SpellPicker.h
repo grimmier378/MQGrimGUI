@@ -1,5 +1,5 @@
 #pragma once
-#include "eqlib/Spells.h"
+#include "eqlib/game/Spells.h"
 #include <mq/Plugin.h>
 
 class SpellPicker

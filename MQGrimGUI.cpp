@@ -5,7 +5,7 @@
 #include "mq/base/Color.h"
 #include "mq/imgui/Widgets.h"
 #include "mq/imgui/ImGuiUtils.h"
-#include "eqlib/Spells.h"
+#include "eqlib/game/Spells.h"
 #include "main/MQ2SpellSearch.h"
 #include "imgui/fonts/IconsMaterialDesign.h"
 #include "imgui/fonts/IconsFontAwesome.h"
@@ -51,6 +51,29 @@ constexpr          MQColor DEF_BENI_BORDER_COL(0, 0, 250, 255);
 constexpr          MQColor DEF_DET_BORDER_COL(250, 0, 0, 255);
 constexpr          MQColor DEF_SELF_CAST_BORDER_COL(250, 250, 0, 255);
 constexpr          MQColor DEF_TINT_COL(255, 255, 255, 255);
+constexpr MQColor COLOR_RED(230, 26, 26, 255);
+constexpr MQColor COLOR_PINK2(249, 132, 215, 255);
+constexpr MQColor COLOR_PINK(230, 102, 102, 204);
+constexpr MQColor COLOR_ORANGE(199, 51, 13, 204);
+constexpr MQColor COLOR_TANGERINE(255, 142, 0, 255);
+constexpr MQColor COLOR_YELLOW(255, 255, 0, 255);
+constexpr MQColor COLOR_YELLOW2(135, 135, 8, 253);
+constexpr MQColor COLOR_WHITE(255, 255, 255, 255);
+constexpr MQColor COLOR_BLUE(0, 0, 255, 255);
+constexpr MQColor COLOR_SOFT_BLUE(94, 180, 255);
+constexpr MQColor COLOR_LIGHT_BLUE2(51, 230, 230, 128);
+constexpr MQColor COLOR_LIGHT_BLUE(0, 255, 255, 255);
+constexpr MQColor COLOR_TEAL(0, 255, 255, 255);
+constexpr MQColor COLOR_GREEN(0, 255, 0, 255);
+constexpr MQColor COLOR_GREEN2(3, 143, 0, 255);
+constexpr MQColor COLOR_GREY(153, 153, 153, 255);
+constexpr MQColor COLOR_PURPLE1(204, 0, 255, 255);
+constexpr MQColor COLOR_PURPLE2(118, 52, 255, 255);
+constexpr MQColor COLOR_BTN_RED(255, 102, 102, 102);
+constexpr MQColor COLOR_BTN_GREEN(102, 255, 102, 102);
+constexpr MQColor COLOR_DEFAULT_WHITE(255, 255, 255, 255);
+
+
 
 
 ImGuiWindowFlags   s_WindowFlags            = ImGuiWindowFlags_None | ImGuiWindowFlags_NoFocusOnAppearing;
@@ -71,6 +94,31 @@ CTextureAnimation* s_pTimerIcon             = nullptr;
 CTextureAnimation* s_pStatusIcon            = nullptr;
 
 void CleanUpIcons();
+
+enum class ColorName {
+	Red, Pink2, Pink, Orange, Tangerine, Yellow, Yellow2, White,
+	Blue, SoftBlue, LightBlue2, LightBlue, Teal, Green, Green2,
+	Grey, Purple, Purple2, BtnRed, BtnGreen, DefaultWhite
+};
+
+constexpr MQColor GetConColor(int color_code)
+{
+	switch (color_code)
+	{
+	case CONCOLOR_GREY:		 return COLOR_GREY;
+	case CONCOLOR_GREEN:	 return COLOR_GREEN;
+	case CONCOLOR_LIGHTBLUE: return COLOR_SOFT_BLUE;
+	case CONCOLOR_BLUE:		 return COLOR_BLUE;
+	case CONCOLOR_BLACK:	 return COLOR_WHITE;
+	case CONCOLOR_WHITE:	 return COLOR_WHITE;
+	case CONCOLOR_YELLOW:	 return COLOR_YELLOW;
+	case CONCOLOR_RED:		 return COLOR_RED;
+
+		// Default color if the color code doesn't match any known values
+	default: return COLOR_DEFAULT_WHITE;
+	}
+}
+
 
 #pragma region Timers
 
@@ -94,6 +142,7 @@ struct WinSettings
 	bool showGroupWindow    = false;
 	bool showSpellsWindow   = false;
 	bool showTargetWindow   = false;
+	bool showCastingWindow = false;
 	bool showHud            = false;
 	bool showBuffWindow     = false;
 	bool showSongWindow     = false;
@@ -168,6 +217,7 @@ static std::vector<WinSetting> winSettings = {
 	{"Group",		"ShowGroupWindow",		&s_WinSettings.showGroupWindow},
 	{"Group",		"ShowSelfOnGroup",		&s_WinSettings.showSelfOnGroup},
 	{"Group",		"ShowEmptyGroup",		&s_WinSettings.showEmptyGroupSlot},
+	{"Settings",		"ShowCastingWindow",	&s_WinSettings.showCastingWindow},
 	{"Songs",		"ShowSongWindow",		&s_WinSettings.showSongWindow},
 	{"Songs",		"FlashSongTimer",		&s_WinSettings.flashSongTimer},
 	{"Spells",		"ShowSpellsWindow",		&s_WinSettings.showSpellsWindow},
@@ -438,6 +488,7 @@ std::vector<WindowOption> options = {
 	{"Buff Win",	&s_WinSettings.showBuffWindow,		"Buffs",		"ShowBuffWindow"},
 	{"Song Win",	&s_WinSettings.showSongWindow,		"Songs",		"ShowSongWindow"},
 	{"Group Win",	&s_WinSettings.showGroupWindow,		"Group",		"ShowGroupWindow"},
+	{"Casting Bar",	&s_WinSettings.showCastingWindow,	"Casting",		"ShowCastingWindow"},
 	{"Hud Win",		&s_WinSettings.showHud,				"Hud",			"ShowHud"},
 };
 
@@ -477,6 +528,7 @@ std::vector <SettingToggleOption> settingToggleOptions = {
 	{"Title Bars",			&s_WinSettings.showTitleBars,		false,	"Title Bars: Show or Hide the title bars on each window"},
 	{"Pet Buttons",			&s_WinSettings.showPetButtons,		false,	"Pet Buttons: Show or Hide the pet command buttons"},
 	{"Target Win",			&s_WinSettings.showTargetWindow,	false,	"Toggle Splitting the Target Window" },
+	{"Casting Bar",			&s_WinSettings.showCastingWindow,	false,	"Show or Hide the Casting Bar Window"},
 	{"Target Buffs",		&s_WinSettings.showTargetBuffs,		false,	"Target Buffs: Show or Hide the target buffs"},
 	{"Aggro Meter",			&s_WinSettings.showAggroMeter,		false,	"Aggro Meter: Show or Hide the aggro meter"},
 	{"Group Show Self",		&s_WinSettings.showSelfOnGroup,		false,	"Group Show Self: Show or Hide Yourself on the group window"},
@@ -583,8 +635,8 @@ const std::array<CommandInfo, 12> commandList = {
 
 struct PetButtonData
 {
-	char* name;
-	char* command;
+	const char* name;
+	const char* command;
 	bool visible;
 };
 
@@ -614,7 +666,7 @@ struct StatusFXData
 	eEQSPA spaValue;
 	int iconID;
 	bool positveFX;
-	char* tooltip;
+	const char* tooltip;
 };
 
 
@@ -924,7 +976,9 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 {
 
 	bool sickFound = false;
-	ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+	
+	ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.buffsWinScale);
+	//ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 	float sizeY = ImGui::GetContentRegionAvail().y;
 	sizeY = sizeY - 10 > 0 ? sizeY - 10 : 1;
 
@@ -986,7 +1040,7 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 					ImGui::Selectable("##", false, ImGuiSelectableFlags_SpanAllColumns);
 					if (ImGui::BeginPopupContextItem(("BuffPopup##" + std::to_string(spell->ID)).c_str(), ImGuiPopupFlags_MouseButtonRight))
 					{
-						ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+						//ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 
 						if (ImGui::MenuItem(("Remove##" + std::to_string(spell->ID)).c_str(), nullptr, false, true))
 							RemoveBuffByName(spell->Name);
@@ -1051,6 +1105,8 @@ void DrawBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Itera
 
 		ImGui::EndTable();
 	}
+
+	ImGui::PopFont();
 }
 
 template <typename T>
@@ -1415,54 +1471,6 @@ ImVec4 CalculateProgressiveColor(const MQColor& minColor, const MQColor& maxColo
 	return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }
 
-
-
-enum class ColorName {
-	Red, Pink2, Pink, Orange, Tangerine, Yellow, Yellow2, White,
-	Blue, SoftBlue, LightBlue2, LightBlue, Teal, Green, Green2,
-	Grey, Purple, Purple2, BtnRed, BtnGreen, DefaultWhite
-};
-
-constexpr MQColor COLOR_RED(230, 26, 26, 255);
-constexpr MQColor COLOR_PINK2(249, 132, 215, 255);
-constexpr MQColor COLOR_PINK(230, 102, 102, 204);
-constexpr MQColor COLOR_ORANGE(199, 51, 13, 204);
-constexpr MQColor COLOR_TANGERINE(255, 142, 0, 255);
-constexpr MQColor COLOR_YELLOW(255, 255, 0, 255);
-constexpr MQColor COLOR_YELLOW2(135, 135, 8, 253);
-constexpr MQColor COLOR_WHITE(255, 255, 255, 255);
-constexpr MQColor COLOR_BLUE(0, 0, 255, 255);
-constexpr MQColor COLOR_SOFT_BLUE(94, 180, 255);
-constexpr MQColor COLOR_LIGHT_BLUE2(51, 230, 230, 128);
-constexpr MQColor COLOR_LIGHT_BLUE(0, 255, 255, 255);
-constexpr MQColor COLOR_TEAL(0, 255, 255, 255);
-constexpr MQColor COLOR_GREEN(0, 255, 0, 255);
-constexpr MQColor COLOR_GREEN2(3, 143, 0, 255);
-constexpr MQColor COLOR_GREY(153, 153, 153, 255);
-constexpr MQColor COLOR_PURPLE1(204, 0, 255, 255);
-constexpr MQColor COLOR_PURPLE2(118, 52, 255, 255);
-constexpr MQColor COLOR_BTN_RED(255, 102, 102, 102);
-constexpr MQColor COLOR_BTN_GREEN(102, 255, 102, 102);
-constexpr MQColor COLOR_DEFAULT_WHITE(255, 255, 255, 255);
-
-constexpr MQColor GetConColor(int color_code)
-{
-	switch (color_code)
-	{
-	case CONCOLOR_GREY:		 return COLOR_GREY; 
-	case CONCOLOR_GREEN:	 return COLOR_GREEN; 
-	case CONCOLOR_LIGHTBLUE: return COLOR_SOFT_BLUE;
-	case CONCOLOR_BLUE:		 return COLOR_BLUE; 
-	case CONCOLOR_BLACK:	 return COLOR_WHITE; 
-	case CONCOLOR_WHITE:	 return COLOR_WHITE; 
-	case CONCOLOR_YELLOW:	 return COLOR_YELLOW; 
-	case CONCOLOR_RED:		 return COLOR_RED; 
-
-		// Default color if the color code doesn't match any known values
-	default: return COLOR_DEFAULT_WHITE;
-	}
-}
-
 #pragma endregion
 
 #pragma region Some ImGui Stuff *Draw functions*
@@ -1601,11 +1609,11 @@ static void DrawSpellBarIcons(int gemHeight)
 					}
 					ImGui::EndTooltip();
 
-					if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModAlt))
+					if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiMod_Alt))
 					{
 						DoInspectSpell(spellId);
 					}
-					else if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+					else if (ImGui::IsMouseClicked(0) && ImGui::IsKeyDown(ImGuiMod_Ctrl))
 					{
 
 						pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
@@ -1670,7 +1678,7 @@ static void DisplayPetButtons()
 		{
 			if (button.visible) {
 				ImGui::TableNextColumn();
-				char* btnLabel = button.name;
+				const char* btnLabel = button.name;
 
 				bool isAttacking = false;
 				bool isSitting = false;
@@ -1763,9 +1771,10 @@ void DrawStatusEffects()
 		efxflag = true;
 		//m_StatusIcon->SetCurCell(93);
 		//imgui::DrawTextureAnimation(m_StatusIcon, iconSize, tintCol, borderCol);
-		ImGui::SetWindowFontScale(2.0f);
+
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 2.0f);
 		ImGui::TextColored(COLOR_TANGERINE.ToImColor(), ICON_FA_MOON_O);
-		ImGui::SetWindowFontScale(1.0f);
+		ImGui::PopFont();
 		if (ImGui::IsItemClicked())
 			pLocalPlayer->StandState = STANDSTATE_STAND;
 		if (ImGui::IsItemHovered())
@@ -2098,7 +2107,7 @@ void DrawPetInfo(PlayerClient* petInfo, bool showAll = true)
 	if (showAll)
 	{
 		if (ImGui::BeginChild("Pet", ImVec2(ImGui::GetColumnWidth(), 0),
-			ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
+			ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 		{
 			DrawLineOfSight(pLocalPlayer, petInfo);
 			ImGui::SameLine();
@@ -2160,10 +2169,12 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 		return;
 
 	if (ImGui::BeginChild(pLocalPC->Name, ImVec2(ImGui::GetContentRegionAvail().x, 0),
-		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
+		ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 	{
-		ImGui::SetWindowFontScale(fontScale);
-		ImGuiChildFlags s_ChildFlags = drawCombatBorder ? ImGuiChildFlags_Border : ImGuiChildFlags_None;
+
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * fontScale);
+		//ImGui::SetWindowFontScale(fontScale);
+		ImGuiChildFlags s_ChildFlags = drawCombatBorder ? ImGuiChildFlags_Borders : ImGuiChildFlags_None;
 
 		if (drawCombatBorder && pEverQuestInfo->bAutoAttack)
 		{
@@ -2227,6 +2238,7 @@ void DrawPlayerBars(bool drawCombatBorder = false, int barHeight = s_NumSettings
 				ImGui::TextColored(lvlLblCol.ToImColor(), "Lvl: %d", pLocalPC->GetLevel());
 				ImGui::EndTable();
 			}
+			ImGui::PopFont();
 		}
 		ImGui::EndChild();
 
@@ -2280,7 +2292,7 @@ void DrawEmptyMember(int slot)
 {
 	float sizeY = static_cast<float>(s_NumSettings.groupBarHeight) * 4 + 50;
 	if (ImGui::BeginChild(("##Empty%d", slot), ImVec2(ImGui::GetContentRegionAvail().x, sizeY),
-		ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
+		ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar))
 	{
 		ImGui::Text("Open");
 	}
@@ -2374,7 +2386,7 @@ void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int groupSl
 	if (!pMember->GetPlayer())
 	{
 		if (ImGui::BeginChild(("##Empty%d", groupSlot), ImVec2(ImGui::GetContentRegionAvail().x, sizeY),
-			ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
+			ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar))
 		{
 			DrawMemberInfo(pMember, s_FontScaleSettings.groupWinScale);
 			const char* memberName = pMember->GetName();
@@ -2399,7 +2411,7 @@ void DrawGroupMemberBars(CGroupMember* pMember, bool drawPet = true, int groupSl
 	PlayerClient* pSpawn = pMember->GetPlayer();
 
 	if (ImGui::BeginChild(pSpawn->Name, ImVec2(ImGui::GetContentRegionAvail().x, 0),
-		ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
+		ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize, ImGuiWindowFlags_NoScrollbar))
 	{
 
 		ImGui::PushID(pSpawn->Name);
@@ -2518,8 +2530,9 @@ static void DrawTargetWindow(bool splitTar = false)
 {
 	if (pTarget)
 	{
-		if (splitTar)
-			ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale);
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.targetWinScale);
+		//if (splitTar)
+		//	ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale);
 
 		const char* tarName = pTarget->DisplayedName;
 		if (mq::IsAnonymized())
@@ -2610,13 +2623,14 @@ static void DrawTargetWindow(bool splitTar = false)
 		// Target Buffs Section
 		if (s_WinSettings.showTargetBuffs)
 		{
-			if (ImGui::BeginChild("TargetBuffs", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
+			if (ImGui::BeginChild("TargetBuffs", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Borders , ImGuiWindowFlags_NoScrollbar))
 			{
 				if (gTargetbuffs)
 					DrawBuffsIconList("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
 			}
 			ImGui::EndChild();
 		}
+		ImGui::PopFont();
 	}
 }
 
@@ -2652,7 +2666,8 @@ static void DrawPlayerWindow()
 
 		DrawMenu("Player");
 
-		ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.playerWinScale);
+		//ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
 		DrawPlayerBars(true,s_NumSettings.playerBarHeight,false,s_FontScaleSettings.playerWinScale);
 
 		if (!s_WinSettings.showTargetWindow)
@@ -2660,11 +2675,13 @@ static void DrawPlayerWindow()
 			ImGui::Separator();
 			DrawTargetWindow();
 		}
+		ImGui::PopFont();
 	}
 	
 	if (ImGui::BeginPopupContextWindow("PlayerContext", ImGuiPopupFlags_MouseButtonRight))
 	{
-		ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.playerWinScale);
+		//ImGui::SetWindowFontScale(s_FontScaleSettings.playerWinScale);
 
 		if (ImGui::MenuItem("Lock Player Window", NULL, &s_WinSettings.lockPlayerWin))
 		{
@@ -2683,6 +2700,7 @@ static void DrawPlayerWindow()
 		if (ImGui::MenuItem("Close Player Window"))
 			s_WinSettings.showPlayerWindow = false;
 
+		ImGui::PopFont();
 		ImGui::EndPopup();
 	}
 
@@ -2728,7 +2746,8 @@ static void DrawGroupWindow()
 
 		DrawMenu("Group");
 
-		ImGui::SetWindowFontScale(s_FontScaleSettings.groupWinScale);
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.groupWinScale);
+		//ImGui::SetWindowFontScale(s_FontScaleSettings.groupWinScale);
 		if (s_WinSettings.showSelfOnGroup)
 			DrawPlayerBars(false, s_NumSettings.groupBarHeight, true, s_FontScaleSettings.groupWinScale);
 
@@ -2814,6 +2833,7 @@ static void DrawGroupWindow()
 				DoCommandf("/dgge /multiline ; /afollow off; /nav stop ; /timed 5, /nav id %d", myID);
 
 		}	
+		ImGui::PopFont();
 	}
 	if (ImGui::BeginPopupContextWindow("GroupContext", ImGuiPopupFlags_MouseButtonRight))
 	{
@@ -2878,10 +2898,11 @@ static void DrawPetWindow()
 			}
 
 			DrawMenu("Pet");
+			ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.petWinScale);
 
 			if (ImGui::BeginPopupContextWindow("PetContext", ImGuiPopupFlags_MouseButtonRight))
 			{
-				ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
+				//ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
 				if (ImGui::MenuItem("Lock Pet Window", NULL, &s_WinSettings.lockPetWin))
 				{
 					s_WinSettings.lockAllWin = false;
@@ -2897,7 +2918,7 @@ static void DrawPetWindow()
 				ImGui::EndPopup();
 			}
 
-			ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
+			//ImGui::SetWindowFontScale(s_FontScaleSettings.petWinScale);
 			float sizeX = ImGui::GetWindowWidth();
 			float yPos = ImGui::GetCursorPosY();
 			float midX = (sizeX / 2) > 1 ? (sizeX / 2) : 2.0f;
@@ -2917,7 +2938,7 @@ static void DrawPetWindow()
 				// Pet Target Section
 				
 				if (ImGui::BeginChild("PetTarget", ImVec2(ImGui::GetColumnWidth(), 0),
-					ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize,
+					ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysAutoResize,
 					 ImGuiWindowFlags_NoScrollbar))
 				{
 					if (PlayerClient* pPetTarget = MyPet->WhoFollowing)
@@ -2958,7 +2979,7 @@ static void DrawPetWindow()
 					float childBtnHeight = ImGui::GetContentRegionAvail().y ;
 
 					if (ImGui::BeginChild("PetButtons", ImVec2(childBtnWidth, childBtnHeight),
-						ImGuiChildFlags_Border , ImGuiWindowFlags_NoScrollbar))
+						ImGuiChildFlags_Borders , ImGuiWindowFlags_NoScrollbar))
 					{
 						DisplayPetButtons();
 					}
@@ -2972,13 +2993,14 @@ static void DrawPetWindow()
 				float childBuffHeight = ImGui::GetContentRegionAvail().y;
 
 				if (ImGui::BeginChild("PetBuffs", ImVec2(childBuffWidth, childBuffHeight),
-					ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar))
+					ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar))
 				{
 					DrawBuffsIconList("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
 				}
 				ImGui::EndChild();
 				ImGui::EndTable();
 			}
+			ImGui::PopFont();
 		}
 
 		bool checkTest = CheckWinPos(s_WinSizeSettings.petWinX, s_WinSizeSettings.petWinY, s_WinSizeSettings.petWinWidth, s_WinSizeSettings.petWinHeight,
@@ -3029,7 +3051,8 @@ static void DrawCastingBarWindow()
 			EQ_Spell* pSpell = GetSpellByName(spellName);
 			if (pSpell)
 			{
-				ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+				ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.spellsWinScale);
+				//ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 				auto now = std::chrono::steady_clock::now();
 				if (now - g_StartCastTime > std::chrono::milliseconds(pSpell->CastTime))
 				{
@@ -3084,6 +3107,7 @@ static void DrawCastingBarWindow()
 						break;
 					}
 				}
+				ImGui::PopFont();
 			}
 
 			bool checkTest = CheckWinPos(s_WinSizeSettings.castingWinX, s_WinSizeSettings.castingWinY, s_WinSizeSettings.castingWinWidth, s_WinSizeSettings.castingWinHeight,
@@ -3094,14 +3118,15 @@ static void DrawCastingBarWindow()
 		}
 		if (ImGui::BeginPopupContextWindow("CastingContext", ImGuiPopupFlags_MouseButtonRight))
 		{
-			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+			ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.spellsWinScale);
+			//ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 
 			if (ImGui::MenuItem("Lock Casting Window", NULL, &s_WinSettings.lockCastingWin))
 			{
 				s_WinSettings.lockAllWin = false;
 				SaveSetting(&s_WinSettings.lockCastingWin, s_SettingsFile);
 			}
-
+			ImGui::PopFont();
 			ImGui::EndPopup();
 		}
 
@@ -3144,7 +3169,9 @@ static void DrawSpellWindow()
 				SaveSetting(&s_WinSettings.dockedSpellsWin, s_SettingsFile);
 			}
 
-			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+			ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.spellsWinScale);
+
+			//ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 			DrawSpellBarIcons(s_NumSettings.spellGemHeight);
 
 			ImVec2 btnSize = CalcButtonSize(ICON_FA_BOOK, 3.0f, s_FontScaleSettings.spellsWinScale);
@@ -3153,11 +3180,15 @@ static void DrawSpellWindow()
 				s_ShowSpellBook = !s_ShowSpellBook;
 
 			ImGui::Spacing();
+			ImGui::PopFont();
 		}
 
 		if (ImGui::BeginPopupContextItem("SpellsContext", ImGuiPopupFlags_MouseButtonRight))
 		{
-			ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+
+			ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.spellsWinScale);
+
+			//ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 
 			if (ImGui::MenuItem("Lock Spells Window", NULL, &s_WinSettings.lockSpellsWin))
 			{
@@ -3176,7 +3207,7 @@ static void DrawSpellWindow()
 				ImGui::GetWindowPos(), ImGui::GetWindowSize());
 			if (checkTest)
 				s_DoSavePosition = true;
-			
+			ImGui::PopFont();
 		}
 
 		ImGuiTheme::ResetTheme(originalStyle);
@@ -3221,7 +3252,8 @@ static void DrawBuffWindow()
 	}
 	if (ImGui::BeginPopupContextWindow("BuffContext", ImGuiPopupFlags_MouseButtonRight))
 	{
-		ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.buffsWinScale);
+		//ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
 		if (ImGui::MenuItem("Lock Buffs Window", NULL, &s_WinSettings.lockBuffsWin))
 		{
 			s_WinSettings.lockAllWin = false;
@@ -3238,6 +3270,7 @@ static void DrawBuffWindow()
 		if (checkTest)
 			s_DoSavePosition = true;
 
+		ImGui::PopFont();
 	}
 
 	bool checkTest = CheckWinPos(s_WinSizeSettings.buffsWinX, s_WinSizeSettings.buffsWinY, s_WinSizeSettings.buffsWinWidth, s_WinSizeSettings.buffsWinHeight,
@@ -3280,9 +3313,11 @@ static void DrawSongWindow()
 
 		DrawMenu("Songs");
 
+		ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.buffsWinScale);
 		if (ImGui::BeginPopupContextWindow("SongContext", ImGuiPopupFlags_MouseButtonRight))
 		{
-			ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+			//ImGui::SetWindowFontScale(s_FontScaleSettings.buffsWinScale);
+
 
 			if (ImGui::MenuItem("Lock Songs Window", NULL, &s_WinSettings.lockSongWin))
 			{
@@ -3300,6 +3335,8 @@ static void DrawSongWindow()
 		}
 
 		DrawBuffsTable("SongTable", pSongWnd->GetBuffRange(), false, true, true);
+
+		ImGui::PopFont();
 
 		bool checkTest = CheckWinPos(s_WinSizeSettings.songWinX, s_WinSizeSettings.songWinY, s_WinSizeSettings.songWinWidth, s_WinSizeSettings.songWinHeight,
 			ImGui::GetWindowPos(), ImGui::GetWindowSize());
@@ -3841,6 +3878,7 @@ PLUGIN_API void OnUpdateImGui()
 
 			ImGuiStyle oldStyle = ImGuiTheme::ApplyTheme(s_WinTheme.playerWinThemeId, s_WinSettings.roundPlayerWin);
 			ImGuiWindowFlags lockFlag = (s_WinSettings.lockTargetWin || s_WinSettings.lockAllWin) ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None;
+			ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.targetWinScale);
 
 			if (ImGui::Begin("Target", &s_WinSettings.showTargetWindow, s_WindowFlags | lockFlag | s_LockAllWin))
 			{
@@ -3856,7 +3894,7 @@ PLUGIN_API void OnUpdateImGui()
 
 			if (ImGui::BeginPopupContextWindow("TarContext", ImGuiPopupFlags_MouseButtonRight))
 			{
-				ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale && s_WinSettings.showTargetWindow ? s_FontScaleSettings.targetWinScale : s_FontScaleSettings.playerWinScale);
+				//ImGui::SetWindowFontScale(s_FontScaleSettings.targetWinScale && s_WinSettings.showTargetWindow ? s_FontScaleSettings.targetWinScale : s_FontScaleSettings.playerWinScale);
 
 				if (ImGui::MenuItem("Lock Target Window", NULL, &s_WinSettings.lockTargetWin))
 				{
@@ -3875,6 +3913,7 @@ PLUGIN_API void OnUpdateImGui()
 				SaveSettings();
 
 			ImGuiTheme::ResetTheme(oldStyle);
+			ImGui::PopFont();
 			ImGui::End();
 
 			if (!s_WinSettings.showTargetWindow)
@@ -3901,7 +3940,8 @@ PLUGIN_API void OnUpdateImGui()
 
 		// Casting Bar Window
 		// This applies to all characters not just spell casters.
-		DrawCastingBarWindow();
+		if (s_WinSettings.showCastingWindow)
+			DrawCastingBarWindow();
 
 		// Spell Picker
 		if (pSpellPicker)
@@ -3916,8 +3956,10 @@ PLUGIN_API void OnUpdateImGui()
 			ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_Appearing);
 			if (ImGui::Begin("Spell Book Table", &s_ShowSpellBook, ImGuiWindowFlags_None))
 			{
-				ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
+				ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * s_FontScaleSettings.spellsWinScale);
+				//ImGui::SetWindowFontScale(s_FontScaleSettings.spellsWinScale);
 				pSpellPicker->DrawSpellTable();
+				ImGui::PopFont();
 			}
 			ImGui::End();
 		}
